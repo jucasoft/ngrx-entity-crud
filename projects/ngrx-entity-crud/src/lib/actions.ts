@@ -1,6 +1,5 @@
-import {ActionEnum, Actions, CrudEnum, ICriteria} from './models';
+import {ActionEnum, Actions, CrudEnum, FilterMetadata, ICriteria} from './models';
 import {action, payload} from 'ts-action';
-import {FilterMetadata} from 'primeng/api';
 
 
 export function createCrudActionsFactory<T>() {

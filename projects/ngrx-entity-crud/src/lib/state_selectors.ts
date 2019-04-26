@@ -1,5 +1,4 @@
-import {CrudState, EntityCrudSelectors, EntityCrudState, ICriteria} from './models';
-import {FilterMetadata} from 'primeng/api';
+import {CrudState, EntityCrudSelectors, EntityCrudState, FilterMetadata, ICriteria} from './models';
 import {createSelector, MemoizedSelector} from '@ngrx/store';
 import {filter, IFilter} from './filter';
 

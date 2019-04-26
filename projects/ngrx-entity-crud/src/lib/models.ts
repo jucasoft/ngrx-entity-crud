@@ -1,5 +1,4 @@
 import {EntityAdapter, EntityState} from '@ngrx/entity';
-import {FilterMetadata} from 'primeng/api';
 import {EntitySelectors} from '@ngrx/entity/src/models';
 import {MemoizedSelector} from '@ngrx/store';
 import {ActionCreator} from 'ts-action';
