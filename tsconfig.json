@@ -17,6 +17,14 @@
     "lib": [
       "es2018",
       "dom"
-    ]
+    ],
+    "paths": {
+      "ngrx-entity-crud": [
+        "dist/ngrx-entity-crud"
+      ],
+      "ngrx-entity-crud/*": [
+        "dist/ngrx-entity-crud/*"
+      ]
+    }
   }
 }
