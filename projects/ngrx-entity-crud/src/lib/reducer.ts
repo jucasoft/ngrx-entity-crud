@@ -55,13 +55,6 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
           isLoading: true
         });
       }),
-      on(SearchRequest, (state: EntityCrudState<T>, {payload}) => {
-        // TODO: verificare se sia necessario svuotare ulteriori dati.
-        return ({
-          ...state,
-          isLoading: true
-        });
-      }),
       on(SearchSuccess, (state: EntityCrudState<T>, {payload}) => adapter.addAll(payload.items, {
         ...state,
         isLoaded: true,
