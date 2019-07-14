@@ -1,55 +1,53 @@
 import {ActionEnum, Actions, CrudEnum, FilterMetadata, ICriteria} from './models';
-import {action, payload} from 'ts-action';
+import {createAction, props} from '@ngrx/store';
 
 
 export function createCrudActionsFactory<T>() {
-  function createCrudActions(name: string);
-  // mi è capitato di dover creare un'antità passandone una di tipo differente.
-  function createCrudActions<R>(name: string): Actions<T>;
-  function createCrudActions<R>(name: string): Actions<T> {
+  function createCrudActions(name: string): Actions<T> {
 
     /**
      * mode:
      *  comportamento predefinito, il dato attualmente presente viene cancellato e ripopolato al result della chiamata
      *  REFRESH => il dato viene sostituito al result della chiamata.
      */
-    const SearchRequest = action(`[${name}] ${CrudEnum.SEARCH} ${ActionEnum.REQUEST}`,
-      payload<{ criteria: ICriteria, mode?: 'REFRESH' }>());
-    const SearchFailure = action(`[${name}] ${CrudEnum.SEARCH} ${ActionEnum.FAILURE}`, payload<{ error: string }>());
-    const SearchSuccess = action(`[${name}] ${CrudEnum.SEARCH} ${ActionEnum.SUCCESS}`, payload<{ items: T[] }>());
+    const SearchRequest = createAction(`[${name}] ${CrudEnum.SEARCH} ${ActionEnum.REQUEST}`, props<ICriteria>());
+    const SearchFailure = createAction(`[${name}] ${CrudEnum.SEARCH} ${ActionEnum.FAILURE}`, props<{ error: string }>());
+    const SearchSuccess = createAction(`[${name}] ${CrudEnum.SEARCH} ${ActionEnum.SUCCESS}`, props<{ items: T[] }>());
 
-    const DeleteRequest = action(`[${name}] ${CrudEnum.DELETE} ${ActionEnum.REQUEST}`, payload<{ item: T }>());
-    const DeleteFailure = action(`[${name}] ${CrudEnum.DELETE} ${ActionEnum.FAILURE}`, payload<{ error: string }>());
-    const DeleteSuccess = action(`[${name}] ${CrudEnum.DELETE} ${ActionEnum.SUCCESS}`, payload<{ id: string }>());
+    const DeleteRequest = createAction(`[${name}] ${CrudEnum.DELETE} ${ActionEnum.REQUEST}`, props<{ item: T, options?: { path: any[] } }>());
+    const DeleteFailure = createAction(`[${name}] ${CrudEnum.DELETE} ${ActionEnum.FAILURE}`, props<{ error: string }>());
+    const DeleteSuccess = createAction(`[${name}] ${CrudEnum.DELETE} ${ActionEnum.SUCCESS}`, props<{ id: string }>());
 
-    const CreateRequest = action(`[${name}] ${CrudEnum.CREATE} ${ActionEnum.REQUEST}`, payload<{ item: T }>());
-    const CreateFailure = action(`[${name}] ${CrudEnum.CREATE} ${ActionEnum.FAILURE}`, payload<{ error: string }>());
-    const CreateSuccess = action(`[${name}] ${CrudEnum.CREATE} ${ActionEnum.SUCCESS}`, payload<{ item: T }>());
+    const CreateRequest = createAction(`[${name}] ${CrudEnum.CREATE} ${ActionEnum.REQUEST}`, props<{ item: T, options?: { path: any[] } }>());
+    const CreateFailure = createAction(`[${name}] ${CrudEnum.CREATE} ${ActionEnum.FAILURE}`, props<{ error: string }>());
+    const CreateSuccess = createAction(`[${name}] ${CrudEnum.CREATE} ${ActionEnum.SUCCESS}`, props<{ item: T }>());
 
-    const SelectRequest = action(`[${name}] ${CrudEnum.SELECT} ${ActionEnum.REQUEST}`, payload<{ item: T }>());
-    const SelectFailure = action(`[${name}] ${CrudEnum.SELECT} ${ActionEnum.FAILURE}`, payload<{ error: string }>());
-    const SelectSuccess = action(`[${name}] ${CrudEnum.SELECT} ${ActionEnum.SUCCESS}`, payload<{ item: T }>());
+    const SelectRequest = createAction(`[${name}] ${CrudEnum.SELECT} ${ActionEnum.REQUEST}`, props<{ item: T, options?: { path: any[] } }>());
+    const SelectFailure = createAction(`[${name}] ${CrudEnum.SELECT} ${ActionEnum.FAILURE}`, props<{ error: string }>());
+    const SelectSuccess = createAction(`[${name}] ${CrudEnum.SELECT} ${ActionEnum.SUCCESS}`, props<{ item: T }>());
 
-    const EditRequest = action(`[${name}] ${CrudEnum.EDIT} ${ActionEnum.REQUEST}`, payload<{ item: T }>());
-    const EditFailure = action(`[${name}] ${CrudEnum.EDIT} ${ActionEnum.FAILURE}`, payload<{ error: string }>());
-    const EditSuccess = action(`[${name}] ${CrudEnum.EDIT} ${ActionEnum.SUCCESS}`, payload<{ item: T }>());
+    const EditRequest = createAction(`[${name}] ${CrudEnum.EDIT} ${ActionEnum.REQUEST}`, props<{ item: T, options?: { path: any[] } }>());
+    const EditFailure = createAction(`[${name}] ${CrudEnum.EDIT} ${ActionEnum.FAILURE}`, props<{ error: string }>());
+    const EditSuccess = createAction(`[${name}] ${CrudEnum.EDIT} ${ActionEnum.SUCCESS}`, props<{ item: T }>());
 
-    const Reset = action(`[${name}] Reset`);
-    const Filters = action(`[${name}] Filters`, payload<{ filters: { [s: string]: FilterMetadata; } }>());
-    const SelectItems = action(`[${name}] SelectItems`, payload<{ items: T[] }>());
-    const SelectItem = action(`[${name}] SelectItem`, payload<{ item: T }>());
+    const Reset = createAction(`[${name}] Reset`);
+    const Filters = createAction(`[${name}] Filters`, props<{ filters: { [s: string]: FilterMetadata; } }>());
+    const SelectItems = createAction(`[${name}] SelectItems`, props<{ items: T[] }>());
+    const SelectItem = createAction(`[${name}] SelectItem`, props<{ item: T }>());
 
-    const Edit = action(`[${name}] ${CrudEnum.EDIT} `, payload<{ item: T }>());
-    const Create = action(`[${name}] ${CrudEnum.CREATE}`, payload<{ item: T }>());
-    const Delete = action(`[${name}] ${CrudEnum.DELETE} `, payload<{ item: T }>());
+    const Edit = createAction(`[${name}] ${CrudEnum.EDIT} `, props<{ item: T }>());
+    const Create = createAction(`[${name}] ${CrudEnum.CREATE}`, props<{ item: T }>());
+    const Delete = createAction(`[${name}] ${CrudEnum.DELETE} `, props<{ item: T }>());
 
     return {
       SearchRequest,
       SearchFailure,
       SearchSuccess,
+
       DeleteRequest,
       DeleteFailure,
       DeleteSuccess,
+
       CreateRequest,
       CreateFailure,
       CreateSuccess,
@@ -61,6 +59,7 @@ export function createCrudActionsFactory<T>() {
       EditRequest,
       EditFailure,
       EditSuccess,
+
       Reset,
       Filters,
       SelectItems,

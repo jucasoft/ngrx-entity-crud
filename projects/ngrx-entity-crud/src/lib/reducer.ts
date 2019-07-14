@@ -1,10 +1,10 @@
-import {on, reducer} from 'ts-action';
 import {Actions, EntityCrudState} from './models';
 import {EntityAdapter} from '@ngrx/entity';
+import {createReducer, on} from '@ngrx/store';
 
 export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
 
-  function createCrudReducer<S>(initialState: S, actions: Actions<T>) {
+  function createCrudReducer<S extends EntityCrudState<T>>(initialState: S, actions: Actions<T>) {
     const {
       SearchRequest,
       DeleteRequest,
@@ -31,79 +31,115 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
       SelectItem
     } = actions;
 
-    return reducer([
-      on({SearchRequest}, (state: EntityCrudState<T>, {payload}) => {
-        if (!payload) {
+    return createReducer<S>(initialState,
+
+      on(SearchRequest, (state: S, {type, path, mode, queryParams}) => {
+        if (!path && !mode && !queryParams) {
           throw new Error('It is not possible a search without payload, use :\'{criteria:{}}\'');
         }
-        if (payload.mode === 'REFRESH') {
-          return ({
-            ...state,
-            isLoading: true,
-            lastCriteria: payload.criteria
-          });
+        if (mode === 'REFRESH') {
+          return Object.assign(
+            {},
+            state,
+            {
+              isLoading: true,
+              lastCriteria: {path, mode, queryParams}
+            }
+          );
         }
-        return adapter.removeAll(({
-          ...state,
-          isLoading: true,
-          lastCriteria: payload.criteria
-        }));
+        return adapter.removeAll(
+          Object.assign(
+            {},
+            state,
+            {
+              isLoading: true,
+              lastCriteria: {path, mode, queryParams}
+            })
+        );
       }),
-      on({DeleteRequest, EditRequest, CreateRequest}, (state: EntityCrudState<T>, {payload}) => {
-        return ({
-          ...state,
-          isLoading: true
-        });
+      on(DeleteRequest, EditRequest, CreateRequest, (state: S, {item, options, type}) => {
+        return Object.assign(
+          {},
+          state,
+          {isLoading: true}
+        );
       }),
-      on(SearchSuccess, (state: EntityCrudState<T>, {payload}) => adapter.addAll(payload.items, {
-        ...state,
-        isLoaded: true,
-        isLoading: false,
-        error: null
-      })),
-      on(DeleteSuccess, (state: EntityCrudState<T>, {payload}) => adapter.removeOne(payload.id, {
-        ...state,
-        isLoaded: true,
-        isLoading: false,
-        error: null
-      })),
-      on(CreateSuccess, (state: EntityCrudState<T>, {payload}) => adapter.addOne(payload.item, {
-        ...state,
-        isLoaded: true,
-        isLoading: false,
-        error: null
-      })),
-      on(EditSuccess, (state: EntityCrudState<T>, {payload}) => adapter.upsertOne(payload.item, {
-        ...state,
-        isLoaded: true,
-        isLoading: false,
-        error: null
-      })),
-      on(Filters, (state: EntityCrudState<T>, {payload}) => ({...state, ...{filters: payload.filters}})),
-      on(SelectItem, (state: EntityCrudState<T>, {payload}) => ({...state, ...{itemSelected: payload.item}})),
-      on(SelectItems, (state: EntityCrudState<T>, {payload}) => ({...state, ...{itemsSelected: payload.items}})),
-      on(SelectSuccess, (state: EntityCrudState<T>, {payload}) => ({
-        ...state,
-        itemSelected: payload.item,
-        isLoaded: true,
-        isLoading: false,
-        error: null
-      })),
-      on(Reset, () => initialState),
-      on({
+      on(SearchSuccess, (state: S, {type, items}) => adapter.addAll(items, Object.assign(
+        {},
+        state,
+        {
+          isLoaded: true,
+          isLoading: false,
+          error: null
+        }
+      ))),
+      on(DeleteSuccess, (state: S, {type, id}) => adapter.removeOne(id,
+        Object.assign(
+          {}, state,
+          {
+            isLoaded: true,
+            isLoading: false,
+            error: null
+          }
+        ))),
+      on(CreateSuccess, (state: S, {type, item}) => adapter.addOne(item,
+        Object.assign(
+          {}, state,
+          {
+            isLoaded: true,
+            isLoading: false,
+            error: null
+          }
+        ))),
+      on(EditSuccess, (state: S, {item, type}) => adapter.upsertOne(item,
+        Object.assign(
+          {}, state,
+          {
+            isLoaded: true,
+            isLoading: false,
+            error: null
+          }
+        ))),
+      on(Filters, (state: S, {type, filters}) => Object.assign({}, state, {filters})),
+      on(SelectItem, (state: S, {type, item}) => Object.assign({}, state, {itemSelected: item})),
+      on(SelectItems, (state: S, {type, items}) => Object.assign({}, state, {itemsSelected: items})),
+      on(SelectSuccess, (state: S, {type, item}) =>
+        Object.assign(
+          {}, state,
+          {
+            itemSelected: item,
+            isLoaded: true,
+            isLoading: false,
+            error: null
+          }
+        )),
+      on(
         SearchFailure,
         DeleteFailure,
         CreateFailure,
+        (state: S, {type, error}) => Object.assign(
+          {},
+          state,
+          {
+            isLoaded: false,
+            isLoading: false,
+            error
+          }
+        )),
+      on(
         EditFailure,
         SelectFailure,
-      }, (state, {payload}) => ({
-        ...state,
-        isLoaded: false,
-        isLoading: false,
-        error: payload.error
-      }))
-    ], initialState);
-
+        (state: S, {error, type}) => Object.assign(
+          {},
+          state,
+          {
+            isLoaded: false,
+            isLoading: false,
+            error
+          }
+        )),
+      on(Reset, () => initialState)
+    );
   }
 
   return {

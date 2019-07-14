@@ -28,5 +28,7 @@
   "exclude": [
     "src/test.ts",
     "**/*.spec.ts"
-  ]
+  ],
+  "files": ["src/index.js"],
+  "include": ["src/index.js"]
 }

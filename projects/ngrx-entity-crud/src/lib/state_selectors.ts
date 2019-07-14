@@ -1,6 +1,6 @@
 import {CrudState, EntityCrudSelectors, EntityCrudState, FilterMetadata, ICriteria} from './models';
 import {createSelector, MemoizedSelector} from '@ngrx/store';
-import {filter, IFilter} from './filter';
+import {jNgrxFilter} from './j-ngrx-filter';
 
 export function createCrudSelectorsFactory<T>(adapter) {
 
@@ -22,7 +22,7 @@ export function createCrudSelectorsFactory<T>(adapter) {
     const selectError: MemoizedSelector<V, any> = createSelector(selectState, getError);
     const selectIsLoading: MemoizedSelector<V, boolean> = createSelector(selectState, getIsLoading);
     const selectIsLoaded: MemoizedSelector<V, boolean> = createSelector(selectState, getIsLoaded);
-    const selectFilters: MemoizedSelector<V, { [s: string]: IFilter; }> = createSelector(
+    const selectFilters: MemoizedSelector<V, { [s: string]: FilterMetadata; }> = createSelector(
       selectState,
       getFilters
     );
@@ -38,8 +38,8 @@ export function createCrudSelectorsFactory<T>(adapter) {
     } = adapter.getSelectors(selectState);
 
     const selectFilteredItems: MemoizedSelector<any, T[]> = createSelector([selectAll, selectFilters],
-      (allTasks: T[], filters: { [s: string]: IFilter; }): T[] => {
-        return filter<T>(allTasks, filters);
+      (allTasks: T[], filters: { [s: string]: FilterMetadata; }): T[] => {
+        return jNgrxFilter<T>(allTasks, filters);
       }
     );
 

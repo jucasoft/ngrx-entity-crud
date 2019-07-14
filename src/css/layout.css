@@ -1,0 +1,89 @@
+/* You can add global styles to this file, and also import other style files */
+.layout-main {
+	position: absolute;
+	top: 50px;
+	left: 0;
+	right: 0;
+	padding-bottom: 20px;
+	-webkit-box-shadow: 3px 0 6px rgba(0, 0, 0, 0.3);
+	-moz-box-shadow: 3px 0 6px rgba(0, 0, 0, 0.3);
+	-moz-transition: left 0.3s;
+	-o-transition: left 0.3s;
+	-webkit-transition: left 0.3s;
+	transition: left 0.3s;
+}
+
+.layout-menu {
+	margin-left: -200px;
+	overflow: visible;
+	position: fixed;
+	width: 200px;
+	z-index: 99;
+	height: 100%;
+	background-color: #ffffff;
+	box-shadow: 3px 0 6px rgba(0, 0, 0, 0.3);
+	-webkit-box-shadow: 3px 0 6px rgba(0, 0, 0, 0.3);
+	-moz-box-shadow: 3px 0 6px rgba(0, 0, 0, 0.3);
+	-moz-transition: margin-left 0.3s;
+	-o-transition: margin-left 0.3s;
+	-webkit-transition: margin-left 0.3s;
+	transition: margin-left 0.3s;
+}
+
+body .layout-container .layout-menu .ui-menu {
+	width: 100%;
+}
+
+.layout-header {
+	position: fixed;
+	height: 50px;
+
+	top: 0;
+	left: 0;
+	right: 0;
+
+	z-index: 997;
+	padding: 8px 16px;
+	background-color: #007ad9;
+	-webkit-box-shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.16);
+	-moz-box-shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.16);
+	box-shadow: 0 3px 6px 0 rgba(0, 0, 0, 0.16);
+
+	-moz-transition: left 0.3s;
+	-o-transition: left 0.3s;
+	-webkit-transition: left 0.3s;
+	transition: left 0.3s;
+}
+
+/*Small devices (landscape phones, 576px and up)*/
+@media (min-width: 576px) {
+}
+
+/*Medium devices (tablets, 768px and up)*/
+@media (min-width: 768px) {
+}
+
+/*Large devices (desktops, 992px and up)*/
+@media (min-width: 992px) {
+	.layout-main.layout-main-menu-opened {
+		left: 200px;
+	}
+}
+
+/*Extra large devices (large desktops, 1200px and up)*/
+@media (min-width: 1200px) {
+
+}
+
+/*Extra large devices (large desktops, 1200px and up)*/
+@media (min-width: 1400px) {
+
+}
+
+.layout-header.layout-main-menu-opened {
+	left: 200px;
+}
+
+.layout-menu.layout-menu-inactive {
+	margin-left: 0;
+}

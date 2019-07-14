@@ -12,6 +12,7 @@ export class BaseCrudService<T> {
 
   protected service = '';
   protected id = 'id';
+  private debug: boolean = false;
 
   constructor(protected http: HttpClient) {
   }
@@ -20,66 +21,130 @@ export class BaseCrudService<T> {
     return {
       headers: new HttpHeaders()
     };
+  };
+
+  creates(value: T[]): Observable<Response<T[]>> {
+    if (typeof (console) !== 'undefined' && this.debug) {
+      console.log('%c BaseCrudService.creates()', 'color: #777777');
+      console.log('%c Extended from: ' + this.constructor.name, 'color: #777777');
+      console.log.apply(console, arguments);
+    }
+    return this.http.post<Response<T[]>>(`${this.getUrl()}`, value, this.httpOptions());
   }
 
-  create(value: T): Observable<Response<T>> {
-    console.log('BaseCrudService.create()');
-    console.log('Extended from: ' + this.constructor.name);
-    console.log.apply(console, arguments);
-
-    const taskRuntime = value;
-    return this.http.post<Response<T>>(`${this.getUrl()}`, value, this.httpOptions());
+  create(value: T, options?: { path: any[] }): Observable<Response<T>> {
+    if (typeof (console) !== 'undefined' && this.debug) {
+      console.log('%c BaseCrudService.create()', 'color: #777777');
+      console.log('%c Extended from: ' + this.constructor.name, 'color: #777777');
+      console.log.apply(console, arguments);
+    }
+    const path = !!options && !!options.path ? options.path : null;
+    return this.http.post<Response<T>>(`${this.getUrl(path)}`, value, this.httpOptions());
   }
 
-  search(value?: ICriteria): Observable<Response<T>> {
+  /**
+   *
+   * @param value
+   */
+  search(value?: ICriteria): Observable<Response<T[]>> {
     console.log('BaseCrudService.search()');
     console.log('Extended from: ' + this.constructor.name);
     console.log.apply(console, arguments);
+    if (this.isNewCriteria(value)) {
+      const url = value && value.hasOwnProperty('path') && !!value.path ? value.path.join('/') : '';
 
-    const url = value && value.hasOwnProperty('path') ? value.path : '';
+      let httpOptions = this.httpOptions();
+
+      if (value && value.hasOwnProperty('queryParams') && !!value.queryParams) {
+        httpOptions = ({...httpOptions, ...{params: value.queryParams}});
+      }
+
+      return this.http.get(this.getUrl() + url, httpOptions).pipe(
+        map(this.searchMap),
+      ) as Observable<Response<T[]>>;
+    }
+
+    if (this.isOldCriteria(value)) {
+      debugger;
+      this.oldSearch(value);
+    }
+  }
+
+  oldSearch(value: ICriteria | string = ''): Observable<Response<T[]>> {
+
+    let url = '';
+    if (value !== '' && !value.hasOwnProperty('criteria')) {
+      url = !!value['getValue'] ? value['getValue']() : value;
+      url = url.indexOf('/') !== 0 ? '/' + url : url;
+    }
 
     let httpOptions = this.httpOptions();
-
-    if (value && value.hasOwnProperty('queryParams')) {
-      httpOptions = ({...httpOptions, ...{params: value.queryParams}});
+    if (value.hasOwnProperty('criteria')) {
+      httpOptions = ({...httpOptions, ...{params: value['criteria']}});
     }
 
     return this.http.get(this.getUrl() + url, httpOptions).pipe(
       map(this.searchMap),
-    ) as Observable<Response<T>>;
+    ) as Observable<Response<T[]>>;
+
+  }
+
+  isNewCriteria(criteria): boolean {
+    return !criteria || criteria.hasOwnProperty('queryParams') || criteria.hasOwnProperty('path') || criteria.hasOwnProperty('mode');
+  }
+
+  isOldCriteria(criteria): boolean {
+    return criteria.hasOwnProperty('criteria');
   }
 
   searchMap = res => res;
 
-  select(value: T | string): Observable<Response<T>> {
-    console.log('BaseCrudService.select()');
-    console.log('Extended from: ' + this.constructor.name);
-    console.log.apply(console, arguments);
-    const url = typeof value === 'string' ? value : value[this.id];
-    return this
-      .http
-      .get<Response<T>>(`${this.getUrl()}/${url}`, this.httpOptions());
-  }
+  select(value: T): Observable<Response<T>> {
+    if (typeof (console) !== 'undefined' && this.debug) {
+      console.log('%c BaseCrudService.select()', 'color: #777777');
+      console.log('%c Extended from: ' + this.constructor.name, 'color: #777777');
+      console.log.apply(console, arguments);
+    }
 
-  update(value: T): Observable<Response<T>> {
-    console.log('BaseCrudService.update()');
-    console.log('Extended from: ' + this.constructor.name);
-    console.log.apply(console, arguments);
-    return this.create(value);
-  }
-
-  delete(value: T): Observable<Response<T>> {
-    console.log('BaseCrudService.delete()');
-    console.log('Extended from: ' + this.constructor.name);
-    console.log.apply(console, arguments);
+    const id = this.getId(value);
 
     return this
       .http
-      .delete<Response<T>>(`${this.getUrl()}`, this.httpOptions());
+      .get<Response<T>>(`${this.getUrl()}/${id}`, this.httpOptions());
   }
 
-  protected getUrl(): string {
-    return this.service;
+  update(value: T, options?: { path: any[] }): Observable<Response<T>> {
+    if (typeof (console) !== 'undefined' && this.debug) {
+      console.log('%c BaseCrudService.update()', 'color: #777777');
+      console.log('%c Extended from: ' + this.constructor.name, 'color: #777777');
+      console.log.apply(console, arguments);
+    }
+    return this.create(value, options);
+  }
+
+  delete(value: T): Observable<Response<string>> {
+    if (typeof (console) !== 'undefined' && this.debug) {
+      console.log('%c BaseCrudService.delete()', 'color: #777777');
+      console.log('%c Extended from: ' + this.constructor.name, 'color: #777777');
+      console.log.apply(console, arguments);
+    }
+    return this
+      .http
+      .delete<Response<string>>(`${this.getUrl()}/${this.getId(value)}`, this.httpOptions());
+  }
+
+  protected getId = (value) => value[this.id];
+
+  protected getUrl(path?: string[]): string {
+    const result = !!path ? `${this.service}/${path.join('/')}` : this.service;
+    if (typeof (console) !== 'undefined' && this.debug) {
+      console.log('%c BaseCrudService.getUrl(path?:string[]): string', 'color: #777777');
+      console.log('%c path: ' + path, 'color: #777777');
+      console.log('%c Extended from: ' + this.constructor.name, 'color: #777777');
+      console.log('%c result: ' + result, 'color: #777777');
+      console.log.apply(console, arguments);
+    }
+    return result;
   }
 
 }

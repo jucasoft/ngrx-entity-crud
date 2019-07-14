@@ -6,11 +6,11 @@ import {createCrudSelectorsFactory} from './state_selectors';
 import {createCrudActionsFactory} from './actions';
 import {createCrudReducerFactory} from './reducer';
 
-export function createCrusEntityAdapter<T>(options?: {
+export function createCrudEntityAdapter<T>(options?: {
   selectId?: IdSelector<T>;
   sortComparer?: false | Comparer<T>;
 }): EntityCrudAdapter<T>;
-export function createCrusEntityAdapter<T>(options?: {
+export function createCrudEntityAdapter<T>(options?: {
   selectId?: IdSelector<T>;
   sortComparer?: false | Comparer<T>;
 }): EntityCrudAdapter<T> {
@@ -21,11 +21,12 @@ export function createCrusEntityAdapter<T>(options?: {
   const actionsFactory = createCrudActionsFactory<T>();
   const reducerFactory = createCrudReducerFactory<T>(adapter);
 
-  return {
-    ...adapter,
-    ...stateFactory,
-    ...selectorsFactory,
-    ...actionsFactory,
-    ...reducerFactory
-  };
+  return Object.assign(
+    {},
+    adapter,
+    stateFactory,
+    selectorsFactory,
+    actionsFactory,
+    reducerFactory
+  );
 }

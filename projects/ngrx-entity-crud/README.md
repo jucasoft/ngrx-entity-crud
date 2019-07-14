@@ -1,9 +1,5 @@
 # NgrxEntityCrud
-Actions, reducers selectors... for the CRUD management of the entities.
-
-## Why make this library?
-
-Basic steps before creating the library (maybe it will help you understand):
+Provides actions, reducers and selectors for the CRUD management of the entities.
 
 1) Having adopted this best practice:   
 [NgRx — Best Practices for Enterprise Angular Applications](https://itnext.io/ngrx-best-practices-for-enterprise-angular-applications-6f00bcdf36d7)
@@ -15,16 +11,13 @@ Basic steps before creating the library (maybe it will help you understand):
 
 4) At that point the code was reduced a lot, but I still had repeated code for the reducers and selectors.
 
-5) I decided to create an extension of [@ngrx/entity](https://github.com/ngrx/platform/tree/master/modules/entity) for the automatic generation of actions, reducers, selectors and everything that can be used for the CRUD management of the entities.
-
-
 ## Running unit tests
 
 Run `ng test NgrxEntityCrud` to execute the unit tests via [Karma](https://karma-runner.github.io).
 
-## Help
+## Further help
 
-For help or information write to: incoming+jucasoft-ngrx-entity-crud-12043524-issue-@incoming.gitlab.com
+To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
 
 ## MIT License
 

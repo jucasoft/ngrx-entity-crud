@@ -1,14 +1,14 @@
 {
   "name": "ngrx-entity-crud",
-  "version": "0.1.32",
+  "version": "0.3.1",
   "repository": "https://gitlab.com/jucasoft/ngrx-entity-crud.git",
   "license": "MIT",
   "peerDependencies": {
-    "@angular/common": "^7.2.0",
-    "@angular/core": "^7.2.0",
-    "ts-action": "^8.0.0",
-    "@ngrx/store": "^7.2.0",
-    "@ngrx/entity": "^7.2.0"
+    "@angular/common": "^8.0.0",
+    "@angular/core": "^8.0.0",
+    "@ngrx/store": "^8.0.0",
+    "@ngrx/entity": "^8.0.0",
+    "tslib": "^1.10.0"
   },
   "keywords": [
     "angular",
