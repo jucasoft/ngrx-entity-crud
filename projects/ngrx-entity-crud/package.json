@@ -1,14 +1,27 @@
 {
   "name": "ngrx-entity-crud",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "repository": "https://gitlab.com/jucasoft/ngrx-entity-crud.git",
   "license": "MIT",
+  "schematics": "./schematics/collection.json",
+  "scripts": {
+    "build": "../../node_modules/.bin/tsc -p tsconfig.schematics.json",
+    "copy:schemas": "cp -R schematics/*/schema.json ../../libs/ngrx-entity-crud/",
+    "copy:files": "cp -R schematics/*/files/** ../../libs/ngrx-entity-crud/",
+    "copy:collection": "cp schematics/collection.json ../../libs/ngrx-entity-crud/schematics/collection.json",
+    "postbuild": "npm run copy:schemas && npm run copy:files && npm run copy:collection"
+  },
   "peerDependencies": {
+    "@angular-devkit/core": "^8.0.6",
+    "@angular-devkit/schematics": "^8.0.6",
+    "@angular-devkit/schematics-cli": "^0.800.6",
+
     "@angular/common": "^8.0.0",
     "@angular/core": "^8.0.0",
     "@ngrx/store": "^8.0.0",
     "@ngrx/entity": "^8.0.0",
-    "tslib": "^1.10.0"
+
+    "deepmerge": "^4.0.0"
   },
   "keywords": [
     "angular",

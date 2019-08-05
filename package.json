@@ -5,7 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "buildLibs": "ng build NgrxEntityCrud --watch",
+    "buildLibs": "ng build NgrxEntityCrud &&  cd projects/ngrx-entity-crud/ && npm run build",
     "testLibs": "ng test NgrxEntityCrud",
     "test": "ng test",
     "lint": "ng lint",
@@ -36,6 +36,7 @@
     "immer": "^3.1.3",
     "tslib": "^1.10.0",
     "zone.js": "~0.9.1",
+    "deepmerge": "^4.0.0",
     "ngrx-entity-crud": "file:libs/ngrx-entity-crud"
   },
   "devDependencies": {

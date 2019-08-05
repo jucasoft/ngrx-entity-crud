@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "id": "CrudSection",
+  "title": "Crud store schematics",
+  "type": "object",
+  "properties": {
+    "path": {
+      "type": "string",
+      "format": "path",
+      "description": "The path at which to create the component file, relative to the current workspace. Default is a folder with the same name as the component in the project root.",
+      "visible": false
+    },
+    "clazz": {
+      "description": "The name of the entity.",
+      "type": "string",
+      "x-prompt": "Enter the name of the entity:"
+    },
+    "mainSection": {
+      "description": "if it is the default section, a route rule such as \"{path: '', redirectTo: '{{sectionNAme}}', pathMatch: 'full'}\" will be added to the main module",
+      "type": "boolean",
+      "default": false,
+      "x-prompt": "Do you want to add a route to redirect the main route in this section?"
+    },
+    "project": {
+      "type": "string",
+      "description": "The name of the project.",
+      "$default": {
+        "$source": "projectName"
+      }
+    }
+  },
+  "required": [
+    "clazz",
+    "mainSection"
+  ]
+}
