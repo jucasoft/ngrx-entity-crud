@@ -115,6 +115,11 @@ export function addPackageJsonDependencys(tree: Tree) {
     //     type: NodeDependencyType.Default
     // });
     addPackageJsonDependency(tree, {
+        name: "@angular-devkit/schematics-cli",
+        version: "^8.0.0",
+        type: NodeDependencyType.Default
+    });
+    addPackageJsonDependency(tree, {
         name: "@ngrx/effects",
         version: "^8.0.0",
         type: NodeDependencyType.Default
@@ -153,6 +158,7 @@ export function addPackageJsonDependencys(tree: Tree) {
     // addPackageJsonDependency(tree, {name: "deep-equal", version: "^1.0.1", type: NodeDependencyType.Default});
     // addPackageJsonDependency(tree, {name: "lodash.memoize", version: "^4.1.2", type: NodeDependencyType.Default});
     addPackageJsonDependency(tree, {name: "ngrx-entity-crud", version: "0.3.1", type: NodeDependencyType.Default});
+    addPackageJsonDependency(tree, {name: "deepmerge", version: "^4.0.0", type: NodeDependencyType.Default});
     // addPackageJsonDependency(tree, {name: "ngx-spinner", version: "^7.1.4", type: NodeDependencyType.Default});
     // addPackageJsonDependency(tree, {name: "primeflex", version: "^1.0.0-rc.1", type: NodeDependencyType.Default});
     addPackageJsonDependency(tree, {name: "primeicons", version: "^1.0.0", type: NodeDependencyType.Default});

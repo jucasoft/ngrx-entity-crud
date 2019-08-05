@@ -1,6 +1,6 @@
 {
   "name": "ngrx-entity-crud",
-  "version": "0.4.0",
+  "version": "0.4.31",
   "repository": "https://gitlab.com/jucasoft/ngrx-entity-crud.git",
   "license": "MIT",
   "schematics": "./schematics/collection.json",
@@ -16,12 +16,10 @@
     "@angular-devkit/core": "^8.0.6",
     "@angular-devkit/schematics": "^8.0.6",
     "@angular-devkit/schematics-cli": "^0.800.6",
-
     "@angular/common": "^8.0.0",
     "@angular/core": "^8.0.0",
     "@ngrx/store": "^8.0.0",
     "@ngrx/entity": "^8.0.0",
-
     "deepmerge": "^4.0.0"
   },
   "keywords": [

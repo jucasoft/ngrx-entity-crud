@@ -91,6 +91,19 @@ We install the library
 npm i ngrx-entity-crud -S
 ```
 
+Now that library is installed, you can run the schematic using the ng generate command.
+The first command to run is "init-app-store", to initialize the project, creating some directories and installing @ngrx
+```
+ng generate ngrx-entity-crud:init-app-store
+npm i
+```
+
+Now we will create the store to manage the coins. The command to use: "crud-store" and the parameters to pass: "--clazz=Coin" and "--name=coin"
+```
+ng generate ngrx-entity-crud:crud-store --name=coin --clazz=Coin
+```
+
+
 ## Running unit tests
 
 Run `ng test NgrxEntityCrud` to execute the unit tests via [Karma](https://karma-runner.github.io).

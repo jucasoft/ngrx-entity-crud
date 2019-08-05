@@ -27,7 +27,9 @@
     ]
   },
   "include": [
-    "schematics/**/*"
+    "schematics/**/*",
+    "schematics/*.ts"
+
   ],
   "exclude": [
     "schematics/*/files/**/*"
