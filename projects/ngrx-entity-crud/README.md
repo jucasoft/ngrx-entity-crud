@@ -1,23 +1,103 @@
 # NgrxEntityCrud
 Provides actions, reducers and selectors for the CRUD management of the entities.
 
+How did I get to this result?
+
 1) Having adopted this best practice:   
 [NgRx — Best Practices for Enterprise Angular Applications](https://itnext.io/ngrx-best-practices-for-enterprise-angular-applications-6f00bcdf36d7)
 
 2) I wanted a mechanism to eliminate repeated code in my projects, after reading this article:   
 [How to Reduce Action Boilerplate](https://blog.angularindepth.com/how-to-reduce-action-boilerplate-90dc3d389e2b)
 
-3) I replaced all my actions, using the ts-action and ts-action-operators libraries.
+3) In the first version of this library, i used the "ts-action" and "ts-action-operators" libraries, 
+from version 8 of ngrx these features are integrated.
 
-4) At that point the code was reduced a lot, but I still had repeated code for the reducers and selectors.
+4) [Schematics for Libraries](https://angular.io/guide/schematics-for-libraries).
+
+## Installation
+
+```
+npm i ngrx-entity-crud -S
+```
+
+## How to use it?
+We create an application with the classic CRUD features.
+
+### Generated new project with [Angular CLI](https://github.com/angular/angular-cli).
+```
+ ng new InsertCoin
+ cd InsertCoin
+```
+### Back-End
+In this project we will use [jsonserver](https://github.com/typicode/json-server) to create the Beck-end services:
+```
+npm install json-server --save-dev
+```
+
+Create a fake-server/db.json file with some data
+```
+{
+  "coin": [
+    { "id": 1, "value": "10", "name": "xxxx", "description": "xxxx" },
+    { "id": 2, "value": "20", "name": "xxxx", "description": "xxxx" },
+    { "id": 3, "value": "30", "name": "xxxx", "description": "xxxx" }
+  ]
+}
+```
+
+Create a fake-server/server.js file:
+```
+const jsonServer = require('json-server');
+const server = jsonServer.create();
+const path = require('path');
+const router = jsonServer.router(path.join(__dirname, 'db.json'));
+const middlewares = jsonServer.defaults();
+
+server.use(middlewares);
+server.use(router);
+
+router.render = (req, res) => {
+  res.jsonp({
+    data: res.locals.data
+  })
+};
+
+server.listen(3000, (res) => {
+  console.log('JSON Server is running on http://localhost:3000')
+});
+```
+
+
+Start JSON Server
+```
+node fake-server/server.js
+```
+
+Now if you go to http://localhost:3000/coin/1, you'll get:
+```
+{
+  "data": {
+    "id": 1,
+    "value": "10",
+    "name": "xxxx",
+    "description": "xxxx"
+  }
+}
+```
+
+### Front-end
+We install the library
+```
+npm i ngrx-entity-crud -S
+```
 
 ## Running unit tests
 
 Run `ng test NgrxEntityCrud` to execute the unit tests via [Karma](https://karma-runner.github.io).
 
-## Further help
+## Help
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+If you need help, or want to help me: [https://gitlab.com/jucasoft/ngrx-entity-crud](https://gitlab.com/jucasoft/ngrx-entity-crud)
 
 ## MIT License
 

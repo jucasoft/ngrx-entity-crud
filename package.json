@@ -37,7 +37,7 @@
     "tslib": "^1.10.0",
     "zone.js": "~0.9.1",
     "deepmerge": "^4.0.0",
-    "ngrx-entity-crud": "file:libs/ngrx-entity-crud"
+    "ngrx-entity-crud": "^0.4.0"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "~0.800.0",
