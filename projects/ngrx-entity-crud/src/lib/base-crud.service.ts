@@ -19,7 +19,7 @@ export class BaseCrudService<T> {
 
   httpOptions = () => {
     return {
-      headers: new HttpHeaders()
+      headers: new HttpHeaders({"Content-Type": "application/json"})
     };
   };
 
@@ -70,7 +70,7 @@ export class BaseCrudService<T> {
     }
   }
 
-  oldSearch(value: ICriteria | string = ''): Observable<Response<T[]>> {
+  private oldSearch(value: ICriteria | string = ''): Observable<Response<T[]>> {
 
     let url = '';
     if (value !== '' && !value.hasOwnProperty('criteria')) {
@@ -89,7 +89,7 @@ export class BaseCrudService<T> {
 
   }
 
-  isNewCriteria(criteria): boolean {
+  private isNewCriteria(criteria): boolean {
     return !criteria || criteria.hasOwnProperty('queryParams') || criteria.hasOwnProperty('path') || criteria.hasOwnProperty('mode');
   }
 
@@ -119,7 +119,9 @@ export class BaseCrudService<T> {
       console.log('%c Extended from: ' + this.constructor.name, 'color: #777777');
       console.log.apply(console, arguments);
     }
-    return this.create(value, options);
+    const id = this.getId(value);
+    const path = !!options && !!options.path ? options.path : null;
+    return this.http.put<Response<T>>(`${this.getUrl(path)}/${id}`, value, this.httpOptions());
   }
 
   delete(value: T): Observable<Response<string>> {

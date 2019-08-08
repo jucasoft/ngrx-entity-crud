@@ -5,7 +5,8 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "buildLibs": "ng build NgrxEntityCrud &&  cd projects/ngrx-entity-crud/ && npm run build",
+    "buildLibs": "ng build NgrxEntityCrud --watch",
+    "buildLibsSchematics": "ng build NgrxEntityCrud &&  cd projects/ngrx-entity-crud/ && npm run build",
     "testLibs": "ng test NgrxEntityCrud",
     "test": "ng test",
     "lint": "ng lint",
@@ -40,6 +41,9 @@
     "zone.js": "~0.9.1"
   },
   "devDependencies": {
+    "@angular-devkit/core": "^8.0.6",
+    "@angular-devkit/schematics": "^8.0.6",
+    "@angular-devkit/schematics-cli": "^0.800.6",
     "@angular-devkit/build-angular": "~0.800.0",
     "@angular-devkit/build-ng-packagr": "~0.800.0",
     "@angular/cli": "~8.0.3",

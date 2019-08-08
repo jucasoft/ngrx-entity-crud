@@ -1,6 +1,6 @@
 {
   "name": "ngrx-entity-crud",
-  "version": "0.4.31",
+  "version": "0.4.40",
   "repository": "https://gitlab.com/jucasoft/ngrx-entity-crud.git",
   "license": "MIT",
   "schematics": "./schematics/collection.json",
@@ -20,7 +20,8 @@
     "@angular/core": "^8.0.0",
     "@ngrx/store": "^8.0.0",
     "@ngrx/entity": "^8.0.0",
-    "deepmerge": "^4.0.0"
+    "deepmerge": "^4.0.0",
+    "rxjs": "~6.5.2"
   },
   "keywords": [
     "angular",
@@ -32,5 +33,6 @@
     "crud"
   ],
   "author": "Giuseppe Luca Lo Re <juca@jucasoft.com>",
-  "private": false
+  "private": false,
+  "dependencies": {}
 }

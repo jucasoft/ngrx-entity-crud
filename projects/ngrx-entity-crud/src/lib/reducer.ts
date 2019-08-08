@@ -1,4 +1,4 @@
-import {Actions, EntityCrudState} from './models';
+import {Actions, EntityCrudState, ICriteria, OptRequest} from './models';
 import {EntityAdapter} from '@ngrx/entity';
 import {createReducer, on} from '@ngrx/store';
 
@@ -33,17 +33,17 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
 
     return createReducer<S>(initialState,
 
-      on(SearchRequest, (state: S, {type, path, mode, queryParams}) => {
-        if (!path && !mode && !queryParams) {
+      on(SearchRequest, (state: S, criteria:ICriteria) => {
+        if (!criteria.path && !criteria.mode && !criteria.queryParams) {
           throw new Error('It is not possible a search without payload, use :\'{criteria:{}}\'');
         }
-        if (mode === 'REFRESH') {
+        if (criteria.mode === 'REFRESH') {
           return Object.assign(
             {},
             state,
             {
               isLoading: true,
-              lastCriteria: {path, mode, queryParams}
+              lastCriteria: criteria
             }
           );
         }
@@ -53,11 +53,11 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
             state,
             {
               isLoading: true,
-              lastCriteria: {path, mode, queryParams}
+              lastCriteria: criteria
             })
         );
       }),
-      on(DeleteRequest, EditRequest, CreateRequest, (state: S, {item, options, type}) => {
+      on(DeleteRequest, EditRequest, CreateRequest, (state: S, request:OptRequest<T>) => {
         return Object.assign(
           {},
           state,

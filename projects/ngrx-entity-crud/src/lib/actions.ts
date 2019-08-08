@@ -1,6 +1,5 @@
-import {ActionEnum, Actions, CrudEnum, FilterMetadata, ICriteria} from './models';
-import {createAction, props} from '@ngrx/store';
-
+import {ActionEnum, Actions, CrudEnum, FilterMetadata, ICriteria, OptRequest} from './models';
+import {createAction, props, Action} from '@ngrx/store';
 
 export function createCrudActionsFactory<T>() {
   function createCrudActions(name: string): Actions<T> {
@@ -14,19 +13,19 @@ export function createCrudActionsFactory<T>() {
     const SearchFailure = createAction(`[${name}] ${CrudEnum.SEARCH} ${ActionEnum.FAILURE}`, props<{ error: string }>());
     const SearchSuccess = createAction(`[${name}] ${CrudEnum.SEARCH} ${ActionEnum.SUCCESS}`, props<{ items: T[] }>());
 
-    const DeleteRequest = createAction(`[${name}] ${CrudEnum.DELETE} ${ActionEnum.REQUEST}`, props<{ item: T, options?: { path: any[] } }>());
+    const DeleteRequest = createAction(`[${name}] ${CrudEnum.DELETE} ${ActionEnum.REQUEST}`, props<OptRequest<T>>());
     const DeleteFailure = createAction(`[${name}] ${CrudEnum.DELETE} ${ActionEnum.FAILURE}`, props<{ error: string }>());
     const DeleteSuccess = createAction(`[${name}] ${CrudEnum.DELETE} ${ActionEnum.SUCCESS}`, props<{ id: string }>());
 
-    const CreateRequest = createAction(`[${name}] ${CrudEnum.CREATE} ${ActionEnum.REQUEST}`, props<{ item: T, options?: { path: any[] } }>());
+    const CreateRequest = createAction(`[${name}] ${CrudEnum.CREATE} ${ActionEnum.REQUEST}`, props<OptRequest<T>>());
     const CreateFailure = createAction(`[${name}] ${CrudEnum.CREATE} ${ActionEnum.FAILURE}`, props<{ error: string }>());
     const CreateSuccess = createAction(`[${name}] ${CrudEnum.CREATE} ${ActionEnum.SUCCESS}`, props<{ item: T }>());
 
-    const SelectRequest = createAction(`[${name}] ${CrudEnum.SELECT} ${ActionEnum.REQUEST}`, props<{ item: T, options?: { path: any[] } }>());
+    const SelectRequest = createAction(`[${name}] ${CrudEnum.SELECT} ${ActionEnum.REQUEST}`, props<OptRequest<T>>());
     const SelectFailure = createAction(`[${name}] ${CrudEnum.SELECT} ${ActionEnum.FAILURE}`, props<{ error: string }>());
     const SelectSuccess = createAction(`[${name}] ${CrudEnum.SELECT} ${ActionEnum.SUCCESS}`, props<{ item: T }>());
 
-    const EditRequest = createAction(`[${name}] ${CrudEnum.EDIT} ${ActionEnum.REQUEST}`, props<{ item: T, options?: { path: any[] } }>());
+    const EditRequest = createAction(`[${name}] ${CrudEnum.EDIT} ${ActionEnum.REQUEST}`, props<OptRequest<T>>());
     const EditFailure = createAction(`[${name}] ${CrudEnum.EDIT} ${ActionEnum.FAILURE}`, props<{ error: string }>());
     const EditSuccess = createAction(`[${name}] ${CrudEnum.EDIT} ${ActionEnum.SUCCESS}`, props<{ item: T }>());
 

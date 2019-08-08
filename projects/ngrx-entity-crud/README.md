@@ -98,11 +98,14 @@ ng generate ngrx-entity-crud:init-app-store
 npm i
 ```
 
-Now we will create the store to manage the coins. The command to use: "crud-store" and the parameters to pass: "--clazz=Coin" and "--name=coin"
+Create the store to manage the coins. The command to use: "crud-store" and the parameters to pass: "--clazz=Coin" and "--name=coin"
 ```
 ng generate ngrx-entity-crud:crud-store --name=coin --clazz=Coin
 ```
 
+```
+ng generate ngrx-entity-crud:crud-section --clazz=Coin
+```
 
 ## Running unit tests
 

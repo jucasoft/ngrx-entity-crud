@@ -1,6 +1,6 @@
 import {EntityAdapter, EntityState} from '@ngrx/entity';
 import {EntitySelectors} from '@ngrx/entity/src/models';
-import {ActionCreator, MemoizedSelector} from '@ngrx/store';
+import {Action, ActionCreator, MemoizedSelector} from '@ngrx/store';
 import {TypedAction} from '@ngrx/store/src/models';
 
 export enum CrudEnum {
@@ -17,10 +17,36 @@ export enum ActionEnum {
   SUCCESS = 'Success',
 }
 
-export interface ICriteria {
-  queryParams?: any;
+export interface OptRequestBase {
+  /**
+   * is added to the service route,
+   * in some cases it is necessary to invoke a sub-route.
+   * if the service was "user" and the sub-route "user/accept":
+   * path:["accept"]
+   */
   path?: any[];
+  /**
+   * Dispatched actions in case of error.
+   */
+  onFault?: Action[];
+  /**
+   * Dispatched actions in the event of a positive response
+   */
+  onResult?: Action[];
+}
+
+export interface ICriteria extends OptRequestBase{
+  /**
+   *
+   if the "REFRESH" value is passed, the store will be deleted before making the remote call.
+   */
   mode?: 'REFRESH';
+
+  queryParams?: any;
+}
+
+export interface OptRequest<T> extends OptRequestBase {
+  item: T
 }
 
 export interface Response<T> {
@@ -92,19 +118,19 @@ export interface Actions<T> {
   SearchFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
   SearchSuccess: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
 
-  DeleteRequest: ActionCreator<string, (props: { item: T; options?: { path: any[]; }; }) => { item: T; options?: { path: any[]; }; } & TypedAction<string>>;
+  DeleteRequest: ActionCreator<string, (props: OptRequest<T>) => OptRequest<T> & TypedAction<string>>;
   DeleteFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
   DeleteSuccess: ActionCreator<string, (props: { id: string; }) => { id: string; } & TypedAction<string>>;
 
-  CreateRequest: ActionCreator<string, (props: { item: T; options?: { path: any[]; }; }) => { item: T; options?: { path: any[]; }; } & TypedAction<string>>;
+  CreateRequest: ActionCreator<string, (props: OptRequest<T>) => OptRequest<T> & TypedAction<string>>;
   CreateFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
   CreateSuccess: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 
-  SelectRequest: ActionCreator<string, (props: { item: T; options?: { path: any[]; }; }) => { item: T; options?: { path: any[]; }; } & TypedAction<string>>;
+  SelectRequest: ActionCreator<string, (props: OptRequest<T>) => OptRequest<T> & TypedAction<string>>;
   SelectFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
   SelectSuccess: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 
-  EditRequest: ActionCreator<string, (props: { item: T; options?: { path: any[]; }; }) => { item: T; options?: { path: any[]; }; } & TypedAction<string>>;
+  EditRequest: ActionCreator<string, (props: OptRequest<T>) => OptRequest<T> & TypedAction<string>>;
   EditFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
   EditSuccess: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 

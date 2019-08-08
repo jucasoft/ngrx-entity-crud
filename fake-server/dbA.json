@@ -1,0 +1,22 @@
+{
+  "competency": [
+    {"id": "1", "description": "Egyptian viper", "category":"A", },
+    {"id": "2", "description": "Russian dragonfly", "category":"A", },
+    {"id": "3", "description": "Hartebeest, coke's", "category":"A", },
+    {"id": "4", "description": "Crab, sally lightfoot", "category":"A", },
+    {"id": "5", "description": "Komodo dragon", "category":"A", },
+    {"id": "6", "description": "Dove, galapagos", "category":"A", },
+    {"id": "7", "description": "White-tailed jackrabbit", "category":"A", },
+    {"id": "8", "description": "Tortoise, burmese brown mountain", "category":"A", },
+  ],
+  "questions": [
+    {"id": "1", "description": "Egyptian viper", "category":"A", },
+    {"id": "2", "description": "Russian dragonfly", "category":"A", },
+    {"id": "3", "description": "Hartebeest, coke's", "category":"A", },
+    {"id": "4", "description": "Crab, sally lightfoot", "category":"A", },
+    {"id": "5", "description": "Komodo dragon", "category":"A", },
+    {"id": "6", "description": "Dove, galapagos", "category":"A", },
+    {"id": "7", "description": "White-tailed jackrabbit", "category":"A", },
+    {"id": "8", "description": "Tortoise, burmese brown mountain", "category":"A", },
+  ]
+}
