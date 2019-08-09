@@ -1,1 +1,40 @@
-<%= dasherize(clazz) %>-edit.component.html
+<p-dialog header="{{title}}"
+          [transitionOptions]="'150ms cubic-bezier(0, 0, 0.2, 1)'"
+          [visible]="true"
+          [modal]="true"
+          [responsive]="true"
+          [style]="{width: '70em', minWidth: '200px'}"
+          [minY]="70"
+          [maximizable]="false"
+          [closable]="false"
+          (onHide)="cancel()">
+
+  <p-header>
+    <a (click)="cancel()" role="button" tabindex="0" class="ng-tns-c11-8 ui-dialog-titlebar-icon ui-dialog-titlebar-close ui-corner-all ng-star-inserted"><span class="pi pi-times"></span></a>
+  </p-header>
+  <div class="ui-g">
+    <div class="ui-g-6">
+      <form
+        class="dynamic-form"
+        [formGroup]="form">
+        <div *ngFor="let key of keys" class="ui-g">
+          <div class="ui-g-12">
+            <label for="{{key}}"><strong>{{key}}</strong></label><br>
+            <input id="{{key}}" name="{{key}}" type="text" class="form-control" pInputText [formControlName]="key"/>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="ui-g-6">
+<pre>
+{{form | jsonForm | json}}
+</pre>
+    </div>
+  </div>
+
+  <p-footer>
+    <button pButton class="ui-button-success mr-1" label="save" (click)="submit(form.getRawValue())"></button>
+    <button pButton type="button" label="Cancel" (click)="cancel()"></button>
+  </p-footer>
+
+</p-dialog>

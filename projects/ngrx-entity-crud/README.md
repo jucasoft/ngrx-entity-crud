@@ -23,18 +23,58 @@ npm i ngrx-entity-crud -S
 ## How to use it?
 We create an application with the classic CRUD features.
 
-### Generated new project with [Angular CLI](https://github.com/angular/angular-cli).
+### Download Angular + PrimeNg + NgRx Boilerplate
 ```
- ng new InsertCoin
- cd InsertCoin
-```
-### Back-End
-In this project we will use [jsonserver](https://github.com/typicode/json-server) to create the Beck-end services:
-```
-npm install json-server --save-dev
+git clone https://gitlab.com/jucasoft/ngrx-entity-crud-prime-ng-boilerplate.git
+cd ngrx-entity-crud-prime-ng-boilerplate
+npm i
 ```
 
-Create a fake-server/db.json file with some data
+## Project structure
+
+```
+dist/                           compiled version
+documentation/                  generated document source
+e2e/                            end-to-end tests
+src/                            project source code
+|- app/                         app components
+|  |- core/                     core module (singleton services and single-use components)
+|  |  |- components/
+|  |  |- directive/
+|  |  |- interceptors/
+|  |  |- models/
+|  |  |- pipe/
+|  |  +- utils/
+|  |- shared/                   shared module  (common components, directives and pipes)
+|  |- main/
+|  |  |- components/
+|  |  |- models/
+|  |  |- services/
+|  |  +- views/
+|  |- root-store/
+|  |  |- router-store/
+|  |  |- index.ts
+|  |  |- root-reducer.ts
+|  |  |- root-store.module.ts
+|  |  |- selectors.ts
+|  |  +- state.ts
+|  |- app.component.*           app root component (shell)
+|  |- app.module.ts             app root module definition
+|  |- app.routing.ts            app routes
+|  +- ...                       additional modules and components
+|- assets/                      app assets (images, fonts, sounds...)
+|- environments/                values for various build environments
+|- index.html                   html entry point
+|- styles.css                   global style entry point
+|- main.ts                      app entry point
+|- polyfills.ts                 polyfills needed by Angular
++- test.ts                      unit tests entry point
+```
+
+### Back-End
+In this project we will use [jsonserver](https://github.com/typicode/json-server):
+
+Edit the fake-server/db.json file add some data:
 ```
 {
   "coin": [
@@ -44,29 +84,6 @@ Create a fake-server/db.json file with some data
   ]
 }
 ```
-
-Create a fake-server/server.js file:
-```
-const jsonServer = require('json-server');
-const server = jsonServer.create();
-const path = require('path');
-const router = jsonServer.router(path.join(__dirname, 'db.json'));
-const middlewares = jsonServer.defaults();
-
-server.use(middlewares);
-server.use(router);
-
-router.render = (req, res) => {
-  res.jsonp({
-    data: res.locals.data
-  })
-};
-
-server.listen(3000, (res) => {
-  console.log('JSON Server is running on http://localhost:3000')
-});
-```
-
 
 Start JSON Server
 ```
@@ -85,24 +102,14 @@ Now if you go to http://localhost:3000/coin/1, you'll get:
 }
 ```
 
-### Front-end
-We install the library
-```
-npm i ngrx-entity-crud -S
-```
-
-Now that library is installed, you can run the schematic using the ng generate command.
-The first command to run is "init-app-store", to initialize the project, creating some directories and installing @ngrx
-```
-ng generate ngrx-entity-crud:init-app-store
-npm i
-```
+### Code scaffolding
 
 Create the store to manage the coins. The command to use: "crud-store" and the parameters to pass: "--clazz=Coin" and "--name=coin"
 ```
 ng generate ngrx-entity-crud:crud-store --name=coin --clazz=Coin
 ```
 
+Create the new pages of the Coin section. The command to use: "crud-section" and the parameters to pass: "--clazz=Coin"
 ```
 ng generate ngrx-entity-crud:crud-section --clazz=Coin
 ```

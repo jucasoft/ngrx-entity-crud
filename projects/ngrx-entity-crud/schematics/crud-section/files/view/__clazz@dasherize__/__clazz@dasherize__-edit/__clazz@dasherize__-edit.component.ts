@@ -1,20 +1,50 @@
-import {Component, OnInit} from '@angular/core';
-import {Store} from '@ngrx/store';
-import {RootStoreState} from '@root-store/index';
+import {Component} from '@angular/core';
+import {closePopUpAction, PopUpBaseComponent} from '@root-store/router-store/pop-up-base.component';
+import {<%= clazz %>} from '@models/vo/<%= dasherize(clazz) %>';
+import {FormGroup} from '@angular/forms';
+import {<%= clazz %>StoreActions} from '@root-store/<%= dasherize(clazz) %>-store';
+
 
 @Component({
   selector: 'app-<%= dasherize(clazz) %>-edit',
   templateUrl: './<%= dasherize(clazz) %>-edit.component.html',
   styles: [``]
 })
-export class <%= clazz %>EditComponent implements OnInit {
-  constructor(private readonly store$: Store<RootStoreState.State>) {
+export class <%= clazz %>EditComponent extends PopUpBaseComponent<<%= clazz %>> {
+
+  form: FormGroup;
+  keys: string[];
+
+  setItemPerform(value: <%= clazz %>): void {
+    const group = this.fb.group({});
+    this.keys = Object.keys(value);
+    this.keys.forEach(key => group.addControl(key, this.fb.control({value: value[key], disabled: key === 'id'})));
+    this.form = group;
   }
 
-  ngOnInit() {
-    // this.ruleTables$ = this.store$.pipe(
-    //   select(RuleTableStoreSelectors.selectFilteredItems),
-    //   tap(values => this.updateRowGroupMetaData(values))
-    // );
+  acceptPerform(item: <%= clazz %>): void {
+    if (item.id) {
+      this.store$.dispatch(<%= clazz %>StoreActions.EditRequest({
+        item, onResult: [
+          // azione che verrà invocata al result della chiamata all'interno dell'effect.
+          // chiude la popUP.
+          // closePopUpAction: metodo per la creazione dell'azione di chiusura della popUP
+          closePopUpAction(this.route)
+        ]
+      }));
+    } else {
+      this.store$.dispatch(<%= clazz %>StoreActions.CreateRequest({
+        item, onResult: [
+          // azione che verrà invocata al result della chiamata all'interno dell'effect.
+          // chiude la popUP.
+          // closePopUpAction: metodo per la creazione dell'azione di chiusura della popUP
+          closePopUpAction(this.route)
+        ]
+      }));
+    }
   }
+
+  // cancel(): void {
+  //   this.store$.dispatch(closePopUpAction(this.route));
+  // }
 }

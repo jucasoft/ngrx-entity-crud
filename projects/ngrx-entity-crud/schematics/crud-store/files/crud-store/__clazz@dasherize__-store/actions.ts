@@ -1,5 +1,5 @@
 import {adapter} from './state';
-import {Names} from "./names";
+import {Names} from './names';
 
 export const actions = adapter.createCrudActions(Names.NAME);
 
