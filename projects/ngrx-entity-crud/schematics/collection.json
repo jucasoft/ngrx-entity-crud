@@ -10,11 +10,6 @@
       "description": "add crud section",
       "factory": "./crud-section/index#crudSection",
       "schema": "./crud-section/schema.json"
-    },
-    "init-app-store": {
-      "description": "init new app ngrx entity crud schematics",
-      "factory": "./init-app-store/index#initAppStore",
-      "schema": "./init-app-store/schema.json"
     }
   }
 }
