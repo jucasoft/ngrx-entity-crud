@@ -34,7 +34,8 @@
     "ts-action-immer": "^2.0.0",
     "ts-action-operators": "^9.1.0",
     "tslib": "^1.10.0",
-    "zone.js": "~0.9.1"
+    "zone.js": "~0.9.1",
+    "ngrx-entity-crud": "^0.4.45"
   },
   "devDependencies": {
     "@angular-devkit/core": "^8.0.6",

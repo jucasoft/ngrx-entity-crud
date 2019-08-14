@@ -9,7 +9,7 @@ import {ConfirmationService} from 'primeng/api';
 import {PopUpData} from '@root-store/router-store/pop-up-base.component';
 
 @Component({
-  selector: 'app-<%= dasherize(clazz) %>-table',
+  selector: 'app-<%= dasherize(clazz) %>-list',
   templateUrl: `<%= dasherize(clazz) %>-list.component.html`,
   styles: [``],
   changeDetection: ChangeDetectionStrategy.OnPush

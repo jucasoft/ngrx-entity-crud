@@ -15,7 +15,6 @@ from version 8 of ngrx these features are integrated.
 4) [Schematics for Libraries](https://angular.io/guide/schematics-for-libraries).
 
 ## Installation
-
 ```
 npm i ngrx-entity-crud -S
 ```
@@ -24,10 +23,19 @@ npm i ngrx-entity-crud -S
 We create an application with the classic CRUD features.
 
 ### Download Angular + PrimeNg + NgRx Boilerplate
+
+Clone a repository into  directory
 ```
-git clone https://gitlab.com/jucasoft/ngrx-entity-crud-prime-ng-boilerplate.git
-cd ngrx-entity-crud-prime-ng-boilerplate
+git clone https://gitlab.com/jucasoft/ngrx-entity-crud-prime-ng-boilerplate.git <projectName>
+cd <projectName>
 npm i
+```
+
+Search in the all project: "ngrx-entity-crud-prime-ng-boilerplate" and replace it with <projectName>  
+
+Test application:
+```
+npm start
 ```
 
 ## Project structure
@@ -103,7 +111,6 @@ Now if you go to http://localhost:3000/coin/1, you'll get:
 ```
 
 ### Code scaffolding
-
 Create the store to manage the coins. The command to use: "crud-store" and the parameters to pass: "--clazz=Coin" and "--name=coin"
 ```
 ng generate ngrx-entity-crud:crud-store --name=coin --clazz=Coin

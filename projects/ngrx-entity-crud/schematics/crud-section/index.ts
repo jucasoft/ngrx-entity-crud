@@ -39,13 +39,7 @@ export function crudSection(options: CrudSection): Rule {
 
         let chain_ = [];
         chain_.push(render(options, './files/view', path));
-        if (options.mainSection) {
-            chain_.push(addRouteDeclarationToNgModule({
-                    module: `/src/app/app-routing.module.ts`,
-                    routeLiteral: `{path: '', redirectTo: '${strings.dasherize(options.clazz)}', pathMatch: 'full'},`
-                }
-            ));
-        }
+
         chain_.push(addRouteDeclarationToNgModule({
                 module: `/src/app/app-routing.module.ts`,
                 routeLiteral: `{path: '${strings.dasherize(options.clazz)}', loadChildren: () => import('./main/views/${strings.dasherize(options.clazz)}/${strings.dasherize(options.clazz)}.module').then(m => m.${options.clazz}Module)}`
