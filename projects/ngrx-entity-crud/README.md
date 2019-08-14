@@ -22,17 +22,18 @@ npm i ngrx-entity-crud -S
 ## How to use it?
 We create an application with the classic CRUD features.
 
-### Download Angular + PrimeNg + NgRx Boilerplate
+### Download Angular + NgRx Boilerplate
 
+There are two versions, one for web projects with "PrimeNg" and one for mobile projects with Ionic.
 Clone a repository into directory.   
-For web project use ngrx-entity-crud-prime-ng-boilerplate:
+## PrimeNg :
 ```
 git clone https://gitlab.com/jucasoft/ngrx-entity-crud-prime-ng-boilerplate.git <projectName>
 cd <projectName>
 npm i
 ```
 
-For mobile project use ngrx-entity-crud-ionic-boilerplate:
+## Ionic :
 ```
 git clone https://gitlab.com/jucasoft/ngrx-entity-crud-ionic-boilerplate.git <projectName>
 cd <projectName>
