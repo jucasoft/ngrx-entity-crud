@@ -1,0 +1,7 @@
+<ion-list>
+  <ion-item *ngFor="let item of collection$ | async" detail (click)="onSelect(item)">
+    <ion-label>
+      <pre>{{item | json}}</pre>
+    </ion-label>
+  </ion-item>
+</ion-list>

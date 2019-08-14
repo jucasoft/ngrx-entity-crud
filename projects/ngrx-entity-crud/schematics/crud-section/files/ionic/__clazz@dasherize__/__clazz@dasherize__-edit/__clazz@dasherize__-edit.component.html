@@ -1,0 +1,52 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>
+      Edit
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content fullscreen>
+  <ion-card>
+    <ion-title>
+      Form
+    </ion-title>
+    <ion-card-content>
+      <form [formGroup]="form">
+        <ion-item *ngFor="let key of keys">
+          <ion-label position="floating">{{key}}</ion-label>
+          <ion-input [formControlName]="key"></ion-input>
+        </ion-item>
+      </form>
+    </ion-card-content>
+  </ion-card>
+  <ion-card>
+    <ion-title>
+      Form data
+    </ion-title>
+    <ion-card-content>
+<pre>
+{{form | jsonForm | json}}
+</pre>
+    </ion-card-content>
+  </ion-card>
+</ion-content>
+<ion-footer>
+  <ion-toolbar>
+    <ion-button color="success" (click)="onSave(form.getRawValue())">
+      <ion-icon name="save"></ion-icon>
+      Save
+    </ion-button>
+    <ion-button color="success" (click)="onCopy(form.getRawValue())">
+      <ion-icon name="copy"></ion-icon>
+      Clone
+    </ion-button>
+    <ion-button color="success" (click)="onDelete(form.getRawValue())">
+      <ion-icon name="delete"></ion-icon>
+      Delete
+    </ion-button>
+    <ion-button color="danger" (click)="cancel()">Cancel</ion-button>
+  </ion-toolbar>
+</ion-footer>

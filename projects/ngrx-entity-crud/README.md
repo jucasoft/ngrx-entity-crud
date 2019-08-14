@@ -24,14 +24,22 @@ We create an application with the classic CRUD features.
 
 ### Download Angular + PrimeNg + NgRx Boilerplate
 
-Clone a repository into  directory
+Clone a repository into directory.   
+For web project use ngrx-entity-crud-prime-ng-boilerplate:
 ```
 git clone https://gitlab.com/jucasoft/ngrx-entity-crud-prime-ng-boilerplate.git <projectName>
 cd <projectName>
 npm i
 ```
 
-Search in the all project: "ngrx-entity-crud-prime-ng-boilerplate" and replace it with <projectName>  
+For mobile project use ngrx-entity-crud-ionic-boilerplate:
+```
+git clone https://gitlab.com/jucasoft/ngrx-entity-crud-ionic-boilerplate.git <projectName>
+cd <projectName>
+npm i
+```
+
+Search in the all project: "ngrx-entity-crud-prime-ng-boilerplate" or ngrx-entity-crud-ionic-boilerplate and replace it with <projectName>  
 
 Test application:
 ```
@@ -42,7 +50,6 @@ npm start
 
 ```
 dist/                           compiled version
-documentation/                  generated document source
 e2e/                            end-to-end tests
 src/                            project source code
 |- app/                         app components
@@ -70,13 +77,7 @@ src/                            project source code
 |  |- app.module.ts             app root module definition
 |  |- app.routing.ts            app routes
 |  +- ...                       additional modules and components
-|- assets/                      app assets (images, fonts, sounds...)
-|- environments/                values for various build environments
-|- index.html                   html entry point
-|- styles.css                   global style entry point
-|- main.ts                      app entry point
-|- polyfills.ts                 polyfills needed by Angular
-+- test.ts                      unit tests entry point
++ ...
 ```
 
 ### Back-End

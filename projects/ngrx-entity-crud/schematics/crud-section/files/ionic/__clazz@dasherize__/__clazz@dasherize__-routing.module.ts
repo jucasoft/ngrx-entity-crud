@@ -12,7 +12,6 @@ const routes: Routes = [
   {
     path: 'edit',
     component: <%= clazz %>EditComponent,
-    outlet: 'popUp',
     pathMatch: 'full'
   },
   {
