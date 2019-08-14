@@ -121,6 +121,9 @@ Create the new pages of the Coin section. The command to use: "crud-section" and
 ```
 ng generate ngrx-entity-crud:crud-section --clazz=Coin
 ```
+Go to http://localhost:4200/coin
+
+You have finished creating the new crud section, now you can filter, create, edit and delete coins.
 
 ## Running unit tests
 
