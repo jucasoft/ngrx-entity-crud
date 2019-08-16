@@ -28,19 +28,19 @@ There are two versions, one for web projects with "PrimeNg" and one for mobile p
 Clone a repository into directory.   
 ## PrimeNg :
 ```
-git clone https://gitlab.com/jucasoft/ngrx-entity-crud-prime-ng-boilerplate.git <projectName>
-cd <projectName>
+git clone https://gitlab.com/jucasoft/ngrx-entity-crud-prime-ng-boilerplate.git {projectName}
+cd {projectName}
 npm i
 ```
 
 ## Ionic :
 ```
-git clone https://gitlab.com/jucasoft/ngrx-entity-crud-ionic-boilerplate.git <projectName>
-cd <projectName>
+git clone https://gitlab.com/jucasoft/ngrx-entity-crud-ionic-boilerplate.git {projectName}
+cd {projectName}
 npm i
 ```
 
-Search in the all project: "ngrx-entity-crud-prime-ng-boilerplate" or ngrx-entity-crud-ionic-boilerplate and replace it with <projectName>  
+Search in the all project: "ngrx-entity-crud-prime-ng-boilerplate" or ngrx-entity-crud-ionic-boilerplate and replace it with {projectName}
 
 Test application:
 ```
@@ -112,13 +112,15 @@ Now if you go to http://localhost:3000/coin/1, you'll get:
 }
 ```
 
-### Code scaffolding
-Create the store to manage the coins. The command to use: "crud-store" and the parameters to pass: "--clazz=Coin" and "--name=coin"
+### Code scaffolding   
+Create the store to manage the coins, as indicated in the article: [NgRx — Best Practices for Enterprise Angular Applications](https://itnext.io/ngrx-best-practices-for-enterprise-angular-applications-6f00bcdf36d7)   
+The command to use: "crud-store" and the parameters to pass: "--clazz=Coin" and "--name=coin"
 ```
 ng generate ngrx-entity-crud:crud-store --name=coin --clazz=Coin
 ```
 
-Create the new pages of the Coin section. The command to use: "crud-section" and the parameters to pass: "--clazz=Coin"
+Create the new pages (search, list, detail...) of the Coin section.   
+The command to use: "crud-section" and the parameters to pass: "--clazz=Coin"
 ```
 ng generate ngrx-entity-crud:crud-section --clazz=Coin
 ```
