@@ -29,10 +29,12 @@ export interface OptRequestBase {
    * Dispatched actions in case of error.
    */
   onFault?: Action[];
+  onFaultFunction?: (() => void);
   /**
    * Dispatched actions in the event of a positive response
    */
   onResult?: Action[];
+  onResultFunction?: (() => void);
 }
 
 export interface ICriteria extends OptRequestBase {

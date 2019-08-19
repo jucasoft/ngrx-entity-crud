@@ -67,7 +67,7 @@ src/                            project source code
 |  |  |- models/
 |  |  |- services/
 |  |  +- views/
-|  |- root-store/
+|  |- root-store/               as indicated in the article  https://itnext.io/ngrx-best-practices-for-enterprise-angular-applications-6f00bcdf36d7
 |  |  |- router-store/
 |  |  |- index.ts
 |  |  |- root-reducer.ts
@@ -124,6 +124,7 @@ The command to use: "crud-section" and the parameters to pass: "--clazz=Coin"
 ```
 ng generate ngrx-entity-crud:crud-section --clazz=Coin
 ```
+
 Go to http://localhost:4200/coin
 
 You have finished creating the new crud section, now you can filter, create, edit and delete coins.

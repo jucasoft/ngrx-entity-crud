@@ -45,7 +45,7 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
         if (!criteria.path && !criteria.mode && !criteria.queryParams) {
           throw new Error('It is not possible a search without payload, use :\'{criteria:{}}\'');
         }
-        if (criteria.mode === 'REFRESH') {
+        if (criteria.mode === 'REFRESH' || criteria.mode === 'upsertMany') {
           return Object.assign(
             {},
             state,
@@ -77,22 +77,27 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
         let method;
         switch (mode) {
           case  'REFRESH' : {
+            console.log('REFRESH');
             method = adapter.addAll;
             break;
           }
           case 'upsertMany': {
+            console.log('upsertMany');
             method = adapter.upsertMany;
             break;
           }
           case 'addAll': {
+            console.log('addAll');
             method = adapter.addAll;
             break;
           }
           default: {
+            console.log('default');
             method = adapter.addAll;
             break;
           }
         }
+
         return method(items, Object.assign(
           {},
           state,
