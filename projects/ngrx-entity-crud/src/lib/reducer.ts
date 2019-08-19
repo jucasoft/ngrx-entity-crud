@@ -2,6 +2,14 @@ import {Actions, EntityCrudState, ICriteria, OptRequest} from './models';
 import {EntityAdapter} from '@ngrx/entity';
 import {createReducer, on} from '@ngrx/store';
 
+export function evalData<T>(fn: () => T, def: any = null): T {
+  try {
+    return fn();
+  } catch (e) {
+    return def;
+  }
+}
+
 export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
 
   function createCrudReducer<S extends EntityCrudState<T>>(initialState: S, actions: Actions<T>) {
@@ -33,7 +41,7 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
 
     return createReducer<S>(initialState,
 
-      on(SearchRequest, (state: S, criteria:ICriteria) => {
+      on(SearchRequest, (state: S, criteria: ICriteria) => {
         if (!criteria.path && !criteria.mode && !criteria.queryParams) {
           throw new Error('It is not possible a search without payload, use :\'{criteria:{}}\'');
         }
@@ -57,22 +65,44 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
             })
         );
       }),
-      on(DeleteRequest, EditRequest, CreateRequest, (state: S, request:OptRequest<T>) => {
+      on(DeleteRequest, EditRequest, CreateRequest, (state: S, request: OptRequest<T>) => {
         return Object.assign(
           {},
           state,
           {isLoading: true}
         );
       }),
-      on(SearchSuccess, (state: S, {type, items}) => adapter.addAll(items, Object.assign(
-        {},
-        state,
-        {
-          isLoaded: true,
-          isLoading: false,
-          error: null
+      on(SearchSuccess, (state: S, {type, items}) => {
+        const mode = evalData(() => state.lastCriteria.mode, null) || 'addAll';
+        let method;
+        switch (mode) {
+          case  'REFRESH' : {
+            method = adapter.addAll;
+            break;
+          }
+          case 'upsertMany': {
+            method = adapter.upsertMany;
+            break;
+          }
+          case 'addAll': {
+            method = adapter.addAll;
+            break;
+          }
+          default: {
+            method = adapter.addAll;
+            break;
+          }
         }
-      ))),
+        return method(items, Object.assign(
+          {},
+          state,
+          {
+            isLoaded: true,
+            isLoading: false,
+            error: null
+          }
+        ));
+      }),
       on(DeleteSuccess, (state: S, {type, id}) => adapter.removeOne(id,
         Object.assign(
           {}, state,

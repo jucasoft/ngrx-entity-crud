@@ -67,38 +67,96 @@ describe('Crud', () => {
     });
 
     it('SearchRequest', () => {
-      const payload: ICriteria = {queryParams: 'queryParams', path: ['path'], mode: undefined};
+      const action = actions.SearchRequest({queryParams: 'queryParams', path: ['path'], mode: undefined});
       const expectState: State = adapter.removeAll(({
         ...state,
         isLoading: true,
-        lastCriteria: payload
+        lastCriteria: action
       }));
-      const test = actions.SearchRequest(payload);
-      const toState: State = featureReducer(state, test);
+      const toState: State = featureReducer(state, action);
       expect(expectState).toEqual(toState);
     });
 
     it('SearchRequest', () => {
-      const payload: ICriteria = {mode: 'REFRESH', queryParams: undefined, path: undefined};
+      const action = actions.SearchRequest({mode: 'REFRESH', queryParams: undefined, path: undefined});
       const expectState: State = ({
         ...state,
         isLoading: true,
-        lastCriteria: payload
+        lastCriteria: action
       });
-      const toState: State = featureReducer(state, actions.SearchRequest(payload));
+      const toState: State = featureReducer(state, action);
       expect(expectState).toEqual(toState);
     });
 
-    it('SearchSuccess', () => {
+    it('SearchSuccess mode: "REFRESH"', () => {
+
       const items: Pizza[] = [{id: 4, name: 'e'}, {id: 5, name: 'f'}, {id: 6, name: 'g'}, {id: 7, name: 'h'}];
+
+      const lastCriteria = actions.SearchRequest({mode: 'REFRESH', queryParams: undefined, path: undefined});
+
       const expectState: State = adapter.addAll(items, {
         ...state,
         isLoaded: true,
         isLoading: false,
-        error: null
+        error: null,
+        lastCriteria
       });
 
-      const toState: State = featureReducer(state, actions.SearchSuccess({items}));
+      const toState: State = featureReducer({...{}, ...state, ...{lastCriteria}}, actions.SearchSuccess({items}));
+      expect(expectState).toEqual(toState);
+    });
+
+    it('SearchSuccess mode: undefined', () => {
+
+      const items: Pizza[] = [{id: 4, name: 'e'}, {id: 5, name: 'f'}, {id: 6, name: 'g'}, {id: 7, name: 'h'}];
+
+      const lastCriteria = actions.SearchRequest({mode: undefined, queryParams: undefined, path: undefined});
+
+      const expectState: State = adapter.addAll(items, {
+        ...state,
+        isLoaded: true,
+        isLoading: false,
+        error: null,
+        lastCriteria
+      });
+
+      const toState: State = featureReducer({...{}, ...state, ...{lastCriteria}}, actions.SearchSuccess({items}));
+      expect(expectState).toEqual(toState);
+    });
+
+    it('SearchSuccess mode: "upsertMany"', () => {
+
+      const items: Pizza[] = [{id: 4, name: 'e'}, {id: 5, name: 'f'}, {id: 6, name: 'g'}, {id: 7, name: 'h'}];
+
+      const lastCriteria = actions.SearchRequest({mode: 'upsertMany', queryParams: undefined, path: undefined});
+
+      const expectState: State = adapter.upsertMany(items, {
+        ...state,
+        isLoaded: true,
+        isLoading: false,
+        error: null,
+        lastCriteria
+      });
+
+      const toState: State = featureReducer({...{}, ...state, ...{lastCriteria}}, actions.SearchSuccess({items}));
+      expect(expectState).toEqual(toState);
+    });
+
+    it('SearchSuccess mode: "addAll"', () => {
+
+      const items: Pizza[] = [{id: 4, name: 'e'}, {id: 5, name: 'f'}, {id: 6, name: 'g'}, {id: 7, name: 'h'}];
+
+      const lastCriteria = actions.SearchRequest({mode: 'addAll', queryParams: undefined, path: undefined});
+
+      const expectState: State = adapter.addAll(items, {
+        ...state,
+        isLoaded: true,
+        isLoading: false,
+        error: null,
+        lastCriteria
+      });
+
+      const toState: State = featureReducer({...{}, ...state, ...{lastCriteria}}, actions.SearchSuccess({items}));
       expect(expectState).toEqual(toState);
     });
 

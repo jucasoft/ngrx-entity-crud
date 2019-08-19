@@ -35,18 +35,19 @@ export interface OptRequestBase {
   onResult?: Action[];
 }
 
-export interface ICriteria extends OptRequestBase{
+export interface ICriteria extends OptRequestBase {
   /**
    *
-   if the "REFRESH" value is passed, the store will be deleted before making the remote call.
+   * "REFRESH" the store will be deleted before making the remote call, all the elements will be added to the call result.
+   *
    */
-  mode?: 'REFRESH';
+  mode?: 'REFRESH' | 'upsertMany' | 'addAll';
 
   queryParams?: any;
 }
 
 export interface OptRequest<T> extends OptRequestBase {
-  item: T
+  item: T;
 }
 
 export interface Response<T> {
