@@ -17,9 +17,5 @@ export class <%= clazz %>MainComponent implements OnInit {
   actions: Actions<<%= clazz %>> = <%= clazz %>StoreActions.actions;
 
   ngOnInit() {
-    // this.ruleTables$ = this.store$.pipe(
-    //   select(RuleTableStoreSelectors.selectFilteredItems),
-    //   tap(values => this.updateRowGroupMetaData(values))
-    // );
   }
 }
