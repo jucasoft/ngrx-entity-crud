@@ -139,8 +139,6 @@ If you need help, or want to help me: [https://gitlab.com/jucasoft/ngrx-entity-c
 
 ## MIT License
 
-Copyright (c) 2016 Gleb Bahmutov
-
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
 files (the "Software"), to deal in the Software without
