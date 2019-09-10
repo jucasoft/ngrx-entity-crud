@@ -12,14 +12,18 @@ export class BaseCrudService<T> {
 
   protected service = '';
   protected id = 'id';
-  private debug: boolean = false;
+  private debug = false;
+
+  debugMode() {
+    this.debug = true;
+  }
 
   constructor(protected http: HttpClient) {
   }
 
   httpOptions = () => {
     return {
-      headers: new HttpHeaders({"Content-Type": "application/json"})
+      headers: new HttpHeaders({'Content-Type': 'application/json'})
     };
   };
 

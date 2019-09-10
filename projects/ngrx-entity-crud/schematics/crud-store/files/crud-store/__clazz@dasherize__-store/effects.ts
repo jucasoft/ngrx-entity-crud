@@ -58,8 +58,8 @@ export class <%= clazz %>StoreEffects {
               result.push(...payload.onFault);
             }
           } else {
-            const item = response.data;
-            result.push(actions.DeleteSuccess(payload.item));
+            const id = <%= clazz %>.selectId(payload.item);
+            result.push(actions.DeleteSuccess({id}));
             if (payload.onResult) {
               result.push(...payload.onResult);
             }
