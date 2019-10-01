@@ -10,15 +10,14 @@ import {TableModule} from 'primeng/table';
 import {DialogModule} from 'primeng/dialog';
 import {ButtonModule} from 'primeng/button';
 import {InputTextModule} from 'primeng/inputtext';
-import {SearchComponent} from '@components/search/search.component';
+import {SearchModule} from '@components/search/search.module';
 import {PipesModule} from '@core/pipe/pipes.module';
 //testaaa
 @NgModule({
   declarations: [
     <%= clazz %>EditComponent,
     <%= clazz %>MainComponent,
-    <%= clazz %>ListComponent,
-    SearchComponent
+    <%= clazz %>ListComponent
   ],
   imports: [
     CommonModule,
@@ -29,7 +28,8 @@ import {PipesModule} from '@core/pipe/pipes.module';
     DialogModule,
     ButtonModule,
     InputTextModule,
-    PipesModule
+    PipesModule,
+    SearchModule
   ],
   providers: [],
   entryComponents: []
