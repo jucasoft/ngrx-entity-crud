@@ -157,7 +157,7 @@ export const editRequestEffect:
 export const selectRequestEffect:
   <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>) => Observable<Action> =
   <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>) => actions$.pipe(
-    ofType(actions.EditRequest),
+    ofType(actions.SelectRequest),
     switchMap(payload => service.select((payload as OptRequest<T>).item).pipe(
       // @ts-ignore
       map((response: Response<Field>) => ({response, payload}))
@@ -166,7 +166,7 @@ export const selectRequestEffect:
         const result = [];
 
         if (response.hasError) {
-          result.push(actions.EditFailure({error: response.message}));
+          result.push(actions.SelectFailure({error: response.message}));
           if (payload.onFault) {
             result.push(...payload.onFault);
           }
@@ -175,7 +175,7 @@ export const selectRequestEffect:
           }
         } else {
           const item = response.data;
-          result.push(actions.EditSuccess({item}));
+          result.push(actions.SelectSuccess({item}));
           if (payload.onResult) {
             result.push(...payload.onResult);
           }
@@ -187,7 +187,7 @@ export const selectRequestEffect:
       }
     ),
     catchError(error => {
-        return of(actions.EditFailure({error}));
+        return of(actions.SelectFailure({error}));
       }
     ),
   );
