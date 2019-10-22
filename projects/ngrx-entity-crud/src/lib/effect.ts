@@ -61,7 +61,7 @@ export const deleteRequestEffect:
             payload.onFaultFunction();
           }
         } else {
-          if (!!clazz.selectId) {
+          if (!clazz.selectId) {
             throw Error('the selectId method is not present in the managed entity.');
           }
           const id = clazz.selectId(payload.item);
