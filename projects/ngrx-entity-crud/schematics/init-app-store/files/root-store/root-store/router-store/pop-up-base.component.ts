@@ -74,6 +74,5 @@ export class PopUpBaseComponent<T> implements OnInit, OnDestroy {
 
     onClose() {
         throw new Error('Metodo da sovrascrivere')
-        // this.store$.dispatch(RouterStoreActions.RouterGo({path: ['task', {outlets: {popUp: null}}]}));
     }
 }

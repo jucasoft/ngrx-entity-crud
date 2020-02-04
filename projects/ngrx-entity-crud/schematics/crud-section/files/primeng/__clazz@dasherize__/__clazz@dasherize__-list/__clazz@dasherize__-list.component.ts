@@ -47,15 +47,15 @@ export class <%= clazz %>ListComponent implements OnInit {
   onEdit(item) {
     console.log('<%= clazz %>ListComponent.onEdit()');
 
-    const state: PopUpData<<%= clazz %>> = {
+    const data: PopUpData<<%= clazz %>> = {
       item,
       props: {title: 'Edit <%= clazz %>', route: '<%= dasherize(clazz) %>'}
     };
 
     // apro la popUP
-    this.store$.dispatch(RouterStoreActions.RouterGo({
+    this.store$.dispatch(RouterStoreActions.RouterGoPopUp({
       path: ['<%= dasherize(clazz) %>', {outlets: {popUp: ['edit']}}],
-      extras: {state}
+      data
     }));
 
   }
@@ -64,14 +64,14 @@ export class <%= clazz %>ListComponent implements OnInit {
     console.log('<%= clazz %>ListComponent.onCopy()');
 
     const item = {...{}, ...value, ...{id: null}};
-    const state: PopUpData<<%= clazz %>> = {
+    const data: PopUpData<<%= clazz %>> = {
       item,
       props: {title: 'Copy <%= clazz %>', route: '<%= dasherize(clazz) %>'}
     };
 
-    this.store$.dispatch(RouterStoreActions.RouterGo({
+    this.store$.dispatch(RouterStoreActions.RouterGoPopUp({
       path: ['<%= dasherize(clazz) %>', {outlets: {popUp: ['edit']}}],
-      extras: {state}
+      data
     }));
 
   }

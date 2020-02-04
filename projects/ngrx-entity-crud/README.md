@@ -44,8 +44,9 @@ Search in the all project: "ngrx-entity-crud-prime-ng-boilerplate" or ngrx-entit
 
 Test application:
 ```
-npm start
+npm run start:dev
 ```
+if there are no errors, we can continue
 
 ## Project structure
 
@@ -84,7 +85,7 @@ src/                            project source code
 ### Back-End
 In this project we will use [jsonserver](https://github.com/typicode/json-server):
 
-Edit the fake-server/db.json file add some data:
+Edit the /db.json file add some data:
 ```
 {
   "coin": [
@@ -97,10 +98,10 @@ Edit the fake-server/db.json file add some data:
 
 Start JSON Server
 ```
-node fake-server/server.js
+npm run start
 ```
 
-Now if you go to http://localhost:3000/coin/1, you'll get:
+Now if you go to http://localhost:3000/api/v1/coin/1, you'll get:
 ```
 {
   "data": {
@@ -113,10 +114,28 @@ Now if you go to http://localhost:3000/coin/1, you'll get:
 ```
 
 ### Code scaffolding   
-Create the store to manage the coins, as indicated in the article: [NgRx — Best Practices for Enterprise Angular Applications](https://itnext.io/ngrx-best-practices-for-enterprise-angular-applications-6f00bcdf36d7)   
-The command to use: "crud-store" and the parameters to pass: "--clazz=Coin" and "--name=coin"
+Create the store to manage the coins, the command to use: "crud-store" and the parameters to pass: "--clazz=Coin" and "--name=coin"
 ```
 ng generate ngrx-entity-crud:crud-store --name=coin --clazz=Coin
+```
+the list of created and modified files will appear in the console
+```
+CREATE src/app/root-store/coin-store/coin-store.module.ts (787 bytes)
+CREATE src/app/root-store/coin-store/actions.ts (462 bytes)
+CREATE src/app/root-store/coin-store/effects.ts (1186 bytes)
+CREATE src/app/root-store/coin-store/index.d.ts (265 bytes)
+CREATE src/app/root-store/coin-store/index.ts (267 bytes)
+CREATE src/app/root-store/coin-store/names.ts (46 bytes)
+CREATE src/app/root-store/coin-store/reducer.ts (162 bytes)
+CREATE src/app/root-store/coin-store/selectors.ts (543 bytes)
+CREATE src/app/root-store/coin-store/state.ts (385 bytes)
+CREATE src/app/main/services/coin.service.ts (347 bytes)
+CREATE src/app/main/models/vo/coin.ts (221 bytes)
+UPDATE src/app/root-store/index.ts (309 bytes)
+UPDATE src/app/root-store/index.d.ts (309 bytes)
+UPDATE src/app/root-store/state.ts (217 bytes)
+UPDATE src/app/root-store/selectors.ts (665 bytes)
+UPDATE src/app/root-store/root-store.module.ts (1051 bytes)
 ```
 
 Create the new pages (search, list, detail...) of the Coin section.   
@@ -125,7 +144,30 @@ The command to use: "crud-section" and the parameters to pass: "--clazz=Coin"
 ng generate ngrx-entity-crud:crud-section --clazz=Coin
 ```
 
-Go to http://localhost:4200/coin
+the list of created and modified files will appear in the console
+```
+CREATE src/app/main/views/coin/coin-routing.module.ts (722 bytes)
+CREATE src/app/main/views/coin/coin.module.ts (1102 bytes)
+CREATE src/app/main/views/coin/coin-edit/coin-edit.component.html (1325 bytes)
+CREATE src/app/main/views/coin/coin-edit/coin-edit.component.ts (1626 bytes)
+CREATE src/app/main/views/coin/coin-list/coin-list.component.html (706 bytes)
+CREATE src/app/main/views/coin/coin-list/coin-list.component.ts (2254 bytes)
+CREATE src/app/main/views/coin/coin-main/coin-main.component.html (188 bytes)
+CREATE src/app/main/views/coin/coin-main/coin-main.component.ts (536 bytes)
+UPDATE src/app/app-routing.module.ts (517 bytes)
+```
+
+we compile the application
+```
+ng build --aot --prod
+```
+
+start server
+```
+npm run start
+```
+
+Go to http://localhost:3000/coin
 
 You have finished creating the new crud section, now you can filter, create, edit and delete coins.
 
