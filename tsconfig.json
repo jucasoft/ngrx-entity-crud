@@ -2,14 +2,14 @@
   "compileOnSave": false,
   "compilerOptions": {
     "baseUrl": "./",
-    "downlevelIteration": true,
     "outDir": "./dist/out-tsc",
     "sourceMap": true,
     "declaration": false,
+    "downlevelIteration": true,
+    "experimentalDecorators": true,
     "module": "esnext",
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
     "importHelpers": true,
     "target": "es2015",
     "typeRoots": [
@@ -25,19 +25,11 @@
       ],
       "ngrx-entity-crud/*": [
         "dist/ngrx-entity-crud/*"
-      ],
-      "@models": [
-        "src/app/main/models"
-      ],
-      "@models/*": [
-        "src/app/main/models/*"
-      ],
-      "@services": [
-        "src/app/main/services"
-      ],
-      "@services/*": [
-        "src/app/main/services/*"
       ]
     }
+  },
+  "angularCompilerOptions": {
+    "fullTemplateTypeCheck": true,
+    "strictInjectionParameters": true
   }
 }

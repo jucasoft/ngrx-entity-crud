@@ -1,5 +1,5 @@
 # NgrxEntityCrud
-Provides actions, reducers and selectors for the CRUD management of the entities.
+This library helps to create the CRUD Angular application that makes use of NgRx, provides actions, reducers and selectors for the CRUD management of the entities.
 
 How did I get to this result?
 
@@ -170,6 +170,14 @@ npm run start
 Go to http://localhost:3000/coin
 
 You have finished creating the new crud section, now you can filter, create, edit and delete coins.
+
+## Deploy app to Heroku from Github
+
+###STEP 1: Push to GitHub
+Create a Repository on GitHub by clicking New Repository.
+
+###STEP 2: Deploy to Heroku
+
 
 ## Running unit tests
 

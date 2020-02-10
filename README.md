@@ -1,36 +1,42 @@
-=== COMPILE LIBRARY ===
-compilare la libreria e schematics:
-```
-npm run buildLibsSchematics
-```
-publicare libreria:
-posizionarsi nella cartella libs/ngrx-entity-crud
+# ngrx-entity-crud library
+This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 8.3.22.
 
+# Note
+
+compile the library:  
 ```
-npm login (inserire autenticazione npm)
+npm run build
+```
+
+publish library:  
+  
+go to the "libs/ngrx-entity-crud" folder. 
+```
+npm login (authentication)
 npm publish 
 ```
 
-=== SVILUPPO ===
-per poter lavorare con la libreria in fase di sviluppo senza doverla ogni volta ripublicare, utilizzare il comando:
+## DEVELOP
+Package linking:
 ```
 cd <library-compiled>
 npm link
 ```
-posizionarsi nella cartella del progetto dove si vuole utilizzare le libreria e lanciare il comando:
+go to the main folder of the project where to use the library:
 ```
 npm link <library-name>
 ```
 
-== eventuali errori ==
-- errore allo start up dell'applicazione:   
+##  in case ...
+if the error appears:  
 
 ```
 ... 'No provider for Injector!' ...
 ```
-ho risolto modificando le impostazioni "projects/*/architect/build/options" del file angular.json:
-"preserveSymlinks": true
+edit the file angular.json, set the value of "projects/*/architect/build/options":  
+"preserveSymlinks": true. 
 
-- non si vedono le modifiche apportate alla libreria:   
-ho tolto il riferimento alla libreria nel file package.json e rieseguito "npm link <library-name>"
+- if you don't see changes to the library under development:  
+temporarily remove the library reference from the "package.json" file and rerun "npm link <library-name>". 
+
 

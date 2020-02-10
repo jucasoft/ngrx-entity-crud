@@ -4,10 +4,8 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
-    "buildLibs": "ng build NgrxEntityCrud --watch",
-    "buildLibsSchematics": "ng build NgrxEntityCrud &&  cd projects/ngrx-entity-crud/ && npm run build",
-    "testLibs": "ng test NgrxEntityCrud",
+    "build": "ng build ngrx-entity-crud &&  cd projects/ngrx-entity-crud/ && npm run build",
+    "testLibs": "ng test ngrx-entity-crud",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e"
@@ -35,15 +33,14 @@
     "ts-action-operators": "^9.1.0",
     "tslib": "^1.10.0",
     "zone.js": "~0.9.1",
-    "ngrx-entity-crud": "^0.4.45",
     "deepmerge": "^4.0.0"
   },
   "devDependencies": {
+    "@angular-devkit/build-angular": "^0.900.1",
+    "@angular-devkit/build-ng-packagr": "~0.800.0",
     "@angular-devkit/core": "^8.0.6",
     "@angular-devkit/schematics": "^8.0.6",
     "@angular-devkit/schematics-cli": "^0.800.6",
-    "@angular-devkit/build-angular": "~0.800.0",
-    "@angular-devkit/build-ng-packagr": "~0.800.0",
     "@angular/cli": "~8.0.3",
     "@angular/compiler-cli": "~8.0.1",
     "@angular/language-service": "~8.0.1",
