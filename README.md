@@ -1,23 +1,25 @@
 # ngrx-entity-crud library
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 8.3.22.
 
-# Note
+# How to use it?
+To use the library, read this [guide](https://www.npmjs.com/package/ngrx-entity-crud).
 
-compile the library:  
+# DEVELOP
+Below you will find some notes on how to modify the source code.
+
+## compile the library: 
 ```
 npm run build
 ```
 
-publish library:  
-  
+## publish library:  
 go to the "libs/ngrx-entity-crud" folder. 
 ```
 npm login (authentication)
 npm publish 
 ```
 
-## DEVELOP
-Package linking:
+## Package linking:
 ```
 cd <library-compiled>
 npm link
