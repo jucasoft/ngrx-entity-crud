@@ -185,7 +185,7 @@ Run `ng test NgrxEntityCrud` to execute the unit tests via [Karma](https://karma
 
 ## Help
 
-If you need help, or want to help me: [https://gitlab.com/jucasoft/ngrx-entity-crud](https://gitlab.com/jucasoft/ngrx-entity-crud)
+If you need help, or want to help me: [https://github.com/jucasoft/ngrx-entity-crud/issues](https://github.com/jucasoft/ngrx-entity-crud/issues)
 
 ## MIT License
 
