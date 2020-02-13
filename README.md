@@ -1,3 +1,6 @@
+# This repository is an older version
+# [Click here for the latest version](https://github.com/jucasoft/ngrx-entity-crud)
+
 # ngrx-entity-crud library
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 8.3.22.
 
@@ -36,7 +39,7 @@ if the error appears:
 edit the file angular.json, set the value of "projects/*/architect/build/options":  
 "preserveSymlinks": true. 
 
-- if you don't see changes to the library under development:  
+if you don't see changes to the library under development:  
 temporarily remove the library reference from the "package.json" file and rerun "npm link <library-name>". 
 
 
