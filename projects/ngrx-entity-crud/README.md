@@ -20,12 +20,11 @@ npm i ngrx-entity-crud -S
 ```
 
 ## How to use it?
-We create an application with the classic CRUD features.
+We create an application [Angular](https://angular.io/) + [NgRx](https://ngrx.io/) with the classic [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) features.
 
 ### Download Angular + NgRx Boilerplate
+The project was made using [PrimeNg](https://www.primefaces.org/primeng), I am working on other versions in [Ionic](https://ionicframework.com/), Materia, Bootstrap and Onsen UI, if you want a preview version, open an [issue](https://github.com/jucasoft/ngrx-entity-crud/issues)  
 
-There are two versions, one for web projects with "PrimeNg" and one for mobile projects with Ionic.
-Clone a repository into directory.   
 ## PrimeNg :
 ```
 git clone https://github.com/jucasoft/ngrx-entity-crud-prime-ng-boilerplate.git {projectName}
@@ -33,14 +32,7 @@ cd {projectName}
 npm i
 ```
 
-## Ionic :
-```
-git clone https://github.com/jucasoft/ngrx-entity-crud-ionic-boilerplate.git {projectName}
-cd {projectName}
-npm i
-```
-
-Search in the all project: "ngrx-entity-crud-prime-ng-boilerplate" or ngrx-entity-crud-ionic-boilerplate and replace it with {projectName}
+Search in the all project: "ngrx-entity-crud-prime-ng-boilerplate" replace it with {projectName}
 
 Test application:
 ```
