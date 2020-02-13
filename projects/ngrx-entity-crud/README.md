@@ -28,7 +28,7 @@ There are two versions, one for web projects with "PrimeNg" and one for mobile p
 Clone a repository into directory.   
 ## PrimeNg :
 ```
-git clone https://gitlab.com/jucasoft/ngrx-entity-crud-prime-ng-boilerplate.git {projectName}
+git clone https://github.com/jucasoft/ngrx-entity-crud-prime-ng-boilerplate.git {projectName}
 cd {projectName}
 npm i
 ```
