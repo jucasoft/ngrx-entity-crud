@@ -35,7 +35,7 @@ npm i
 
 ## Ionic :
 ```
-git clone https://gitlab.com/jucasoft/ngrx-entity-crud-ionic-boilerplate.git {projectName}
+git clone https://github.com/jucasoft/ngrx-entity-crud-ionic-boilerplate.git {projectName}
 cd {projectName}
 npm i
 ```
