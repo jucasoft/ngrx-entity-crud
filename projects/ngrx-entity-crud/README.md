@@ -106,7 +106,8 @@ Now if you go to http://localhost:3000/api/v1/coin/1, you'll get:
 ```
 
 ### Code scaffolding   
-Create the store to manage the coins, the command to use: "crud-store" and the parameters to pass: "--clazz=Coin" and "--name=coin"
+#### Create the NgRx store to manage the coins
+the command to use: "crud-store" and the parameters to pass: "--clazz=Coin" and "--name=coin"
 ```
 ng generate ngrx-entity-crud:crud-store --name=coin --clazz=Coin
 ```
@@ -130,7 +131,35 @@ UPDATE src/app/root-store/selectors.ts (665 bytes)
 UPDATE src/app/root-store/root-store.module.ts (1051 bytes)
 ```
 
-Create the new pages (search, list, detail...) of the Coin section.   
+#### Add the attributes in Coin class
+Open the class Coin "src/app/main/models/vo/coin.ts"
+Add the attributes (present in the DB JSON file):
+
+    public value:string = undefined;
+    public name:string = undefined;
+    public description:string = undefined;
+    
+why set the default value for class members: "undefined"?   
+if we were to have a class:
+````
+class Dog{
+    public id:string = undefined;
+    public name:string = undefined;
+    public description:string; // in this attribute we do not set the default value
+}
+````
+
+when we create a new instance (new Dog()):
+````
+{
+    id:undefined
+    name:undefined
+}
+````
+the description attribute will not be present
+
+
+#### Create the new pages (search, list, detail...) of the Coin section.   
 The command to use: "crud-section" and the parameters to pass: "--clazz=Coin"
 ```
 ng generate ngrx-entity-crud:crud-section --clazz=Coin
@@ -149,12 +178,12 @@ CREATE src/app/main/views/coin/coin-main/coin-main.component.ts (536 bytes)
 UPDATE src/app/app-routing.module.ts (517 bytes)
 ```
 
-we compile the application
+#### we compile the application
 ```
 ng build --aot --prod
 ```
 
-start server
+#### start server
 ```
 npm run start
 ```
@@ -165,10 +194,10 @@ You have finished creating the new crud section, now you can filter, create, edi
 
 ## Deploy app to Heroku from Github
 
-###STEP 1: Push to GitHub
+### STEP 1: Push to GitHub
 Create a Repository on GitHub by clicking New Repository.
 
-###STEP 2: Deploy to Heroku
+### STEP 2: Deploy to Heroku
 
 
 ## Running unit tests
