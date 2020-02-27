@@ -6,6 +6,7 @@ import {<%= clazz %>EditComponent} from './<%= dasherize(clazz) %>-edit/<%= dash
 import {<%= clazz %>MainComponent} from './<%= dasherize(clazz) %>-main/<%= dasherize(clazz) %>-main.component';
 import {<%= clazz %>ListComponent} from './<%= dasherize(clazz) %>-list/<%= dasherize(clazz) %>-list.component';
 import {<%= clazz %>RoutingModule} from './<%= dasherize(clazz) %>-routing.module';
+import {ButtonNew<%= clazz %>Component} from './components/button-new-<%= dasherize(clazz) %>.component';
 import {TableModule} from 'primeng/table';
 import {DialogModule} from 'primeng/dialog';
 import {ButtonModule} from 'primeng/button';
@@ -17,7 +18,8 @@ import {PipesModule} from '@core/pipe/pipes.module';
   declarations: [
     <%= clazz %>EditComponent,
     <%= clazz %>MainComponent,
-    <%= clazz %>ListComponent
+    <%= clazz %>ListComponent,
+    ButtonNew<%= clazz %>Component
   ],
   imports: [
     CommonModule,

@@ -1,5 +1,8 @@
 <div class="ui-g">
-  <div class="ui-g-12"><app-search [actions]="actions"></app-search></div>
+  <div class="ui-g-12">
+    <app-search [actions]="actions"></app-search>
+    <app-button-new-<%= dasherize(clazz) %> class="float-right mr-2"></app-button-new-<%= dasherize(clazz) %>>
+  </div>
 </div>
 <div class="ui-g">
   <div class="ui-g-12"><app-<%= dasherize(clazz) %>-list></app-<%= dasherize(clazz) %>-list></div>
