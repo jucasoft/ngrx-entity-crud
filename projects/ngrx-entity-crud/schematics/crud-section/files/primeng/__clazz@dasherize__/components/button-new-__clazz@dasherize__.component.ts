@@ -19,7 +19,7 @@ import {RootStoreState} from '@root-store/index';
 })
 export class ButtonNew<%= clazz %>Component implements OnInit {
 
-  private disabled$: Observable<boolean>;
+  disabled$: Observable<boolean>;
 
   constructor(private readonly store$: Store<RootStoreState.State>) {
   }
