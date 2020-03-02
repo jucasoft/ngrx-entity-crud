@@ -85,7 +85,7 @@ export const createRequestEffect:
   <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>) => Observable<Action> =
   <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>) => actions$.pipe(
     ofType(actions.CreateRequest),
-    switchMap(payload => service.create((payload as OptRequest<T>).item).pipe(
+    switchMap(payload => service.create((payload as OptRequest<T>)).pipe(
       // @ts-ignore
       map((response: Response<Hashtag>) => ({response, payload}))
     )),
@@ -121,7 +121,7 @@ export const editRequestEffect:
   <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>) => Observable<Action> =
   <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>) => actions$.pipe(
     ofType(actions.EditRequest),
-    switchMap(payload => service.update((payload as OptRequest<T>).item).pipe(
+    switchMap(payload => service.update((payload as OptRequest<T>)).pipe(
       // @ts-ignore
       map((response: Response<T>) => ({response, payload}))
     )),

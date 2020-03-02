@@ -3,7 +3,7 @@ import {HttpClient, HttpHeaders} from '@angular/common/http';
 
 import {map} from 'rxjs/operators';
 import {Observable} from 'rxjs';
-import {ICriteria, Response} from './models';
+import {ICriteria, OptRequest, Response} from './models';
 
 @Injectable({
   providedIn: 'root'
@@ -36,14 +36,14 @@ export class BaseCrudService<T> {
     return this.http.post<Response<T[]>>(`${this.getUrl()}`, value, this.httpOptions());
   }
 
-  create(value: T, options?: { path: any[] }): Observable<Response<T>> {
+  create(opt: OptRequest<T>): Observable<Response<T>> {
     if (typeof (console) !== 'undefined' && this.debug) {
       console.log('%c BaseCrudService.create()', 'color: #777777');
       console.log('%c Extended from: ' + this.constructor.name, 'color: #777777');
       console.log.apply(console, arguments);
     }
-    const path = !!options && !!options.path ? options.path : null;
-    return this.http.post<Response<T>>(`${this.getUrl(path)}`, value, this.httpOptions());
+    const path = !!opt && !!opt.path ? opt.path : null;
+    return this.http.post<Response<T>>(`${this.getUrl(path)}`, opt.item, this.httpOptions());
   }
 
   /**
@@ -117,15 +117,15 @@ export class BaseCrudService<T> {
       .get<Response<T>>(`${this.getUrl()}/${id}`, this.httpOptions());
   }
 
-  update(value: T, options?: { path: any[] }): Observable<Response<T>> {
+  update(opt: OptRequest<T>): Observable<Response<T>> {
     if (typeof (console) !== 'undefined' && this.debug) {
       console.log('%c BaseCrudService.update()', 'color: #777777');
       console.log('%c Extended from: ' + this.constructor.name, 'color: #777777');
       console.log.apply(console, arguments);
     }
-    const id = this.getId(value);
-    const path = !!options && !!options.path ? options.path : null;
-    return this.http.put<Response<T>>(`${this.getUrl(path)}/${id}`, value, this.httpOptions());
+    const id = this.getId(opt.item);
+    const path = !!opt && !!opt.path ? opt.path : null;
+    return this.http.put<Response<T>>(`${this.getUrl(path)}/${id}`, opt.item, this.httpOptions());
   }
 
   delete(value: T): Observable<Response<string>> {
