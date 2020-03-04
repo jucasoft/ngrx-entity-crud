@@ -19,28 +19,39 @@ from version 8 of ngrx these features are integrated.
 npm i ngrx-entity-crud -S
 ```
 
-## How to use it?
+# How to use it?
 We create an application [Angular](https://angular.io/) + [NgRx](https://ngrx.io/) with the classic [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) features.
-
-### Download Angular + NgRx Boilerplate
+    
+## 1) Creating a repository GitHub from a template (Angular + NgRx Boilerplate)
 The project was made using [PrimeNg](https://www.primefaces.org/primeng), I am working on other versions in [Ionic](https://ionicframework.com/), Materia, Bootstrap and Onsen UI, if you want a preview version, open an [issue](https://github.com/jucasoft/ngrx-entity-crud/issues)  
+Creating a repository GitHub from a template:
+1) Navigate to [https://github.com/jucasoft/ngrx-entity-crud-prime-ng-boilerplate](https://github.com/jucasoft/ngrx-entity-crud-prime-ng-boilerplate)
+2) Above the file list, click: "Use this template".
+3) Use the Owner drop-down menu, and select the account you want to own the repository.
+4) Type a name for your repository/projectName, and an optional description.
+5) Choose a repository visbility.
+6) Click Create repository from template.
+For more information ([help.github.com creating-a-repository-from-a-template](https://help.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-from-a-template))
 
-## PrimeNg :
+
+## 2) Cloning a repository from GitHub:
 ```
-git clone https://github.com/jucasoft/ngrx-entity-crud-prime-ng-boilerplate.git {projectName}
+git clone https://github.com/{account}/{repository}.git {projectName}
 cd {projectName}
 npm i
 ```
+For more information ([help.github.com cloning-a-repository](https://help.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository))
 
+## 3) Rename project
 Search in the all project: "ngrx-entity-crud-prime-ng-boilerplate" replace it with {projectName}
 
-Test application:
+## 4) Run application:
 ```
 npm run start:dev
 ```
 if there are no errors, we can continue
 
-## Project structure
+Project structure:
 
 ```
 dist/                           compiled version
@@ -74,7 +85,7 @@ src/                            project source code
 + ...
 ```
 
-### Back-End
+## 6) Back-End
 In this project we will use [jsonserver](https://github.com/typicode/json-server):
 
 Edit the /db.json file add some data:
@@ -105,8 +116,7 @@ Now if you go to http://localhost:3000/api/v1/coin/1, you'll get:
 }
 ```
 
-### Code scaffolding   
-#### Create the NgRx store to manage the coins
+## 7) Create the NgRx store to manage the coins
 the command to use: "crud-store" and the parameters to pass: "--clazz=Coin" and "--name=coin"
 ```
 ng generate ngrx-entity-crud:crud-store --name=coin --clazz=Coin
@@ -159,7 +169,7 @@ when we create a new instance (new Dog()):
 the description attribute will not be present
 
 
-#### Create the new pages (search, list, detail...) of the Coin section.   
+## 8)Create the new pages (search, list, detail...) of the Coin section.   
 The command to use: "crud-section" and the parameters to pass: "--clazz=Coin"
 ```
 ng generate ngrx-entity-crud:crud-section --clazz=Coin
@@ -178,12 +188,12 @@ CREATE src/app/main/views/coin/coin-main/coin-main.component.ts (536 bytes)
 UPDATE src/app/app-routing.module.ts (517 bytes)
 ```
 
-#### we compile the application
+## 9) compile the application
 ```
 ng build --aot --prod
 ```
 
-#### start server
+## 10) start server
 ```
 npm run start
 ```
@@ -192,20 +202,13 @@ Go to http://localhost:3000/coin
 
 You have finished creating the new crud section, now you can filter, create, edit and delete coins.
 
-## Deploy app to Heroku from Github
-
-### STEP 1: Push to GitHub
-Create a Repository on GitHub by clicking New Repository.
-
-### STEP 2: Deploy to Heroku
-
+## 11) deploy app to Heroku
+The application (FE and BE) is ready to be started on heroku, register on heroku and run this guide [github-integration](https://devcenter.heroku.com/articles/github-integration)
 
 ## Running unit tests
-
 Run `ng test NgrxEntityCrud` to execute the unit tests via [Karma](https://karma-runner.github.io).
 
 ## Help
-
 If you need help, or want to help me: [https://github.com/jucasoft/ngrx-entity-crud/issues](https://github.com/jucasoft/ngrx-entity-crud/issues)
 
 ## MIT License
