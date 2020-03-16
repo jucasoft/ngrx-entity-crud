@@ -26,6 +26,6 @@ export class <%= clazz %>StoreEffects {
     editRequestEffect$: Observable<Action> = editRequestEffect<<%= clazz %>>(this.actions$, actions, this.service);
 
     @Effect()
-    selectRequestEffect$: Observable<Action> = editRequestEffect<<%= clazz %>>(this.actions$, actions, this.service);
+    selectRequestEffect$: Observable<Action> = selectRequestEffect<<%= clazz %>>(this.actions$, actions, this.service);
 
 }

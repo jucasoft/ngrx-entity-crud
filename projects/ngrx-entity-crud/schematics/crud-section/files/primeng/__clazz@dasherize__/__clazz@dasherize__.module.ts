@@ -13,7 +13,7 @@ import {ButtonModule} from 'primeng/button';
 import {InputTextModule} from 'primeng/inputtext';
 import {SearchModule} from '@components/search/search.module';
 import {PipesModule} from '@core/pipe/pipes.module';
-//testaaa
+
 @NgModule({
   declarations: [
     <%= clazz %>EditComponent,
