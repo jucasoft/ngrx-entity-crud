@@ -2,6 +2,7 @@ import {EntityAdapter, EntityState} from '@ngrx/entity';
 import {EntitySelectors} from '@ngrx/entity/src/models';
 import {Action, ActionCreator, MemoizedSelector} from '@ngrx/store';
 import {TypedAction} from '@ngrx/store/src/models';
+import {On} from "@ngrx/store/src/reducer_creator";
 
 export enum CrudEnum {
   SEARCH = 'Search',
@@ -29,12 +30,10 @@ export interface OptRequestBase {
    * Dispatched actions in case of error.
    */
   onFault?: Action[];
-  onFaultFunction?: (() => void);
   /**
    * Dispatched actions in the event of a positive response
    */
   onResult?: Action[];
-  onResultFunction?: (() => void);
 }
 
 export interface ICriteria extends OptRequestBase {
@@ -114,7 +113,7 @@ export interface Actions<T> {
 
   /**
    * criteria: ICriteria: criteria di ricerca
-   * mode?: 'REFRESH': se viene passato il valore REFRESH, il dato presente nello store viene ccancellato prima di eseguire la chiamata,
+   * mode?: 'REFRESH': se viene passato il valore REFRESH, il dato presente nello store viene cancellato prima di eseguire la chiamata,
    *        altrimenti il dato verrà sostituito al result della chiamata
    */
   SearchRequest: ActionCreator<string, (props: ICriteria) => ICriteria & TypedAction<string>>;
@@ -147,6 +146,6 @@ export interface Actions<T> {
 
   Edit: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
   Create: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
-  Delete: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+  Delete: ActionCreator<string, (props: { id: string; }) => { id: string; } & TypedAction<string>>;
 
 }

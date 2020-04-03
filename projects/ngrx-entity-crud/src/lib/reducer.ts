@@ -36,7 +36,11 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
       Reset,
       Filters,
       SelectItems,
-      SelectItem
+      SelectItem,
+
+      Edit,
+      Create,
+      Delete,
     } = actions;
 
     return createReducer<S>(initialState,
@@ -77,22 +81,22 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
         let method;
         switch (mode) {
           case  'REFRESH' : {
-            console.log('REFRESH');
+            // console.log('REFRESH');
             method = adapter.addAll;
             break;
           }
           case 'upsertMany': {
-            console.log('upsertMany');
+            // console.log('upsertMany');
             method = adapter.upsertMany;
             break;
           }
           case 'addAll': {
-            console.log('addAll');
+            // console.log('addAll');
             method = adapter.addAll;
             break;
           }
           default: {
-            console.log('default');
+            // console.log('default');
             method = adapter.addAll;
             break;
           }
@@ -108,7 +112,7 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
           }
         ));
       }),
-      on(DeleteSuccess, (state: S, {type, id}) => adapter.removeOne(id,
+      on(DeleteSuccess, Delete, (state: S, {type, id}) => adapter.removeOne(id,
         Object.assign(
           {}, state,
           {
@@ -117,7 +121,7 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
             error: null
           }
         ))),
-      on(CreateSuccess, (state: S, {type, item}) => adapter.addOne(item,
+      on(CreateSuccess, Create, (state: S, {type, item}) => adapter.addOne(item,
         Object.assign(
           {}, state,
           {
@@ -126,7 +130,7 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
             error: null
           }
         ))),
-      on(EditSuccess, (state: S, {item, type}) => adapter.upsertOne(item,
+      on(EditSuccess, Edit, (state: S, {item, type}) => adapter.upsertOne(item,
         Object.assign(
           {}, state,
           {

@@ -20,17 +20,11 @@ export const searchRequestEffect:
           if (criteria.onFault) {
             result.push(...criteria.onFault);
           }
-          if (criteria.onFaultFunction) {
-            criteria.onFaultFunction();
-          }
         } else {
           result.push(actions.SearchSuccess({items: response.data}));
           result.push(actions.Filters({filters: {}}));
           if (criteria.onResult) {
             result.push(...criteria.onResult);
-          }
-          if (criteria.onResultFunction) {
-            criteria.onResultFunction();
           }
         }
         return result;
@@ -57,9 +51,6 @@ export const deleteRequestEffect:
           if (payload.onFault) {
             result.push(...payload.onFault);
           }
-          if (payload.onFaultFunction) {
-            payload.onFaultFunction();
-          }
         } else {
           if (!clazz.selectId) {
             throw Error('the selectId method is not present in the managed entity.');
@@ -68,9 +59,6 @@ export const deleteRequestEffect:
           result.push(actions.DeleteSuccess({id}));
           if (payload.onResult) {
             result.push(...payload.onResult);
-          }
-          if (payload.onResultFunction) {
-            payload.onResultFunction();
           }
         }
         return result;
@@ -87,7 +75,7 @@ export const createRequestEffect:
     ofType(actions.CreateRequest),
     switchMap(payload => service.create((payload as OptRequest<T>)).pipe(
       // @ts-ignore
-      map((response: Response<Hashtag>) => ({response, payload}))
+      map((response: Response<T>) => ({response, payload}))
     )),
     switchMap(({response, payload}) => {
         const result = [];
@@ -96,17 +84,11 @@ export const createRequestEffect:
           if (payload.onFault) {
             result.push(...payload.onFault);
           }
-          if (payload.onFaultFunction) {
-            payload.onFaultFunction();
-          }
         } else {
           const item = response.data;
           result.push(actions.CreateSuccess({item}));
           if (payload.onResult) {
             result.push(...payload.onResult);
-          }
-          if (payload.onResultFunction) {
-            payload.onResultFunction();
           }
         }
         return result;
@@ -132,17 +114,11 @@ export const editRequestEffect:
           if (payload.onFault) {
             result.push(...payload.onFault);
           }
-          if (payload.onFaultFunction) {
-            payload.onFaultFunction();
-          }
         } else {
           const item = response.data;
           result.push(actions.EditSuccess({item}));
           if (payload.onResult) {
             result.push(...payload.onResult);
-          }
-          if (payload.onResultFunction) {
-            payload.onResultFunction();
           }
         }
         return result;
@@ -160,7 +136,7 @@ export const selectRequestEffect:
     ofType(actions.SelectRequest),
     switchMap(payload => service.select((payload as OptRequest<T>).item).pipe(
       // @ts-ignore
-      map((response: Response<Field>) => ({response, payload}))
+      map((response: Response<T>) => ({response, payload}))
     )),
     switchMap(({response, payload}) => {
         const result = [];
@@ -170,17 +146,11 @@ export const selectRequestEffect:
           if (payload.onFault) {
             result.push(...payload.onFault);
           }
-          if (payload.onFaultFunction) {
-            payload.onFaultFunction();
-          }
         } else {
           const item = response.data;
           result.push(actions.SelectSuccess({item}));
           if (payload.onResult) {
             result.push(...payload.onResult);
-          }
-          if (payload.onResultFunction) {
-            payload.onResultFunction();
           }
         }
         return result;

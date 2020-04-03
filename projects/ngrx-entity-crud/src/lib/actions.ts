@@ -36,7 +36,7 @@ export function createCrudActionsFactory<T>() {
 
     const Edit = createAction(`[${name}] ${CrudEnum.EDIT} `, props<{ item: T }>());
     const Create = createAction(`[${name}] ${CrudEnum.CREATE}`, props<{ item: T }>());
-    const Delete = createAction(`[${name}] ${CrudEnum.DELETE} `, props<{ item: T }>());
+    const Delete = createAction(`[${name}] ${CrudEnum.DELETE} `, props<{ id: string }>());
 
     return {
       SearchRequest,

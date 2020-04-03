@@ -161,7 +161,7 @@ describe('Crud', () => {
     });
 
     it('DeleteSuccess', () => {
-      const payload = {id: 0};
+      const payload = {id: '0'};
 
       const expectState: State = adapter.removeOne(payload.id, {
         ...state,
@@ -384,7 +384,7 @@ describe('Crud', () => {
     });
 
     it('DeleteSuccess', () => {
-      const payload = {id: 0};
+      const payload = {id: '0'};
       const expectedAction = actions.DeleteSuccess(payload);
       const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
       store.dispatch(actions.DeleteSuccess(payload));
@@ -510,13 +510,29 @@ describe('Crud', () => {
       expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
     });
 
+    // it('Delete', () => {
+    //   const payload = {item: {id: '0', name: 'a'}};
+    //   const expectedAction = actions.Delete(payload);
+    //   const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
+    //   store.dispatch(actions.Delete({id: '0'}));
+    //   expect(store.dispatch).toHaveBeenCalledWith({id: '0'});
+    // });
+
     it('Delete', () => {
-      const payload = {item: {id: 0, name: 'a'}};
-      const expectedAction = actions.Delete(payload);
-      const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
-      store.dispatch(actions.Delete(payload));
-      expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+      const payload = {id: '0'};
+
+      const expectState: State = adapter.removeOne(payload.id, {
+        ...state,
+        isLoaded: true,
+        isLoading: false,
+        error: null
+      });
+
+      const toState: State = featureReducer(expectState, actions.Delete(payload));
+
+      expect(expectState).toEqual(toState);
     });
+
 
   });
 });

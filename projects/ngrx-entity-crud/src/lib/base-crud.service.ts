@@ -51,9 +51,11 @@ export class BaseCrudService<T> {
    * @param value
    */
   search(value?: ICriteria): Observable<Response<T[]>> {
-    console.log('BaseCrudService.search()');
-    console.log('Extended from: ' + this.constructor.name);
-    console.log.apply(console, arguments);
+    if (typeof (console) !== 'undefined' && this.debug) {
+      console.log('BaseCrudService.search()');
+      console.log('Extended from: ' + this.constructor.name);
+      console.log.apply(console, arguments);
+    }
     if (this.isNewCriteria(value)) {
       const url = value && value.hasOwnProperty('path') && !!value.path ? value.path.join('/') : '';
 
