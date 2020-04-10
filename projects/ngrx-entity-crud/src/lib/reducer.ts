@@ -14,6 +14,9 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
 
   function createCrudReducer<S extends EntityCrudState<T>>(initialState: S, actions: Actions<T>) {
     const {
+      Response,
+      ResetResponses,
+
       SearchRequest,
       DeleteRequest,
       EditRequest,
@@ -121,6 +124,16 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
             error: null
           }
         ))),
+      on(Response, (state: S, response) => {
+          const responses = [...state.responses, response];
+          return {...{}, ...state, ...{responses}};
+        }
+      ),
+      on(ResetResponses, (state: S) => {
+          const responses = [];
+          return {...state, ...{responses}};
+        }
+      ),
       on(CreateSuccess, Create, (state: S, {type, item}) => adapter.addOne(item,
         Object.assign(
           {}, state,

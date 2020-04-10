@@ -1,32 +1,41 @@
 import {ofType} from '@ngrx/effects';
-import {Actions, ICriteria, OptRequest, Response} from './models';
-import {Observable, of} from 'rxjs';
+import {Actions, OptEffect, OptRequest, Response} from './models';
+import {from, Observable, of} from 'rxjs';
 import {Action} from '@ngrx/store';
-import {catchError, concatMap, map, switchMap} from 'rxjs/operators';
+import {catchError, map, switchMap} from 'rxjs/operators';
 import {BaseCrudService} from './base-crud.service';
 
 export const searchRequestEffect:
-  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>) => Observable<Action> =
-  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>) => actions$.pipe(
+  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect) => Observable<Action> =
+  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect) => actions$.pipe(
     ofType(actions.SearchRequest),
-    switchMap(criteria => service.search(criteria).pipe(
+    switchMap(payload => service.search(payload).pipe(
       // @ts-ignore
-      map((response: Response<T[]>) => ({response, criteria}))
+      map((response: Response<T[]>) => ({response, payload}))
     )),
-    switchMap(({response, criteria}: { response: Response<T[]>, criteria: ICriteria }) => {
+    switchMap(({response, payload}) => {
         const result: Action[] = [];
         if (response.hasError) {
           result.push(actions.SearchFailure({error: response.message}));
-          if (criteria.onFault) {
-            result.push(...criteria.onFault);
+          if (payload.onFault) {
+            result.push(...payload.onFault);
           }
         } else {
           result.push(actions.SearchSuccess({items: response.data}));
           result.push(actions.Filters({filters: {}}));
-          if (criteria.onResult) {
-            result.push(...criteria.onResult);
+          if (payload.onResult) {
+            result.push(...payload.onResult);
           }
         }
+
+        if ((optEffect || {}).dispatchResponse || payload.dispatchResponse) {
+          result.push(actions.Response({
+            actionType: payload.type,
+            request: payload,
+            response
+          }));
+        }
+
         return result;
       }
     ),
@@ -37,10 +46,10 @@ export const searchRequestEffect:
   );
 
 export const deleteRequestEffect:
-  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, clazz: any) => Observable<Action> =
-  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, clazz: any) => actions$.pipe(
+  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, clazz: any, optEffect?: OptEffect) => Observable<Action> =
+  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, clazz: any, optEffect?: OptEffect) => actions$.pipe(
     ofType(actions.DeleteRequest),
-    concatMap(payload => service.delete((payload as OptRequest<T>).item).pipe(
+    switchMap(payload => service.delete((payload as OptRequest<T>).item).pipe(
       // @ts-ignore
       map((response: Response<string>) => ({response, payload}))
     )),
@@ -61,6 +70,15 @@ export const deleteRequestEffect:
             result.push(...payload.onResult);
           }
         }
+
+        if ((optEffect || {}).dispatchResponse || payload.dispatchResponse) {
+          result.push(actions.Response({
+            actionType: payload.type,
+            request: payload,
+            response
+          }));
+        }
+
         return result;
       }
     ),
@@ -70,8 +88,8 @@ export const deleteRequestEffect:
   );
 
 export const createRequestEffect:
-  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>) => Observable<Action> =
-  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>) => actions$.pipe(
+  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect) => Observable<Action> =
+  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect) => actions$.pipe(
     ofType(actions.CreateRequest),
     switchMap(payload => service.create((payload as OptRequest<T>)).pipe(
       // @ts-ignore
@@ -91,6 +109,15 @@ export const createRequestEffect:
             result.push(...payload.onResult);
           }
         }
+
+        if ((optEffect || {}).dispatchResponse || payload.dispatchResponse) {
+          result.push(actions.Response({
+            actionType: payload.type,
+            request: payload,
+            response
+          }));
+        }
+
         return result;
       }
     ),
@@ -100,8 +127,8 @@ export const createRequestEffect:
   );
 
 export const editRequestEffect:
-  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>) => Observable<Action> =
-  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>) => actions$.pipe(
+  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect) => Observable<Action> =
+  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect) => actions$.pipe(
     ofType(actions.EditRequest),
     switchMap(payload => service.update((payload as OptRequest<T>)).pipe(
       // @ts-ignore
@@ -121,18 +148,36 @@ export const editRequestEffect:
             result.push(...payload.onResult);
           }
         }
+
+        if ((optEffect || {}).dispatchResponse || payload.dispatchResponse) {
+          result.push(actions.Response({
+            actionType: payload.type,
+            request: payload,
+            response
+          }));
+        }
+
         return result;
       }
     ),
-    catchError(error => {
-        return of(actions.EditFailure({error}));
+    catchError((error, caught) => {
+        console.log('catchError.()');
+        console.log('caught', caught);
+        const response = [];
+        response.push([actions.EditFailure({error})]);
+        response.push(actions.Response({
+          actionType: 'Failure',
+          request: null,
+          response: {hasError: true, message: error.message, data: null}
+        }));
+        return from(response);
       }
     ),
   );
 
 export const selectRequestEffect:
-  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>) => Observable<Action> =
-  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>) => actions$.pipe(
+  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect) => Observable<Action> =
+  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect) => actions$.pipe(
     ofType(actions.SelectRequest),
     switchMap(payload => service.select((payload as OptRequest<T>).item).pipe(
       // @ts-ignore
@@ -140,7 +185,6 @@ export const selectRequestEffect:
     )),
     switchMap(({response, payload}) => {
         const result = [];
-
         if (response.hasError) {
           result.push(actions.SelectFailure({error: response.message}));
           if (payload.onFault) {
@@ -153,6 +197,15 @@ export const selectRequestEffect:
             result.push(...payload.onResult);
           }
         }
+
+        if ((optEffect || {}).dispatchResponse || payload.dispatchResponse) {
+          result.push(actions.Response({
+            actionType: payload.type,
+            request: payload,
+            response
+          }));
+        }
+
         return result;
       }
     ),

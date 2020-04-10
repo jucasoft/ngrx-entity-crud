@@ -2,7 +2,6 @@ import {EntityAdapter, EntityState} from '@ngrx/entity';
 import {EntitySelectors} from '@ngrx/entity/src/models';
 import {Action, ActionCreator, MemoizedSelector} from '@ngrx/store';
 import {TypedAction} from '@ngrx/store/src/models';
-import {On} from "@ngrx/store/src/reducer_creator";
 
 export enum CrudEnum {
   SEARCH = 'Search',
@@ -10,9 +9,11 @@ export enum CrudEnum {
   CREATE = 'Create',
   EDIT = 'Edit',
   SELECT = 'Select',
+  RESET = 'Reset',
 }
 
 export enum ActionEnum {
+  RESPONSE = 'Response',
   REQUEST = 'Request',
   FAILURE = 'Failure',
   SUCCESS = 'Success',
@@ -34,6 +35,12 @@ export interface OptRequestBase {
    * Dispatched actions in the event of a positive response
    */
   onResult?: Action[];
+
+  /**
+   * per ogni stringa presente nell'attributo, verrà spedita una notifica Response.
+   * in questo modo, chi invia la notifica potrà poi filtrare i fati in base alla chiave inviata.
+   */
+  dispatchResponse?: boolean;
 }
 
 export interface ICriteria extends OptRequestBase {
@@ -49,6 +56,20 @@ export interface ICriteria extends OptRequestBase {
 
 export interface OptRequest<T> extends OptRequestBase {
   item: T;
+}
+
+export interface OptResponse<T> {
+  actionType: string;
+  response: Response<T>;
+  request: ICriteria | OptRequest<T>;
+}
+
+export interface OptEffect {
+  /**
+   * per ogni stringa presente nell'attributo, verrà spedita una notifica Response.
+   * in questo modo, chi invia la notifica potrà poi filtrare i fati in base alla chiave inviata.
+   */
+  dispatchResponse?: boolean;
 }
 
 export interface Response<T> {
@@ -71,6 +92,8 @@ export interface CrudState<T> extends EntityState<T> {
   lastCriteria: ICriteria;
   itemSelected: T;
   itemsSelected: T[];
+  // ogni entità registra l'azione scatenata e la risposta dal server.
+  responses: OptResponse<T>[];
 }
 
 
@@ -83,6 +106,7 @@ export interface EntityCrudSelectors<T, V> extends EntitySelectors<T, V> {
   selectIsLoaded: (state: V) => boolean;
   selectFilters: (state: V) => { [s: string]: FilterMetadata; };
   selectFilteredItems: MemoizedSelector<V, T[]>;
+  selectResponses: (state: V) => OptResponse<T>[];
 }
 
 export interface EntityCrudState<T> extends EntityState<T> {
@@ -94,6 +118,8 @@ export interface EntityCrudState<T> extends EntityState<T> {
   // attributo popolato dal result di SelectccRequest
   itemSelected: T;
   itemsSelected: T[];
+  // ogni entità registra l'azione scatenata e la risposta dal server.
+  responses: OptResponse<T>[];
 }
 
 export interface EntityCrudAdapter<T> extends EntityAdapter<T> {
@@ -110,6 +136,12 @@ export interface EntityCrudAdapter<T> extends EntityAdapter<T> {
 }
 
 export interface Actions<T> {
+
+  // azione dispacciata dall'effect se:
+  // OptRequestBase.dispatchResponse === true
+  // OptEffect.dispatchResponse === true
+  Response: ActionCreator<string, (props: OptResponse<T>) => OptResponse<T> & TypedAction<string>>;
+  ResetResponses: ActionCreator<string, () => { type: string; }>;
 
   /**
    * criteria: ICriteria: criteria di ricerca

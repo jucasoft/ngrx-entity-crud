@@ -1,5 +1,5 @@
-import {ActionEnum, Actions, CrudEnum, FilterMetadata, ICriteria, OptRequest} from './models';
-import {createAction, props, Action} from '@ngrx/store';
+import {ActionEnum, Actions, CrudEnum, FilterMetadata, ICriteria, OptRequest, OptResponse} from './models';
+import {createAction, props} from '@ngrx/store';
 
 export function createCrudActionsFactory<T>() {
   function createCrudActions(name: string): Actions<T> {
@@ -9,6 +9,9 @@ export function createCrudActionsFactory<T>() {
      *  comportamento predefinito, il dato attualmente presente viene cancellato e ripopolato al result della chiamata
      *  REFRESH => il dato viene sostituito al result della chiamata.
      */
+    const Response = createAction(`[${name}] ${ActionEnum.RESPONSE}`, props<OptResponse<T>>());
+    const ResetResponses = createAction(`[${name}] ${CrudEnum.RESET} ${ActionEnum.RESPONSE}`);
+
     const SearchRequest = createAction(`[${name}] ${CrudEnum.SEARCH} ${ActionEnum.REQUEST}`, props<ICriteria>());
     const SearchFailure = createAction(`[${name}] ${CrudEnum.SEARCH} ${ActionEnum.FAILURE}`, props<{ error: string }>());
     const SearchSuccess = createAction(`[${name}] ${CrudEnum.SEARCH} ${ActionEnum.SUCCESS}`, props<{ items: T[] }>());
@@ -29,7 +32,7 @@ export function createCrudActionsFactory<T>() {
     const EditFailure = createAction(`[${name}] ${CrudEnum.EDIT} ${ActionEnum.FAILURE}`, props<{ error: string }>());
     const EditSuccess = createAction(`[${name}] ${CrudEnum.EDIT} ${ActionEnum.SUCCESS}`, props<{ item: T }>());
 
-    const Reset = createAction(`[${name}] Reset`);
+    const Reset = createAction(`[${name}] ${CrudEnum.RESET}`);
     const Filters = createAction(`[${name}] Filters`, props<{ filters: { [s: string]: FilterMetadata; } }>());
     const SelectItems = createAction(`[${name}] SelectItems`, props<{ items: T[] }>());
     const SelectItem = createAction(`[${name}] SelectItem`, props<{ item: T }>());
@@ -39,6 +42,8 @@ export function createCrudActionsFactory<T>() {
     const Delete = createAction(`[${name}] ${CrudEnum.DELETE} `, props<{ id: string }>());
 
     return {
+      Response,
+      ResetResponses,
       SearchRequest,
       SearchFailure,
       SearchSuccess,
