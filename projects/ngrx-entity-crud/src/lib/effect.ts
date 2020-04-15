@@ -39,8 +39,15 @@ export const searchRequestEffect:
         return result;
       }
     ),
-    catchError(error => {
-        return of(actions.SearchFailure({error}));
+    catchError((error, caught) => {
+        const response = [];
+        response.push(actions.EditFailure({error}));
+        response.push(actions.Response({
+          actionType: 'Failure',
+          request: null,
+          response: {hasError: true, message: error.message, data: null}
+        }));
+        return from(response);
       }
     ),
   );
@@ -82,9 +89,17 @@ export const deleteRequestEffect:
         return result;
       }
     ),
-    catchError(error =>
-      of(actions.DeleteFailure({error}))
-    )
+    catchError((error, caught) => {
+        const response = [];
+        response.push(actions.EditFailure({error}));
+        response.push(actions.Response({
+          actionType: 'Failure',
+          request: null,
+          response: {hasError: true, message: error.message, data: null}
+        }));
+        return from(response);
+      }
+    ),
   );
 
 export const createRequestEffect:
@@ -121,9 +136,17 @@ export const createRequestEffect:
         return result;
       }
     ),
-    catchError(error =>
-      of(actions.CreateFailure({error}))
-    )
+    catchError((error, caught) => {
+        const response = [];
+        response.push(actions.EditFailure({error}));
+        response.push(actions.Response({
+          actionType: 'Failure',
+          request: null,
+          response: {hasError: true, message: error.message, data: null}
+        }));
+        return from(response);
+      }
+    ),
   );
 
 export const editRequestEffect:
@@ -161,10 +184,8 @@ export const editRequestEffect:
       }
     ),
     catchError((error, caught) => {
-        console.log('catchError.()');
-        console.log('caught', caught);
         const response = [];
-        response.push([actions.EditFailure({error})]);
+        response.push(actions.EditFailure({error}));
         response.push(actions.Response({
           actionType: 'Failure',
           request: null,
@@ -209,8 +230,15 @@ export const selectRequestEffect:
         return result;
       }
     ),
-    catchError(error => {
-        return of(actions.SelectFailure({error}));
+    catchError((error, caught) => {
+        const response = [];
+        response.push(actions.EditFailure({error}));
+        response.push(actions.Response({
+          actionType: 'Failure',
+          request: null,
+          response: {hasError: true, message: error.message, data: null}
+        }));
+        return from(response);
       }
     ),
   );
