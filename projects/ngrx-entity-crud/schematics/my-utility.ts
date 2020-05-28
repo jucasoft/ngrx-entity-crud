@@ -147,6 +147,7 @@ export function addDeclarationToNgModule(options: ModuleOptions): Rule {
     const source = ts.createSourceFile(modulePath, sourceText, ts.ScriptTarget.Latest, true);
 
     // const relativePath = buildRelativeModulePath(options, modulePath);
+    // @ts-ignore
     const changes = addImportToModule(source,
       modulePath,
       strings.classify(`${options.name}Module`),
@@ -183,6 +184,7 @@ export function addRouteDeclarationToNgModule(options: { module: string, routeLi
     const sourceText = text.toString();
     const source = ts.createSourceFile(modulePath, sourceText, ts.ScriptTarget.Latest, true);
 
+    // @ts-ignore
     const change = addRouteDeclarationToModule(source,
       modulePath,
       options.routeLiteral);
