@@ -26,7 +26,8 @@
       "ngrx-entity-crud/*": [
         "dist/ngrx-entity-crud/*"
       ]
-    }
+    },
+    "allowJs": true
   },
   "angularCompilerOptions": {
     "fullTemplateTypeCheck": true,
