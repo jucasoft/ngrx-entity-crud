@@ -29,7 +29,7 @@ export class <%= clazz %>EditComponent extends PopUpBaseComponent<<%= clazz %>> 
           // azione che verrà invocata al result della chiamata all'interno dell'effect.
           // chiude la popUP.
           // closePopUpAction: metodo per la creazione dell'azione di chiusura della popUP
-          closePopUpAction(this.route)
+          closePopUpAction
         ]
       }));
     } else {
@@ -38,7 +38,7 @@ export class <%= clazz %>EditComponent extends PopUpBaseComponent<<%= clazz %>> 
           // azione che verrà invocata al result della chiamata all'interno dell'effect.
           // chiude la popUP.
           // closePopUpAction: metodo per la creazione dell'azione di chiusura della popUP
-          closePopUpAction(this.route)
+          closePopUpAction
         ]
       }));
     }

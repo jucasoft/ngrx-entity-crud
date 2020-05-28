@@ -5,7 +5,7 @@ import {Action} from '@ngrx/store';
 import * as actions from './actions';
 import {<%= clazz %>} from '@models/vo/<%= dasherize(clazz) %>';
 import {<%= clazz %>Service} from '@services/<%= dasherize(clazz) %>.service';
-import {createRequestEffect, deleteRequestEffect, editRequestEffect, searchRequestEffect} from 'ngrx-entity-crud';
+import {createRequestEffect, deleteRequestEffect, editRequestEffect, searchRequestEffect, selectRequestEffect} from 'ngrx-entity-crud';
 
 
 @Injectable()

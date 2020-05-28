@@ -1,6 +1,6 @@
 import {ofType} from '@ngrx/effects';
 import {Actions, OptEffect, OptRequest, Response} from './models';
-import {from, Observable, of} from 'rxjs';
+import {from, Observable} from 'rxjs';
 import {Action} from '@ngrx/store';
 import {catchError, map, switchMap} from 'rxjs/operators';
 import {BaseCrudService} from './base-crud.service';
@@ -24,7 +24,8 @@ export const searchRequestEffect:
           result.push(actions.SearchSuccess({items: response.data}));
           result.push(actions.Filters({filters: {}}));
           if (payload.onResult) {
-            result.push(...payload.onResult);
+            const onResults = (payload.onResult as Action[]).map(a => (a as any).newAction ? (a as any).newAction(response, payload) : a);
+            result.push(...onResults);
           }
         }
 
@@ -74,7 +75,8 @@ export const deleteRequestEffect:
           const id = clazz.selectId(payload.item);
           result.push(actions.DeleteSuccess({id}));
           if (payload.onResult) {
-            result.push(...payload.onResult);
+            const onResults = (payload.onResult as Action[]).map(a => (a as any).newAction ? (a as any).newAction(response, payload) : a);
+            result.push(...onResults);
           }
         }
 
@@ -121,7 +123,8 @@ export const createRequestEffect:
           const item = response.data;
           result.push(actions.CreateSuccess({item}));
           if (payload.onResult) {
-            result.push(...payload.onResult);
+            const onResults = (payload.onResult as Action[]).map(a => (a as any).newAction ? (a as any).newAction(response, payload) : a);
+            result.push(...onResults);
           }
         }
 
@@ -168,7 +171,8 @@ export const editRequestEffect:
           const item = response.data;
           result.push(actions.EditSuccess({item}));
           if (payload.onResult) {
-            result.push(...payload.onResult);
+            const onResults = (payload.onResult as Action[]).map(a => (a as any).newAction ? (a as any).newAction(response, payload) : a);
+            result.push(...onResults);
           }
         }
 
@@ -215,7 +219,8 @@ export const selectRequestEffect:
           const item = response.data;
           result.push(actions.SelectSuccess({item}));
           if (payload.onResult) {
-            result.push(...payload.onResult);
+            const onResults = (payload.onResult as Action[]).map(a => (a as any).newAction ? (a as any).newAction(response, payload) : a);
+            result.push(...onResults);
           }
         }
 
