@@ -6,28 +6,34 @@ export const actions = adapter.createCrudActions(Names.NAME);
 export const {
   Response,
   ResetResponses,
+
   SearchRequest,
   SearchFailure,
   SearchSuccess,
+
   DeleteRequest,
   DeleteFailure,
   DeleteSuccess,
+
   CreateRequest,
   CreateFailure,
   CreateSuccess,
+
+  SelectRequest,
+  SelectFailure,
+  SelectSuccess,
+
   EditRequest,
   EditFailure,
   EditSuccess,
-  SelectRequest,
-  SelectSuccess,
-  SelectFailure,
+
   Reset,
   Filters,
+  SelectItems,
+  SelectItem,
+  Edit,
   Create,
   Delete,
-  Edit,
-  SelectItem,
-  SelectItems
 } = actions;
 
 
