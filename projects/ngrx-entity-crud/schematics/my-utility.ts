@@ -1,15 +1,13 @@
 import {apply, mergeWith, move, Rule, SchematicContext, SchematicsException, template, Tree, url} from '@angular-devkit/schematics';
 import {normalize, strings} from '@angular-devkit/core';
-import {ModuleOptions} from './utility/find-module';
 import * as ts from 'typescript/lib/tsserverlibrary';
-import {addImportToModule, addRouteDeclarationToModule} from './utility/ast-utils';
-import {InsertChange} from './utility/change';
 import * as merge from 'deepmerge';
+import {ModuleOptions} from '@schematics/angular/utility/find-module';
+import {InsertChange} from '@schematics/angular/utility/change';
+import {addRouteDeclarationToModule} from '@schematics/angular/utility/ast-utils';
 
 /**
  * Aggiunge l'export nell'index.ts e index.d.ts
- * @param options
- * @param file
  */
 export function addExport(options: { clazz: string }, file: string): Rule {
   return (tree: Tree, _context: SchematicContext) => {
@@ -29,8 +27,6 @@ export function addExport(options: { clazz: string }, file: string): Rule {
 
 /**
  * Aggiorna l'interfaccia dell'interfaccia
- * @param options
- * @param file
  */
 export function updateState(options: { name: string, clazz: string }, file: string): Rule {
   return (tree: Tree, _context: SchematicContext) => {
@@ -50,8 +46,6 @@ export function updateState(options: { name: string, clazz: string }, file: stri
 
 /**
  * Aggiunge l'import nella parte del file.
- * @param file
- * @param importString
  */
 export function addImport(file: string, importString: string): Rule {
   return (tree: Tree, _context: SchematicContext) => {
@@ -68,8 +62,6 @@ export function addImport(file: string, importString: string): Rule {
 
 /**
  * Aggiunge al selettore principale RootSelector, i riferimenti allo store appena creato.
- * @param options
- * @param file
  */
 export function addRootSelector(options: { clazz: string }, file: string): Rule {
   return (tree: Tree) => {
@@ -88,8 +80,6 @@ export function addRootSelector(options: { clazz: string }, file: string): Rule 
 
 /**
  * viene aggiornato un un file che contiene un json
- * @param options
- * @param file
  */
 export function updateJson(objToMerge: any, file: string): Rule {
   return (tree: Tree) => {
@@ -129,7 +119,6 @@ export function addLine(content: string, patterns: string[], newLine: string): s
 
 /**
  * Aggiunge il modulo del nuovo store creato, come dipendenza del modulo Root
- * @param options
  */
 export function addDeclarationToNgModule(options: ModuleOptions): Rule {
   return (host: Tree) => {
@@ -167,14 +156,12 @@ export function addDeclarationToNgModule(options: ModuleOptions): Rule {
 
 /**
  * Aggiunge il modulo del nuovo store creato, come dipendenza del modulo Root
- * @param options
  */
 export function addRouteDeclarationToNgModule(options: { module: string, routeLiteral: string }): Rule {
   return (host: Tree) => {
     if (!options.module) {
       return host;
     }
-
     const modulePath = options.module;
 
     const text = host.read(modulePath);
@@ -223,7 +210,6 @@ export function addRouteDeclarationToNgModule(options: { module: string, routeLi
  *               "src/app/root-store/*"
  *           ]
  *       }
- * @param tree
  * @param alias nome dell'alias, ad esempio "@components/*", "@services/*" ...
  */
 export function getPathFromAlias(tree: Tree, alias: string): string {
@@ -233,7 +219,7 @@ export function getPathFromAlias(tree: Tree, alias: string): string {
     strContent = content.toString();
   }
   const obj = JSON.parse(strContent);
-  let result = (obj.compilerOptions.paths[alias][0] as string).replace('*', '');
+  const result = (obj.compilerOptions.paths[alias][0] as string).replace('*', '');
   return normalize(result);
 }
 
@@ -243,7 +229,6 @@ export function getPathFromAlias(tree: Tree, alias: string): string {
  * - primeng
  * - ionic
  *
- * @param tree
  */
 export function getGraphicsLibraryName(tree: Tree): string {
   const content: Buffer | null = tree.read('package.json');
@@ -262,20 +247,17 @@ export function getGraphicsLibraryName(tree: Tree): string {
 
 /**
  *
- * @param options
- * @param sourceTemplate
- * @param path
  */
 export function render(options: any, sourceTemplate: string, path: string): Rule {
   return (_tree: Tree, _context: SchematicContext) => {
-    const sourceTemplate_ = url(sourceTemplate as string);
-    const path_: string = normalize(path);
-    const sourceTemplateParametrized = apply(sourceTemplate_, [
+    const _sourceTemplate = url(sourceTemplate as string);
+    const _path: string = normalize(path);
+    const sourceTemplateParametrized = apply(_sourceTemplate, [
       template({
         ...options,
         ...strings
       }),
-      move(path_)
+      move(_path)
     ]);
     return mergeWith(sourceTemplateParametrized);
   };

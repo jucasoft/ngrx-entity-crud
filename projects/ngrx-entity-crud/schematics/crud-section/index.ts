@@ -2,8 +2,6 @@ import {chain, Rule, SchematicContext, SchematicsException, Tree} from '@angular
 import {experimental, strings,} from '@angular-devkit/core';
 import {addRouteDeclarationToNgModule, getGraphicsLibraryName, getPathFromAlias, render} from '../my-utility';
 
-// import {applyLintFix} from "../utility/lint-fix";
-
 export function crudSection(options: CrudSection): Rule {
   return (tree: Tree, _context: SchematicContext) => {
     options.clazz = strings.classify(options.clazz);
@@ -39,15 +37,15 @@ export function crudSection(options: CrudSection): Rule {
     console.log('pathVo', pathVo);
     console.log('graphicsLibraryName', graphicsLibraryName);
 
-    let chain_ = [];
-    chain_.push(render(options, `./files/${graphicsLibraryName}`, path));
+    const _chain = [];
+    _chain.push(render(options, `./files/${graphicsLibraryName}`, path));
 
-    chain_.push(addRouteDeclarationToNgModule({
+    _chain.push(addRouteDeclarationToNgModule({
         module: `/src/app/app-routing.module.ts`,
         routeLiteral: `{path: '${strings.dasherize(options.clazz)}', loadChildren: () => import('./main/views/${strings.dasherize(options.clazz)}/${strings.dasherize(options.clazz)}.module').then(m => m.${options.clazz}Module)}`
       }
     ));
-    return chain(chain_);
+    return chain(_chain);
   };
 }
 

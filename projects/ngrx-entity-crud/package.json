@@ -10,7 +10,7 @@
     "copy:files": "rsync -Ravz schematics/*/files/** ../../libs/ngrx-entity-crud/",
     "copy:typescript-lib": "cp -R schematics/third_party/ ../../libs/ngrx-entity-crud/schematics/third_party/",
     "copy:collection": "cp schematics/collection.json ../../libs/ngrx-entity-crud/schematics/collection.json",
-    "postbuild": "npm run copy:schemas && npm run copy:files && npm run copy:typescript-lib && npm run copy:collection"
+    "postbuild": "npm run copy:schemas && npm run copy:files && npm run copy:collection"
   },
   "peerDependencies": {
     "@angular-devkit/core": "^9.1.7",
