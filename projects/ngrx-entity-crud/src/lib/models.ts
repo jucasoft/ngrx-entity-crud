@@ -1,7 +1,27 @@
 import {EntityAdapter, EntityState} from '@ngrx/entity';
-import {EntitySelectors} from '@ngrx/entity/src/models';
 import {Action, ActionCreator, MemoizedSelector} from '@ngrx/store';
-import {TypedAction} from '@ngrx/store/src/models';
+
+// COPIATO DA @ngrx/store/src/models
+// se viene importato da @ngrx/store/src/models, da errori nei progetti dove viene utilizzato.
+export declare interface TypedAction<T extends string> extends Action {
+  readonly type: T;
+}
+
+// COPIATO DA @ngrx/store/src/models
+// se viene importato da @ngrx/entity/src/models, da errori nei progetti dove viene utilizzato.
+export interface DictionaryNum<T> {
+  [id: number]: T | undefined;
+}
+export declare abstract class Dictionary<T> implements DictionaryNum<T> {
+  [id: string]: T | undefined;
+}
+
+export interface EntitySelectors<T, V> {
+  selectIds: (state: V) => string[] | number[];
+  selectEntities: (state: V) => Dictionary<T>;
+  selectAll: (state: V) => T[];
+  selectTotal: (state: V) => number;
+}
 
 export enum CrudEnum {
   SEARCH = 'Search',
