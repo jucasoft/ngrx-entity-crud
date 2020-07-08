@@ -4,7 +4,7 @@ import * as ts from 'typescript/lib/tsserverlibrary';
 import * as merge from 'deepmerge';
 import {ModuleOptions} from '@schematics/angular/utility/find-module';
 import {InsertChange} from '@schematics/angular/utility/change';
-import {addRouteDeclarationToModule} from '@schematics/angular/utility/ast-utils';
+import {addImportToModule, addRouteDeclarationToModule} from '@schematics/angular/utility/ast-utils';
 
 /**
  * Aggiunge l'export nell'index.ts e index.d.ts
