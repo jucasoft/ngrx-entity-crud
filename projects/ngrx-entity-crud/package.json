@@ -13,11 +13,11 @@
     "postbuild": "npm run copy:schemas && npm run copy:files && npm run copy:collection"
   },
   "peerDependencies": {
-    "@angular-devkit/core": "^9.1.7",
-    "@angular-devkit/schematics": "^9.1.7",
-    "@angular-devkit/schematics-cli": "^0.901.7",
-    "@angular/common": "^9.1.9",
-    "@angular/core": "^9.1.9",
+    "@angular-devkit/core": "^10.0.5",
+    "@angular-devkit/schematics": "^10.0.5",
+    "@angular-devkit/schematics-cli": "^0.1000.5",
+    "@angular/common": "^10.0.8",
+    "@angular/core": "^10.0.8",
     "@ngrx/store": "^9.1.2",
     "@ngrx/entity": "^9.1.2",
     "deepmerge": "^4.0.0",
@@ -34,5 +34,7 @@
   ],
   "author": "Giuseppe Luca Lo Re <juca@jucasoft.com>",
   "private": false,
-  "dependencies": {}
+  "dependencies": {
+    "tslib": "^2.0.0"
+}
 }
