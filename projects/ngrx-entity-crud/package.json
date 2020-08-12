@@ -18,8 +18,8 @@
     "@angular-devkit/schematics-cli": "^0.1000.5",
     "@angular/common": "^10.0.8",
     "@angular/core": "^10.0.8",
-    "@ngrx/store": "^9.1.2",
-    "@ngrx/entity": "^9.1.2",
+    "@ngrx/store": "^10.0.0",
+    "@ngrx/entity": "^10.0.0",
     "deepmerge": "^4.0.0",
     "rxjs": "~6.5.2"
   },
