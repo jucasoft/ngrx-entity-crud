@@ -187,43 +187,6 @@ export function addRouteDeclarationToNgModule(options: { module: string, routeLi
 }
 
 /**
- * recupera la path dal file tsconfig.json utilizzando come chiave l'alias, ad esempio per ricavare la path imposta per l'alias "@services/*" o "@models/*"
- * le path vengono settate di default dallo schematics init-app con dei valori che possono essere modificati dall'utente.
- * valori predefiniti per le path:
- *    "paths": {
- *           "@components/*": [
- *               "src/app/main/components/*"
- *           ],
- *               "@services/*": [
- *               "src/app/main/services/*"
- *           ],
- *               "@models/*": [
- *               "src/app/main/models/*"
- *           ],
- *               "@views/*": [
- *               "src/app/main/views/*"
- *           ],
- *               "@core/*": [
- *               "src/app/core/*"
- *           ],
- *               "@root-store/*": [
- *               "src/app/root-store/*"
- *           ]
- *       }
- * @param alias nome dell'alias, ad esempio "@components/*", "@services/*" ...
- */
-export function getPathFromAlias(tree: Tree, alias: string): string {
-  const content: Buffer | null = tree.read('tsconfig.json');
-  let strContent: string = '';
-  if (content) {
-    strContent = content.toString();
-  }
-  const obj = JSON.parse(strContent);
-  const result = (obj.compilerOptions.paths[alias][0] as string).replace('*', '');
-  return normalize(result);
-}
-
-/**
  *
  * Returns the name of the installed graphics library.:
  * - primeng
