@@ -27,7 +27,7 @@ export function crudSection(options: CrudSection): Rule {
 
     options.path = `${project.sourceRoot}/${projectType}`;
 
-    const path: string = 'src/app/root-store';
+    const path: string = 'src/app/main/views';
     const pathService: string = 'src/app/main/services';
     const pathVo: string = 'src/app/main/models/vo/';
 
