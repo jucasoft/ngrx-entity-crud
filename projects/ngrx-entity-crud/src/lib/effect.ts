@@ -57,7 +57,7 @@ export const deleteRequestEffect:
   <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, clazz: any, optEffect?: OptEffect) => Observable<Action> =
   <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, clazz: any, optEffect?: OptEffect) => actions$.pipe(
     ofType(actions.DeleteRequest),
-    switchMap(payload => service.delete((payload as OptRequest<T>).item).pipe(
+    switchMap(payload => service.delete((payload as OptRequest<T>)).pipe(
       // @ts-ignore
       map((response: Response<string>) => ({response, payload}))
     )),
@@ -204,7 +204,7 @@ export const selectRequestEffect:
   <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect) => Observable<Action> =
   <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect) => actions$.pipe(
     ofType(actions.SelectRequest),
-    switchMap(payload => service.select((payload as OptRequest<T>).item).pipe(
+    switchMap(payload => service.select((payload as OptRequest<T>)).pipe(
       // @ts-ignore
       map((response: Response<T>) => ({response, payload}))
     )),

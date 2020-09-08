@@ -105,18 +105,18 @@ export class BaseCrudService<T> {
 
   searchMap = res => res;
 
-  select(value: T): Observable<Response<T>> {
+  select(opt: OptRequest<T>): Observable<Response<T>> {
     if (typeof (console) !== 'undefined' && this.debug) {
       console.log('%c BaseCrudService.select()', 'color: #777777');
       console.log('%c Extended from: ' + this.constructor.name, 'color: #777777');
       console.log.apply(console, arguments);
     }
 
-    const id = this.getId(value);
-
+    const id = this.getId(opt.item);
+    const path = !!opt && !!opt.path ? opt.path : null;
     return this
       .http
-      .get<Response<T>>(`${this.getUrl()}/${id}`, this.httpOptions());
+      .get<Response<T>>(`${this.getUrl(path)}/${id}`, this.httpOptions());
   }
 
   update(opt: OptRequest<T>): Observable<Response<T>> {
@@ -130,15 +130,15 @@ export class BaseCrudService<T> {
     return this.http.put<Response<T>>(`${this.getUrl(path)}/${id}`, opt.item, this.httpOptions());
   }
 
-  delete(value: T): Observable<Response<string>> {
+  delete(opt: OptRequest<T>): Observable<Response<string>> {
     if (typeof (console) !== 'undefined' && this.debug) {
       console.log('%c BaseCrudService.delete()', 'color: #777777');
       console.log('%c Extended from: ' + this.constructor.name, 'color: #777777');
       console.log.apply(console, arguments);
     }
-    return this
-      .http
-      .delete<Response<string>>(`${this.getUrl()}/${this.getId(value)}`, this.httpOptions());
+    const id = this.getId(opt.item);
+    const path = !!opt && !!opt.path ? opt.path : null;
+    return this.http.delete<Response<string>>(`${this.getUrl(path)}/${id}`, this.httpOptions());
   }
 
   protected getId = (value) => value[this.id];
