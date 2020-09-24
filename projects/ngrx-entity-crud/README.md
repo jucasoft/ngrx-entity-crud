@@ -7,7 +7,7 @@ How did I get to this result?
 [NgRx — Best Practices for Enterprise Angular Applications](https://itnext.io/ngrx-best-practices-for-enterprise-angular-applications-6f00bcdf36d7)
 
 2) I wanted a mechanism to eliminate repeated code in my projects, after reading this article:   
-[How to Reduce Action Boilerplate](https://blog.angularindepth.com/how-to-reduce-action-boilerplate-90dc3d389e2b)
+[How to Reduce Action Boilerplate](https://redux.js.org/recipes/reducing-boilerplate)
 
 3) In the first version of this library, i used the "ts-action" and "ts-action-operators" libraries, 
 from version 8 of ngrx these features are integrated.
