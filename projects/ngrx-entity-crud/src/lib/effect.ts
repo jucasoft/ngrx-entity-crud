@@ -209,14 +209,16 @@ export const deleteRequestEffect = <T>(actions$, actions: Actions<T>, service: B
 );
 
 
-export const createRequestEffect:
-  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect) => Observable<Action> =
-  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect) => actions$.pipe(
-    ofType(actions.CreateRequest),
+export const createCall = <T>(service: BaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+  return input$ => input$.pipe(
     switchMap(payload => service.create((payload as OptRequest<T>)).pipe(
-      // @ts-ignore
       map((response: Response<T>) => ({response, payload}))
-    )),
+    ))
+  );
+};
+
+export const createResponse = <T>(actions: Actions<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+  return input$ => input$.pipe(
     switchMap(({response, payload}) => {
         const result = [];
         if (response.hasError) {
@@ -243,7 +245,12 @@ export const createRequestEffect:
 
         return result;
       }
-    ),
+    )
+  );
+};
+
+export const createError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+  return input$ => input$.pipe(
     catchError((error, caught) => {
         const response = [];
         response.push(actions.EditFailure({error}));
@@ -254,8 +261,39 @@ export const createRequestEffect:
         }));
         return from(response);
       }
-    ),
+    )
   );
+};
+
+export const createtRequest = <T>(actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+  return input$ => input$.pipe(
+    ofType(actions.DeleteRequest),
+    createCall(service),
+    createResponse(actions, optEffect),
+    createError(actions)
+  );
+};
+
+/**
+ * @deprecated use:
+ *
+ * actions$.pipe(
+ *   createRequest(actions$, actions, service, clazz, optEffect)
+ * );
+ *
+ * or:
+ *
+ * actions$.pipe(
+ *  ofType(actions.CreateRequest),
+ *  createCall(service),
+ *  createResponse(actions, clazz, optEffect),
+ *  createError(actions)
+ *  );
+ *
+ */
+export const createRequestEffect = <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect) => actions$.pipe(
+  createtRequest(actions, service, optEffect)
+);
 
 export const editRequestEffect:
   <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect) => Observable<Action> =
