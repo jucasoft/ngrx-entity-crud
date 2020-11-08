@@ -7,5 +7,5 @@ import {BaseCrudService} from 'ngrx-entity-crud';
 	providedIn: 'root'
 })
 export class <%= clazz %>Service extends BaseCrudService<<%= clazz %>> {
-	protected service = environment.webServiceUri + '<%= dasherize(clazz) %>';
+	public service = environment.webServiceUri + '<%= dasherize(clazz) %>';
 }

@@ -3,9 +3,9 @@ import {Actions, OptEffect, OptRequest, Response} from './models';
 import {from, MonoTypeOperatorFunction} from 'rxjs';
 import {Action} from '@ngrx/store';
 import {catchError, map, switchMap} from 'rxjs/operators';
-import {BaseCrudService} from './base-crud.service';
+import {IBaseCrudService} from './base-crud.service';
 
-export const searchCall = <T>(service: BaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+export const searchCall = <T>(service: IBaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     switchMap(payload => service.search(payload).pipe(
       map((response: Response<T[]>) => ({response, payload}))
@@ -16,6 +16,8 @@ export const searchCall = <T>(service: BaseCrudService<T>): MonoTypeOperatorFunc
 export const searchResponse = <T>(actions: Actions<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     switchMap(({response, payload}) => {
+        console.log('switchMap(({response, payload})');
+        console.log({response, payload});
         const result: Action[] = [];
         if (response.hasError) {
           result.push(actions.SearchFailure({error: response.message}));
@@ -61,7 +63,7 @@ export const searchError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<an
   );
 };
 
-export const searchRequest = <T>(actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<Action> => {
+export const searchRequest = <T>(actions: Actions<T>, service: IBaseCrudService<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<Action> => {
   return input$ => input$.pipe(
     ofType(actions.SearchRequest),
     searchCall(service),
@@ -88,11 +90,11 @@ export const searchRequest = <T>(actions: Actions<T>, service: BaseCrudService<T
  *
  */
 
-export const searchRequestEffect = <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect) => actions$.pipe(
+export const searchRequestEffect = <T>(actions$, actions: Actions<T>, service: IBaseCrudService<T>, optEffect?: OptEffect) => actions$.pipe(
   searchRequest(actions$, service, optEffect)
 );
 
-export const deleteCall = <T>(service: BaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+export const deleteCall = <T>(service: IBaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     switchMap(payload => service.delete((payload as OptRequest<T>)).pipe(
       map((response: Response<string>) => ({response, payload}))
@@ -151,7 +153,7 @@ export const deleteError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<an
   );
 };
 
-export const deleteRequest = <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, clazz: any, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+export const deleteRequest = <T>(actions$, actions: Actions<T>, service: IBaseCrudService<T>, clazz: any, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     ofType(actions.DeleteRequest),
     deleteCall(service),
@@ -177,12 +179,12 @@ export const deleteRequest = <T>(actions$, actions: Actions<T>, service: BaseCru
  *  );
  *
  */
-export const deleteRequestEffect = <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, clazz: any, optEffect?: OptEffect) => actions$.pipe(
+export const deleteRequestEffect = <T>(actions$, actions: Actions<T>, service: IBaseCrudService<T>, clazz: any, optEffect?: OptEffect) => actions$.pipe(
   deleteRequest(actions$, actions, service, clazz, optEffect)
 );
 
 
-export const createCall = <T>(service: BaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+export const createCall = <T>(service: IBaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     switchMap(payload => service.create((payload as OptRequest<T>)).pipe(
       map((response: Response<T>) => ({response, payload}))
@@ -238,7 +240,7 @@ export const createError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<an
   );
 };
 
-export const createRequest = <T>(actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+export const createRequest = <T>(actions: Actions<T>, service: IBaseCrudService<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     ofType(actions.DeleteRequest),
     createCall(service),
@@ -264,11 +266,11 @@ export const createRequest = <T>(actions: Actions<T>, service: BaseCrudService<T
  *  );
  *
  */
-export const createRequestEffect = <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect) => actions$.pipe(
+export const createRequestEffect = <T>(actions$, actions: Actions<T>, service: IBaseCrudService<T>, optEffect?: OptEffect) => actions$.pipe(
   createRequest(actions, service, optEffect)
 );
 
-export const editCall = <T>(service: BaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+export const editCall = <T>(service: IBaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     switchMap(payload => service.update((payload as OptRequest<T>)).pipe(
       map((response: Response<T>) => ({response, payload}))
@@ -324,7 +326,7 @@ export const editError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<any>
   );
 };
 
-export const editRequest = <T>(actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+export const editRequest = <T>(actions: Actions<T>, service: IBaseCrudService<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     ofType(actions.EditRequest),
     editCall(service),
@@ -350,12 +352,12 @@ export const editRequest = <T>(actions: Actions<T>, service: BaseCrudService<T>,
  *  );
  *
  */
-export const editRequestEffect = <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect) => actions$.pipe(
+export const editRequestEffect = <T>(actions$, actions: Actions<T>, service: IBaseCrudService<T>, optEffect?: OptEffect) => actions$.pipe(
   ofType(actions.EditRequest)
 );
 
 
-export const selectCall = <T>(service: BaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+export const selectCall = <T>(service: IBaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     switchMap(payload => service.select((payload as OptRequest<T>)).pipe(
       // @ts-ignore
@@ -412,7 +414,7 @@ export const selectError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<an
   );
 };
 
-export const selectRequest = <T>(actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+export const selectRequest = <T>(actions: Actions<T>, service: IBaseCrudService<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     ofType(actions.SelectRequest),
     selectCall(service),
@@ -438,6 +440,6 @@ export const selectRequest = <T>(actions: Actions<T>, service: BaseCrudService<T
  *  );
  *
  */
-export const selectRequestEffect = <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect) => actions$.pipe(
+export const selectRequestEffect = <T>(actions$, actions: Actions<T>, service: IBaseCrudService<T>, optEffect?: OptEffect) => actions$.pipe(
   selectRequest(actions, service, optEffect)
 );
