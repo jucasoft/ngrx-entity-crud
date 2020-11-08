@@ -49,7 +49,7 @@ export const searchError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<an
   return input$ => input$.pipe(
     catchError((error, caught) => {
         const response = [];
-        response.push(actions.EditFailure({error}));
+        response.push(actions.SearchFailure({error}));
         response.push(actions.Response({
           actionType: 'Failure',
           request: null,
