@@ -1,18 +1,47 @@
 import {ofType} from '@ngrx/effects';
 import {Actions, OptEffect, OptRequest, Response} from './models';
-import {from, Observable} from 'rxjs';
+import {from, MonoTypeOperatorFunction, Observable} from 'rxjs';
 import {Action} from '@ngrx/store';
 import {catchError, map, switchMap} from 'rxjs/operators';
 import {BaseCrudService} from './base-crud.service';
 
-export const searchRequestEffect:
-  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect) => Observable<Action> =
-  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect) => actions$.pipe(
-    ofType(actions.SearchRequest),
+// export const editCall = <T>():MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+// return input$=>input$.pipe()
+// };
+// export const editResponse = <T>():MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+// return input$=>input$.pipe()
+// };
+// export const editError = <T>():MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+// return input$=>input$.pipe()
+// };
+// export const editRequest = <T>():MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+// return input$=>input$.pipe()
+// };
+
+// export const selectCall = <T>():MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+// return input$=>input$.pipe()
+// };
+// export const selectResponse = <T>():MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+// return input$=>input$.pipe()
+// };
+// export const selectError = <T>():MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+// return input$=>input$.pipe()
+// };
+// export const selectRequest = <T>():MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+// return input$=>input$.pipe()
+// };
+
+
+export const searchCall = <T>(service: BaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+  return input$ => input$.pipe(
     switchMap(payload => service.search(payload).pipe(
-      // @ts-ignore
       map((response: Response<T[]>) => ({response, payload}))
-    )),
+    ))
+  );
+};
+
+export const searchResponse = <T>(actions: Actions<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+  return input$ => input$.pipe(
     switchMap(({response, payload}) => {
         const result: Action[] = [];
         if (response.hasError) {
@@ -39,7 +68,12 @@ export const searchRequestEffect:
 
         return result;
       }
-    ),
+    )
+  );
+};
+
+export const searchError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<any> => { // TODO: tipizzare any
+  return input$ => input$.pipe(
     catchError((error, caught) => {
         const response = [];
         response.push(actions.EditFailure({error}));
@@ -52,15 +86,49 @@ export const searchRequestEffect:
       }
     ),
   );
+};
 
-export const deleteRequestEffect:
-  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, clazz: any, optEffect?: OptEffect) => Observable<Action> =
-  <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, clazz: any, optEffect?: OptEffect) => actions$.pipe(
-    ofType(actions.DeleteRequest),
+export const searchRequest = <T>(actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<Action> => {
+  return input$ => input$.pipe(
+    ofType(actions.SearchRequest),
+    searchCall(service),
+    searchResponse(actions, optEffect),
+    searchError(actions)
+  );
+};
+
+/**
+ * @deprecated use:
+ *
+ * actions$.pipe(
+ *   searchRequest(actions$, actions, service, clazz, optEffect)
+ * );
+ *
+ * or:
+ *
+ * actions$.pipe(
+ *  ofType(actions.SearchRequest),
+ *  searchCall(service),
+ *  searchResponse(actions, clazz, optEffect),
+ *  searchError(actions)
+ *  );
+ *
+ */
+
+export const searchRequestEffect = <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect) => actions$.pipe(
+  searchRequest(actions$, service, optEffect)
+);
+
+const deleteCall = <T>(service: BaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+  return input$ => input$.pipe(
     switchMap(payload => service.delete((payload as OptRequest<T>)).pipe(
-      // @ts-ignore
       map((response: Response<string>) => ({response, payload}))
     )),
+  );
+};
+
+export const deleteResponse = <T>(actions: Actions<T>, clazz: any, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+  return input$ => input$.pipe(
     switchMap(({response, payload}) => {
         const result = [];
         if (response.hasError) {
@@ -91,6 +159,11 @@ export const deleteRequestEffect:
         return result;
       }
     ),
+  );
+};
+
+export const deleteError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+  return input$ => input$.pipe(
     catchError((error, caught) => {
         const response = [];
         response.push(actions.EditFailure({error}));
@@ -101,8 +174,40 @@ export const deleteRequestEffect:
         }));
         return from(response);
       }
-    ),
+    )
   );
+};
+
+export const deleteRequest = <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, clazz: any, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+  return input$ => input$.pipe(
+    ofType(actions.DeleteRequest),
+    deleteCall(service),
+    deleteResponse(actions, clazz, optEffect),
+    deleteError(actions)
+  );
+};
+
+/**
+ * @deprecated use:
+ *
+ * actions$.pipe(
+ *   deleteRequest(actions$, actions, service, clazz, optEffect)
+ * );
+ *
+ * or:
+ *
+ * actions$.pipe(
+ *  ofType(actions.DeleteRequest),
+ *  deleteCall(service),
+ *  deleteResponse(actions, clazz, optEffect),
+ *  deleteError(actions)
+ *  );
+ *
+ */
+export const deleteRequestEffect = <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, clazz: any, optEffect?: OptEffect) => actions$.pipe(
+  deleteRequest(actions$, actions, service, clazz, optEffect)
+);
+
 
 export const createRequestEffect:
   <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect) => Observable<Action> =
