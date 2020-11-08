@@ -9,9 +9,10 @@
           [closable]="false"
           (onHide)="cancel()">
 
-  <p-header>
+  <ng-template pTemplate="header">
     <a (click)="cancel()" role="button" tabindex="0" class="ng-tns-c11-8 ui-dialog-titlebar-icon ui-dialog-titlebar-close ui-corner-all ng-star-inserted"><span class="pi pi-times"></span></a>
-  </p-header>
+  </ng-template>
+
   <div class="ui-g">
     <div class="ui-g-6">
       <form
@@ -32,9 +33,9 @@
     </div>
   </div>
 
-  <p-footer>
+  <ng-template pTemplate="footer">
     <button pButton class="ui-button-success mr-1" label="save" (click)="submit(form.getRawValue())"></button>
     <button pButton type="button" label="Cancel" (click)="cancel()"></button>
-  </p-footer>
+  </ng-template>
 
 </p-dialog>
