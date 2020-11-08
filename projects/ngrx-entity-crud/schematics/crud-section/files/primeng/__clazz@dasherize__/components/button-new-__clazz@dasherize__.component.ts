@@ -12,7 +12,7 @@ import {RootStoreState} from '@root-store/index';
     <button type="button" pButton icon="fa fa-fw fa-plus"
             label="New <%= clazz %>" (click)="onCreate()"
             [disabled]="(disabled$ |async)"
-            class="ui-button-success"></button>
+            class="p-button-success"></button>
   `,
   styles: [],
   changeDetection: ChangeDetectionStrategy.OnPush
