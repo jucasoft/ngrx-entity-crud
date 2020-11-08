@@ -1,5 +1,4 @@
 import {FilterMetadata} from './models';
-import {isFunction} from 'util';
 
 export const isEmpty = (obj) => {
   return obj === null || undefined
@@ -113,6 +112,7 @@ export class JNgrxFilter<T> {
     items.forEach((item) => {
       let localMatch = false;
 
+      // tslint:disable-next-line:forin
       for (const filterField in filters) {
 
         const filterValue = filters[filterField].value;
@@ -120,7 +120,7 @@ export class JNgrxFilter<T> {
         const filterConstraint = this.filterConstraints[filterMatchMode];
 
         const renderFunction = filters[filterField].renderFunction;
-        const dataFieldValue = isFunction(renderFunction) ? renderFunction(this.resolveFieldData(item, filterField)) : this.resolveFieldData(item, filterField);
+        const dataFieldValue = this.isFunction(renderFunction) ? renderFunction(this.resolveFieldData(item, filterField)) : this.resolveFieldData(item, filterField);
 
         if (filterConstraint(dataFieldValue, filterValue)) {
           localMatch = true;

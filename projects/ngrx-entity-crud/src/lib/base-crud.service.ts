@@ -25,7 +25,7 @@ export class BaseCrudService<T> {
     return {
       headers: new HttpHeaders({'Content-Type': 'application/json'})
     };
-  };
+  }
 
   creates(value: T[]): Observable<Response<T[]>> {
     if (typeof (console) !== 'undefined' && this.debug) {
@@ -46,61 +46,24 @@ export class BaseCrudService<T> {
     return this.http.post<Response<T>>(`${this.getUrl(path)}`, opt.item, this.httpOptions());
   }
 
-  /**
-   *
-   * @param value
-   */
   search(value?: ICriteria): Observable<Response<T[]>> {
     if (typeof (console) !== 'undefined' && this.debug) {
       console.log('BaseCrudService.search()');
       console.log('Extended from: ' + this.constructor.name);
       console.log.apply(console, arguments);
     }
-    if (this.isNewCriteria(value)) {
-      const url = value && value.hasOwnProperty('path') && !!value.path ? value.path.join('/') : '';
-
-      let httpOptions = this.httpOptions();
-
-      if (value && value.hasOwnProperty('queryParams') && !!value.queryParams) {
-        httpOptions = ({...httpOptions, ...{params: value.queryParams}});
-      }
-
-      return this.http.get(this.getUrl() + url, httpOptions).pipe(
-        map(this.searchMap),
-      ) as Observable<Response<T[]>>;
-    }
-
-    if (this.isOldCriteria(value)) {
-      debugger;
-      this.oldSearch(value);
-    }
-  }
-
-  private oldSearch(value: ICriteria | string = ''): Observable<Response<T[]>> {
-
-    let url = '';
-    if (value !== '' && !value.hasOwnProperty('criteria')) {
-      url = !!value['getValue'] ? value['getValue']() : value;
-      url = url.indexOf('/') !== 0 ? '/' + url : url;
-    }
+    const url = value && value.hasOwnProperty('path') && !!value.path ? value.path.join('/') : '';
 
     let httpOptions = this.httpOptions();
-    if (value.hasOwnProperty('criteria')) {
-      httpOptions = ({...httpOptions, ...{params: value['criteria']}});
+
+    if (value && value.hasOwnProperty('queryParams') && !!value.queryParams) {
+      httpOptions = ({...httpOptions, ...{params: value.queryParams}});
     }
 
     return this.http.get(this.getUrl() + url, httpOptions).pipe(
       map(this.searchMap),
     ) as Observable<Response<T[]>>;
 
-  }
-
-  private isNewCriteria(criteria): boolean {
-    return !criteria || criteria.hasOwnProperty('queryParams') || criteria.hasOwnProperty('path') || criteria.hasOwnProperty('mode');
-  }
-
-  isOldCriteria(criteria): boolean {
-    return criteria.hasOwnProperty('criteria');
   }
 
   searchMap = res => res;

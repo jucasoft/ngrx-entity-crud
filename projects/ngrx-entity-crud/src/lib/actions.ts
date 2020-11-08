@@ -4,12 +4,13 @@ import {createAction, props} from '@ngrx/store';
 export function createCrudActionsFactory<T>() {
   function createCrudActions(name: string): Actions<T> {
 
+    // tslint:disable:variable-name
     /**
      * mode:
      *  comportamento predefinito, il dato attualmente presente viene cancellato e ripopolato al result della chiamata
      *  REFRESH => il dato viene sostituito al result della chiamata.
      */
-    const Response = createAction(`[${name}] ${ActionEnum.RESPONSE}`, props<OptResponse<T>>());
+    const Response = createAction(`[${name}] ${ActionEnum.RESPONSE}`, props<OptResponse<T | T[]>>());
     const ResetResponses = createAction(`[${name}] ${CrudEnum.RESET} ${ActionEnum.RESPONSE}`);
 
     const SearchRequest = createAction(`[${name}] ${CrudEnum.SEARCH} ${ActionEnum.REQUEST}`, props<ICriteria>());

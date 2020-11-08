@@ -12,6 +12,7 @@ export declare interface TypedAction<T extends string> extends Action {
 export interface DictionaryNum<T> {
   [id: number]: T | undefined;
 }
+
 export declare abstract class Dictionary<T> implements DictionaryNum<T> {
   [id: string]: T | undefined;
 }
@@ -160,7 +161,7 @@ export interface Actions<T> {
   // azione dispacciata dall'effect se:
   // OptRequestBase.dispatchResponse === true
   // OptEffect.dispatchResponse === true
-  Response: ActionCreator<string, (props: OptResponse<T>) => OptResponse<T> & TypedAction<string>>;
+  Response: ActionCreator<string, (props: OptResponse<T | T[]>) => OptResponse<T | T[]> & TypedAction<string>>;
   ResetResponses: ActionCreator<string, () => { type: string; }>;
 
   /**

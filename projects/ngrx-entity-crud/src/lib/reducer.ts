@@ -1,6 +1,7 @@
 import {Actions, EntityCrudState, ICriteria, OptRequest} from './models';
 import {EntityAdapter} from '@ngrx/entity';
 import {createReducer, on} from '@ngrx/store';
+import {On} from '@ngrx/store/src/reducer_creator';
 
 export function evalData<T>(fn: () => T, def: any = null): T {
   try {
@@ -12,7 +13,7 @@ export function evalData<T>(fn: () => T, def: any = null): T {
 
 export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
 
-  function createCrudReducer<S extends EntityCrudState<T>>(initialState: S, actions: Actions<T>) {
+  function createCrudReducer<S extends EntityCrudState<T>>(initialState: S, actions: Actions<T>, ...ons: On<S>[]) {
     const {
       Response,
       ResetResponses,
@@ -46,32 +47,30 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
       Delete,
     } = actions;
 
-    return createReducer<S>(initialState,
-
-      on(SearchRequest, (state: S, criteria: ICriteria) => {
-        if (!criteria.path && !criteria.mode && !criteria.queryParams) {
-          throw new Error('It is not possible a search without payload, use :\'{criteria:{}}\'');
-        }
-        if (criteria.mode === 'REFRESH' || criteria.mode === 'upsertMany') {
-          return Object.assign(
-            {},
-            state,
-            {
-              isLoading: true,
-              lastCriteria: criteria
-            }
-          );
-        }
-        return adapter.removeAll(
-          Object.assign(
-            {},
-            state,
-            {
-              isLoading: true,
-              lastCriteria: criteria
-            })
+    const totalOns: On<S>[] = [...ons, on(SearchRequest, (state: S, criteria: ICriteria) => {
+      if (!criteria.path && !criteria.mode && !criteria.queryParams) {
+        throw new Error('It is not possible a search without payload, use :\'{criteria:{}}\'');
+      }
+      if (criteria.mode === 'REFRESH' || criteria.mode === 'upsertMany') {
+        return Object.assign(
+          {},
+          state,
+          {
+            isLoading: true,
+            lastCriteria: criteria
+          }
         );
-      }),
+      }
+      return adapter.removeAll(
+        Object.assign(
+          {},
+          state,
+          {
+            isLoading: true,
+            lastCriteria: criteria
+          })
+      );
+    }),
       on(DeleteRequest, EditRequest, CreateRequest, (state: S, request: OptRequest<T>) => {
         return Object.assign(
           {},
@@ -190,7 +189,9 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
             error
           }
         )),
-      on(Reset, () => initialState)
+      on(Reset, () => initialState)];
+    return createReducer<S>(initialState,
+      ...totalOns
     );
   }
 

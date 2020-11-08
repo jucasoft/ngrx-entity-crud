@@ -5,7 +5,6 @@ import {Action} from '@ngrx/store';
 import {catchError, map, switchMap} from 'rxjs/operators';
 import {BaseCrudService} from './base-crud.service';
 
-
 export const searchCall = <T>(service: BaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     switchMap(payload => service.search(payload).pipe(
@@ -93,7 +92,7 @@ export const searchRequestEffect = <T>(actions$, actions: Actions<T>, service: B
   searchRequest(actions$, service, optEffect)
 );
 
-const deleteCall = <T>(service: BaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+export const deleteCall = <T>(service: BaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     switchMap(payload => service.delete((payload as OptRequest<T>)).pipe(
       map((response: Response<string>) => ({response, payload}))
@@ -239,7 +238,7 @@ export const createError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<an
   );
 };
 
-export const createtRequest = <T>(actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+export const createRequest = <T>(actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     ofType(actions.DeleteRequest),
     createCall(service),
@@ -266,7 +265,7 @@ export const createtRequest = <T>(actions: Actions<T>, service: BaseCrudService<
  *
  */
 export const createRequestEffect = <T>(actions$, actions: Actions<T>, service: BaseCrudService<T>, optEffect?: OptEffect) => actions$.pipe(
-  createtRequest(actions, service, optEffect)
+  createRequest(actions, service, optEffect)
 );
 
 export const editCall = <T>(service: BaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
