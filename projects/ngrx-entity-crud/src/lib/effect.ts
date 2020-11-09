@@ -76,7 +76,7 @@ export const searchRequest = <T>(actions: Actions<T>, service: IBaseCrudService<
  * @deprecated use:
  *
  * actions$.pipe(
- *   searchRequest(actions$, actions, service, clazz, optEffect)
+ *   searchRequest(actions, service, clazz, optEffect)
  * );
  *
  * or:
@@ -91,7 +91,7 @@ export const searchRequest = <T>(actions: Actions<T>, service: IBaseCrudService<
  */
 
 export const searchRequestEffect = <T>(actions$, actions: Actions<T>, service: IBaseCrudService<T>, optEffect?: OptEffect) => actions$.pipe(
-  searchRequest(actions$, service, optEffect)
+  searchRequest(actions, service, optEffect)
 );
 
 export const deleteCall = <T>(service: IBaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
@@ -153,7 +153,7 @@ export const deleteError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<an
   );
 };
 
-export const deleteRequest = <T>(actions$, actions: Actions<T>, service: IBaseCrudService<T>, clazz: any, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+export const deleteRequest = <T>(actions: Actions<T>, service: IBaseCrudService<T>, clazz: any, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     ofType(actions.DeleteRequest),
     deleteCall(service),
@@ -166,7 +166,7 @@ export const deleteRequest = <T>(actions$, actions: Actions<T>, service: IBaseCr
  * @deprecated use:
  *
  * actions$.pipe(
- *   deleteRequest(actions$, actions, service, clazz, optEffect)
+ *   deleteRequest(actions, service, clazz, optEffect)
  * );
  *
  * or:
@@ -180,7 +180,7 @@ export const deleteRequest = <T>(actions$, actions: Actions<T>, service: IBaseCr
  *
  */
 export const deleteRequestEffect = <T>(actions$, actions: Actions<T>, service: IBaseCrudService<T>, clazz: any, optEffect?: OptEffect) => actions$.pipe(
-  deleteRequest(actions$, actions, service, clazz, optEffect)
+  deleteRequest(actions, service, clazz, optEffect)
 );
 
 
@@ -253,7 +253,7 @@ export const createRequest = <T>(actions: Actions<T>, service: IBaseCrudService<
  * @deprecated use:
  *
  * actions$.pipe(
- *   createRequest(actions$, actions, service, clazz, optEffect)
+ *   createRequest(actions, service, optEffect)
  * );
  *
  * or:
@@ -339,7 +339,7 @@ export const editRequest = <T>(actions: Actions<T>, service: IBaseCrudService<T>
  * @deprecated use:
  *
  * actions$.pipe(
- *   editRequest(actions$, actions, service, clazz, optEffect)
+ *   editRequest(actions, service, optEffect)
  * );
  *
  * or:
@@ -353,7 +353,7 @@ export const editRequest = <T>(actions: Actions<T>, service: IBaseCrudService<T>
  *
  */
 export const editRequestEffect = <T>(actions$, actions: Actions<T>, service: IBaseCrudService<T>, optEffect?: OptEffect) => actions$.pipe(
-  ofType(actions.EditRequest)
+  editRequest(actions, service, optEffect)
 );
 
 
@@ -427,7 +427,7 @@ export const selectRequest = <T>(actions: Actions<T>, service: IBaseCrudService<
  * @deprecated use:
  *
  * actions$.pipe(
- *   selectRequest(actions$, actions, service, clazz, optEffect)
+ *   selectRequest(actions, service, clazz, optEffect)
  * );
  *
  * or:

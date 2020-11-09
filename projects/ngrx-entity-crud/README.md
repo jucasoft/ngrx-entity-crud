@@ -51,7 +51,7 @@ npm run start:dev
 ```
 if there are no errors, we can continue
 
-Project structure:
+## 5) Project structure:
 
 ```
 dist/                           compiled version
