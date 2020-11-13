@@ -1,5 +1,5 @@
 import {chain, Rule, SchematicContext, SchematicsException, Tree} from '@angular-devkit/schematics';
-import {experimental, normalize, strings,} from '@angular-devkit/core';
+import {experimental, normalize, strings} from '@angular-devkit/core';
 import {addDeclarationToNgModule, addExport, addImport, addRootSelector, render, updateState} from '../my-utility';
 
 export function crudStore(options: CrudStore): Rule {

@@ -18,6 +18,11 @@ go to the "libs/ngrx-entity-crud" folder.
 npm login (authentication)
 npm publish 
 ```
+or beta
+```
+npm publish --tag beta
+npm install —-save ngrx-entity-crud@beta
+```
 
 ## Package linking:
 ```
