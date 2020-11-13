@@ -1,5 +1,5 @@
 import {chain, Rule, SchematicContext, SchematicsException, Tree} from '@angular-devkit/schematics';
-import {experimental, normalize, strings} from '@angular-devkit/core';
+import {normalize, strings} from '@angular-devkit/core';
 import {addDeclarationToNgModule, addExport, addImport, addRootSelector, render, updateState} from '../my-utility';
 
 export function crudStore(options: CrudStore): Rule {
@@ -15,7 +15,7 @@ export function crudStore(options: CrudStore): Rule {
     const workspaceContent = workspaceConfig.toString();
 
     // parse workspace string into JSON object
-    const workspace: experimental.workspace.WorkspaceSchema = JSON.parse(workspaceContent);
+    const workspace = JSON.parse(workspaceContent);
     if (!options.project) {
       options.project = workspace.defaultProject;
     }

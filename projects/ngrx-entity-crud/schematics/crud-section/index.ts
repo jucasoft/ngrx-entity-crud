@@ -1,5 +1,5 @@
 import {chain, Rule, SchematicContext, SchematicsException, Tree} from '@angular-devkit/schematics';
-import {experimental, strings} from '@angular-devkit/core';
+import {strings} from '@angular-devkit/core';
 import {addRouteDeclarationToNgModule, getGraphicsLibraryName, render} from '../my-utility';
 
 export function crudSection(options: CrudSection): Rule {
@@ -14,7 +14,7 @@ export function crudSection(options: CrudSection): Rule {
     const workspaceContent = workspaceConfig.toString();
 
     // parse workspace string into JSON object
-    const workspace: experimental.workspace.WorkspaceSchema = JSON.parse(workspaceContent);
+    const workspace = JSON.parse(workspaceContent);
     if (!options.project) {
       options.project = workspace.defaultProject;
     }
