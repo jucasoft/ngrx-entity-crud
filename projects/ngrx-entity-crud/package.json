@@ -13,15 +13,15 @@
     "postbuild": "npm run copy:schemas && npm run copy:files && npm run copy:collection"
   },
   "peerDependencies": {
-    "@angular-devkit/core": "^10.0.5",
-    "@angular-devkit/schematics": "^10.0.5",
-    "@angular-devkit/schematics-cli": "^0.1000.5",
-    "@angular/common": "^10.0.8",
-    "@angular/core": "^10.0.8",
-    "@ngrx/store": "^10.0.0",
-    "@ngrx/entity": "^10.0.0",
-    "deepmerge": "^4.0.0",
-    "rxjs": "~6.5.2"
+    "@angular-devkit/core": "^11.0.1",
+    "@angular-devkit/schematics": "^11.0.1",
+    "@angular-devkit/schematics-cli": "^0.1100.1",
+    "@angular/common": "^11.0.0",
+    "@angular/core": "^11.0.0",
+    "@ngrx/store": "^10.0.1",
+    "@ngrx/entity": "^10.0.1",
+    "deepmerge": "^4.2.2",
+    "rxjs": "~6.6.3"
   },
   "keywords": [
     "angular",
