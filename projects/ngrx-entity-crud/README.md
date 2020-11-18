@@ -1,18 +1,15 @@
 # NgrxEntityCrud
-This library helps to create the CRUD Angular application that makes use of NgRx, provides actions, reducers and selectors for the CRUD management of the entities.
+This library helps create the CRUD Angular application that makes use of NgRx, provides actions, reducers and selectors for the CRUD management of the entities.
 
 How did I get to this result?
 
-1) Having adopted this best practice:   
+1) I adopted this best practice:   
 [NgRx — Best Practices for Enterprise Angular Applications](https://itnext.io/ngrx-best-practices-for-enterprise-angular-applications-6f00bcdf36d7)
 
-2) I wanted a mechanism to eliminate repeated code in my projects, after reading this article:   
+2) I found a mechanism to reduced repeated code in my projects, after reading this article:   
 [How to Reduce Action Boilerplate](https://redux.js.org/recipes/reducing-boilerplate)
 
-3) In the first version of this library, i used the "ts-action" and "ts-action-operators" libraries, 
-from version 8 of ngrx these features are integrated.
-
-4) [Schematics for Libraries](https://angular.io/guide/schematics-for-libraries).
+3) [Schematics for Libraries](https://angular.io/guide/schematics-for-libraries).
 
 ## Installation
 ```
@@ -20,10 +17,10 @@ npm i ngrx-entity-crud -S
 ```
 
 # How to use it?
-We create an application [Angular](https://angular.io/) + [NgRx](https://ngrx.io/) with the classic [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) features.
+We create an [Angular](https://angular.io/) + [NgRx](https://ngrx.io/) application with the classical [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) features.
     
-## 1) Creating a repository GitHub from a template (Angular + NgRx Boilerplate)
-The project was made using [PrimeNg](https://www.primefaces.org/primeng), I am working on other versions in [Ionic](https://ionicframework.com/), Materia, Bootstrap and Onsen UI, if you want a preview version, open an [issue](https://github.com/jucasoft/ngrx-entity-crud/issues)  
+## 1) Creating a GitHub repository from a template (Angular + NgRx Boilerplate)
+The project was made through [PrimeNg](https://www.primefaces.org/primeng), if you want other versions just ask me.
 Creating a repository GitHub from a template:
 1) Navigate to [https://github.com/jucasoft/ngrx-entity-crud-prime-ng-boilerplate](https://github.com/jucasoft/ngrx-entity-crud-prime-ng-boilerplate)
 2) Above the file list, click: "Use this template".
