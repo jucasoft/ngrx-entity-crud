@@ -6,12 +6,13 @@ import * as actions from './actions';
 import {<%= clazz %>} from '@models/vo/<%= dasherize(clazz) %>';
 import {<%= clazz %>Service} from '@services/<%= dasherize(clazz) %>.service';
 import {
-  createCall, createError, createResponse,
-  deleteCall, deleteError, deleteResponse,
-  editCall, editError, editResponse,
-  searchCall, searchError, searchResponse,
-  selectCall, selectError, selectResponse
+  createCall, createCatchError, createResponse,
+  deleteCall, deleteCatchError, deleteResponse,
+  editCall, editCatchError, editResponse,
+  searchCall, searchCatchError, searchResponse,
+  selectCall, selectCatchError, selectResponse
 } from 'ngrx-entity-crud';
+import {repeat} from 'rxjs/operators';
 
 @Injectable()
 export class <%= clazz %>StoreEffects {
@@ -22,35 +23,40 @@ export class <%= clazz %>StoreEffects {
     ofType(actions.SearchRequest),
     searchCall<<%= clazz %>>(this.service),
     searchResponse<<%= clazz %>>(actions, {dispatchResponse: false}),
-    searchError<<%= clazz %>>(actions)
+    searchCatchError<<%= clazz %>>(actions),
+    repeat()
   ));
 
   deleteRequestEffect$: Observable<Action>  = createEffect(() => this.actions$.pipe(
     ofType(actions.DeleteRequest),
     deleteCall<<%= clazz %>>(this.service),
     deleteResponse<<%= clazz %>>(actions, <%= clazz %>, {dispatchResponse: false}),
-    deleteError<<%= clazz %>>(actions)
+    deleteCatchError<<%= clazz %>>(actions),
+    repeat()
   ));
 
   createRequestEffect$: Observable<Action>  = createEffect(() => this.actions$.pipe(
     ofType(actions.CreateRequest),
     createCall<<%= clazz %>>(this.service),
     createResponse<<%= clazz %>>(actions, {dispatchResponse: false}),
-    createError<<%= clazz %>>(actions)
+    createCatchError<<%= clazz %>>(actions),
+    repeat()
   ));
 
   editRequestEffect$: Observable<Action>  = createEffect(() => this.actions$.pipe(
     ofType(actions.EditRequest),
     editCall<<%= clazz %>>(this.service),
     editResponse<<%= clazz %>>(actions, {dispatchResponse: false}),
-    editError<<%= clazz %>>(actions)
+    editCatchError<<%= clazz %>>(actions),
+    repeat()
   ));
 
   selectRequestEffect$: Observable<Action>  = createEffect(() => this.actions$.pipe(
     ofType(actions.SelectRequest),
     selectCall<<%= clazz %>>(this.service),
     selectResponse<<%= clazz %>>(actions, {dispatchResponse: false}),
-    selectError<<%= clazz %>>(actions)
+    selectCatchError<<%= clazz %>>(actions),
+    repeat()
   ));
 
 }

@@ -2,7 +2,7 @@ import {ofType} from '@ngrx/effects';
 import {Actions, OptEffect, OptRequest, Response} from './models';
 import {from, MonoTypeOperatorFunction} from 'rxjs';
 import {Action} from '@ngrx/store';
-import {catchError, map, switchMap} from 'rxjs/operators';
+import {catchError, map, repeat, switchMap} from 'rxjs/operators';
 import {IBaseCrudService} from './base-crud.service';
 
 export const searchCall = <T>(service: IBaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
@@ -47,7 +47,7 @@ export const searchResponse = <T>(actions: Actions<T>, optEffect?: OptEffect): M
   );
 };
 
-export const searchError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<any> => { // TODO: tipizzare any
+export const searchCatchError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<any> => { // TODO: tipizzare any
   return input$ => input$.pipe(
     catchError((error, caught) => {
         const response = [];
@@ -68,7 +68,8 @@ export const searchRequest = <T>(actions: Actions<T>, service: IBaseCrudService<
     ofType(actions.SearchRequest),
     searchCall(service),
     searchResponse(actions, optEffect),
-    searchError(actions)
+    searchCatchError(actions),
+    repeat()
   );
 };
 
@@ -84,8 +85,9 @@ export const searchRequest = <T>(actions: Actions<T>, service: IBaseCrudService<
  * actions$.pipe(
  *  ofType(actions.SearchRequest),
  *  searchCall(service),
- *  searchResponse(actions, clazz, optEffect),
- *  searchError(actions)
+ *  searchResponse(actions, optEffect),
+ *  searchCatchError(actions),
+ *  repeat()
  *  );
  *
  */
@@ -137,7 +139,7 @@ export const deleteResponse = <T>(actions: Actions<T>, clazz: any, optEffect?: O
   );
 };
 
-export const deleteError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+export const deleteCatchError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     catchError((error, caught) => {
         const response = [];
@@ -158,7 +160,8 @@ export const deleteRequest = <T>(actions: Actions<T>, service: IBaseCrudService<
     ofType(actions.DeleteRequest),
     deleteCall(service),
     deleteResponse(actions, clazz, optEffect),
-    deleteError(actions)
+    deleteCatchError(actions),
+    repeat()
   );
 };
 
@@ -175,7 +178,8 @@ export const deleteRequest = <T>(actions: Actions<T>, service: IBaseCrudService<
  *  ofType(actions.DeleteRequest),
  *  deleteCall(service),
  *  deleteResponse(actions, clazz, optEffect),
- *  deleteError(actions)
+ *  deleteCatchError(actions),
+ *  repeat()
  *  );
  *
  */
@@ -224,7 +228,7 @@ export const createResponse = <T>(actions: Actions<T>, optEffect?: OptEffect): M
   );
 };
 
-export const createError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+export const createCatchError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     catchError((error, caught) => {
         const response = [];
@@ -245,7 +249,8 @@ export const createRequest = <T>(actions: Actions<T>, service: IBaseCrudService<
     ofType(actions.DeleteRequest),
     createCall(service),
     createResponse(actions, optEffect),
-    createError(actions)
+    createCatchError(actions),
+    repeat()
   );
 };
 
@@ -259,10 +264,11 @@ export const createRequest = <T>(actions: Actions<T>, service: IBaseCrudService<
  * or:
  *
  * actions$.pipe(
- *  ofType(actions.CreateRequest),
+ *  ofType(actions.DeleteRequest),
  *  createCall(service),
  *  createResponse(actions, optEffect),
- *  createError(actions)
+ *  createCatchError(actions),
+ *  repeat()
  *  );
  *
  */
@@ -310,7 +316,7 @@ export const editResponse = <T>(actions: Actions<T>, optEffect?: OptEffect): Mon
   );
 };
 
-export const editError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+export const editCatchError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     catchError((error, caught) => {
         const response = [];
@@ -331,7 +337,8 @@ export const editRequest = <T>(actions: Actions<T>, service: IBaseCrudService<T>
     ofType(actions.EditRequest),
     editCall(service),
     editResponse(actions, optEffect),
-    editError(actions)
+    editCatchError(actions),
+    repeat()
   );
 };
 
@@ -348,7 +355,8 @@ export const editRequest = <T>(actions: Actions<T>, service: IBaseCrudService<T>
  *  ofType(actions.EditRequest),
  *  editCall(service),
  *  editResponse(actions, optEffect),
- *  editError(actions)
+ *  editCatchError(actions),
+ *  repeat()
  *  );
  *
  */
@@ -398,7 +406,7 @@ export const selectResponse = <T>(actions: Actions<T>, optEffect?: OptEffect): M
   );
 };
 
-export const selectError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+export const selectCatchError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     catchError((error, caught) => {
         const response = [];
@@ -419,7 +427,8 @@ export const selectRequest = <T>(actions: Actions<T>, service: IBaseCrudService<
     ofType(actions.SelectRequest),
     selectCall(service),
     selectResponse(actions, optEffect),
-    selectError(actions)
+    selectCatchError(actions),
+    repeat()
   );
 };
 
@@ -436,7 +445,8 @@ export const selectRequest = <T>(actions: Actions<T>, service: IBaseCrudService<
  *  ofType(actions.SelectRequest),
  *  selectCall(service),
  *  selectResponse(actions, optEffect),
- *  selectError(actions)
+ *  selectCatchError(actions),
+ *  repeat()
  *  );
  *
  */
