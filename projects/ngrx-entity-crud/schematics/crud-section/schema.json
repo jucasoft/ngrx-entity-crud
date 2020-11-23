@@ -15,6 +15,16 @@
       "type": "string",
       "x-prompt": "Enter the name of the entity:"
     },
+    "lib": {
+      "description": "choose the library.",
+      "type": "string",
+      "default": "primeng",
+      "enum": [
+        "primeng",
+        "no-libs"
+      ],
+      "x-prompt": "choose the library."
+    },
     "project": {
       "type": "string",
       "description": "The name of the project.",

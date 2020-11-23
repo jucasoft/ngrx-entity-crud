@@ -193,7 +193,7 @@ export function addRouteDeclarationToNgModule(options: { module: string, routeLi
  * - ionic
  *
  */
-export function getGraphicsLibraryName(tree: Tree): string {
+/*export function getGraphicsLibraryName(tree: Tree): string {
   const content: Buffer | null = tree.read('package.json');
   let strContent: string = '';
   if (content) {
@@ -205,8 +205,8 @@ export function getGraphicsLibraryName(tree: Tree): string {
   if (strContent.indexOf('primeng') !== -1) {
     return 'primeng';
   }
-  throw new Error('libreria grafica non ');
-}
+  return 'no-libs';
+}*/
 
 /**
  *

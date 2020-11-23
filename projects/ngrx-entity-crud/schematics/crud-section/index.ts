@@ -1,6 +1,6 @@
 import {chain, Rule, SchematicContext, SchematicsException, Tree} from '@angular-devkit/schematics';
 import {strings} from '@angular-devkit/core';
-import {addRouteDeclarationToNgModule, getGraphicsLibraryName, render} from '../my-utility';
+import {addRouteDeclarationToNgModule, render} from '../my-utility';
 
 export function crudSection(options: CrudSection): Rule {
   return (tree: Tree, _context: SchematicContext) => {
@@ -31,15 +31,15 @@ export function crudSection(options: CrudSection): Rule {
     const pathService: string = 'src/app/main/services';
     const pathVo: string = 'src/app/main/models/vo/';
 
-    const graphicsLibraryName = getGraphicsLibraryName(tree);
+    const lib = options.lib;
 
     console.log('path', path);
     console.log('pathService', pathService);
     console.log('pathVo', pathVo);
-    console.log('graphicsLibraryName', graphicsLibraryName);
+    console.log('lib', lib);
 
     const _chain = [];
-    _chain.push(render(options, `./files/${graphicsLibraryName}`, path));
+    _chain.push(render(options, `./files/${lib}`, path));
 
     _chain.push(addRouteDeclarationToNgModule({
         module: `/src/app/app-routing.module.ts`,
