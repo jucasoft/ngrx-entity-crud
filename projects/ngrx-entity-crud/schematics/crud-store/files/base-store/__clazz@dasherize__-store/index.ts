@@ -3,11 +3,11 @@ import * as <%= clazz %>StoreSelectors from './selectors';
 import * as <%= clazz %>StoreState from './state';
 
 export {
-<%= clazz %>StoreModule
+	<%= clazz %>StoreModule
 } from './<%= dasherize(clazz) %>-store.module';
 
 export {
-  <%= clazz %>StoreActions,
+	<%= clazz %>StoreActions,
 	<%= clazz %>StoreSelectors,
 	<%= clazz %>StoreState
 };
