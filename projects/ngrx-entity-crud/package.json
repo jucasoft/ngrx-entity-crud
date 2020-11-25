@@ -1,6 +1,6 @@
 {
   "name": "ngrx-entity-crud",
-  "version": "11.2.0",
+  "version": "11.2.1",
   "repository": "https://github.com/jucasoft/ngrx-entity-crud",
   "license": "MIT",
   "schematics": "./schematics/collection.json",
@@ -13,13 +13,14 @@
     "postbuild": "npm run copy:schemas && npm run copy:files && npm run copy:collection"
   },
   "peerDependencies": {
-    "@angular-devkit/core": "^11.0.1",
-    "@angular-devkit/schematics": "^11.0.1",
+    "@angular-devkit/core": "^11.0.2",
+    "@angular-devkit/schematics": "^11.0.2",
     "@angular-devkit/schematics-cli": "^0.1100.1",
-    "@angular/common": "^11.0.0",
-    "@angular/core": "^11.0.0",
+    "@angular/common": "^11.0.2",
+    "@angular/core": "^11.0.2",
     "@ngrx/store": "^10.0.1",
     "@ngrx/entity": "^10.0.1",
+    "@ngrx/effects": "^10.0.1",
     "deepmerge": "^4.2.2",
     "rxjs": "~6.6.3"
   },
