@@ -114,9 +114,9 @@ Now if you go to http://localhost:3000/api/v1/coin/1, you'll get:
 ```
 
 ## 7) Create the NgRx store to manage the coins
-the command to use: "crud-store" and the parameters to pass: "--clazz=Coin" and "--name=coin"
+the command to use: ":store" and the parameters to pass: "--type=CRUD", "--clazz=Coin" and "--name=coin"
 ```
-ng generate ngrx-entity-crud:crud-store --name=coin --clazz=Coin
+ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=CRUD
 ```
 the list of created and modified files will appear in the console
 ```
@@ -167,9 +167,9 @@ the description attribute will not be present
 
 
 ## 8)Create the new pages (search, list, detail...) of the Coin section.   
-The command to use: "crud-section" and the parameters to pass: "--clazz=Coin"
+The command to use: "section" and the parameters to pass: "--clazz=Coin" and "--lib=primeng"
 ```
-ng generate ngrx-entity-crud:crud-section --clazz=Coin
+ng generate ngrx-entity-crud:section --clazz=Coin --lib=primeng
 ```
 
 the list of created and modified files will appear in the console

@@ -35,17 +35,15 @@ export function makeStore(options: CrudStore): Rule {
     console.log('pathService', pathService);
     console.log('pathVo', pathVo);
 
-
     const genericRules: Rule[] = [
       addExport(options, normalize(`${path}/index.ts`)),
       addExport(options, normalize(`${path}/index.d.ts`)),
-      addImport(normalize(`${path}/state.ts`), `import {${options.clazz}StoreState} from '@root-store/${strings.dasherize(options.clazz)}-store';`),
-      updateState(options, normalize(`${path}/state.ts`)),
-      addImport(normalize(`${path}/selectors.ts`), `import {${options.clazz}StoreSelectors} from '@root-store/${strings.dasherize(options.clazz)}-store';`),
-      addRootSelector(options, normalize(`${path}/selectors.ts`)),
-
     ];
     const crudRules: Rule[] = [
+      addImport(normalize(`${path}/state.ts`), `import {${options.clazz}StoreState} from '@root-store/${strings.dasherize(options.clazz)}-store';`),
+      updateState(`${strings.underscore(options.name)}:${options.clazz}StoreState.State;`, normalize(`${path}/state.ts`)),
+      addImport(normalize(`${path}/selectors.ts`), `import {${options.clazz}StoreSelectors} from '@root-store/${strings.dasherize(options.clazz)}-store';`),
+      addRootSelector(options, normalize(`${path}/selectors.ts`)),
       render(options, './files/crud-store', path),
       render(options, './files/crud-service', pathService),
       render(options, './files/crud-model', pathVo),
@@ -57,6 +55,8 @@ export function makeStore(options: CrudStore): Rule {
     ];
 
     const baseRules: Rule[] = [
+      addImport(normalize(`${path}/state.ts`), `import {${options.clazz}} from '@models/vo/${strings.dasherize(options.clazz)}';`),
+      updateState(`${strings.underscore(options.name)}:${options.clazz};`, normalize(`${path}/state.ts`)),
       render(options, './files/base-store', path),
       render(options, './files/base-model', pathVo),
       addDeclarationToNgModule({

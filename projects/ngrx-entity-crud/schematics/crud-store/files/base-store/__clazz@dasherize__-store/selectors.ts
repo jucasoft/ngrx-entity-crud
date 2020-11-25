@@ -2,11 +2,17 @@ import {createFeatureSelector, createSelector, MemoizedSelector} from '@ngrx/sto
 import {Names} from './names';
 import {<%= clazz %>} from '@models/vo/<%= dasherize(clazz) %>';
 
-const getExample = (state: <%= clazz %>): any[] => state.example;
+const getValueA = (state: <%= clazz %>): string => state.valueA;
+const getValueB = (state: <%= clazz %>): string => state.valueB;
 
 export const selectState: MemoizedSelector<object, <%= clazz %>> = createFeatureSelector<<%= clazz %>>(Names.NAME);
 
-export const selectExample: MemoizedSelector<object, any[]> = createSelector(
+export const selectValueA: MemoizedSelector<object, string> = createSelector(
   selectState,
-  getExample
+  getValueA
+);
+
+export const selectValueB: MemoizedSelector<object, string> = createSelector(
+  selectState,
+  getValueB
 );

@@ -28,7 +28,7 @@ export function addExport(options: { clazz: string }, file: string): Rule {
 /**
  * Aggiorna l'interfaccia dell'interfaccia
  */
-export function updateState(options: { name: string, clazz: string }, file: string): Rule {
+export function updateState(newLine: string, file: string): Rule {
   return (tree: Tree, _context: SchematicContext) => {
     const content: Buffer | null = tree.read(file);
     let strContent: string = '';
@@ -37,7 +37,6 @@ export function updateState(options: { name: string, clazz: string }, file: stri
     }
     const startIndex = strContent.indexOf('export');
     const endIndex = strContent.indexOf('{', startIndex);
-    const newLine = `${strings.underscore(options.name)}:${options.clazz}StoreState.State;`;
     strContent = strContent.slice(0, endIndex + 1) + '\n' + newLine + strContent.slice(endIndex + 1);
     tree.overwrite(file, strContent);
     return tree;
@@ -193,6 +192,7 @@ export function addRouteDeclarationToNgModule(options: { module: string, routeLi
  * - ionic
  *
  */
+
 /*export function getGraphicsLibraryName(tree: Tree): string {
   const content: Buffer | null = tree.read('package.json');
   let strContent: string = '';
