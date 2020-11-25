@@ -1,13 +1,13 @@
 {
   "$schema": "../../../node_modules/@angular-devkit/schematics/collection-schema.json",
   "schematics": {
-    "crud-store": {
-      "description": "add crud store",
-      "factory": "./crud-store/index#crudStore",
+    "store": {
+      "description": "add store",
+      "factory": "./crud-store/index#makeStore",
       "schema": "./crud-store/schema.json"
     },
-    "crud-section": {
-      "description": "add crud section",
+    "section": {
+      "description": "add section",
       "factory": "./crud-section/index#crudSection",
       "schema": "./crud-section/schema.json"
     }

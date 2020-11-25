@@ -20,6 +20,16 @@
       "type": "string",
       "x-prompt": "Enter the feature name:"
     },
+    "type": {
+      "description": "choose the store type, crud or base",
+      "type": "string",
+      "default": "CRUD",
+      "enum": [
+        "CRUD",
+        "BASE"
+      ],
+      "x-prompt": "choose the store type, crud or base."
+    },
     "project": {
       "type": "string",
       "description": "The name of the project.",
