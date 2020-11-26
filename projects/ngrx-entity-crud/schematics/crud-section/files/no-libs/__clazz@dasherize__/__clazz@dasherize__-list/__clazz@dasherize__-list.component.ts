@@ -22,42 +22,6 @@ export class <%= clazz %>ListComponent implements OnInit {
 
   ngOnInit(): void {
     console.log('<%= clazz %>ListComponent.ngOnInit()');
-
-    this.collection$ = this.store$.select(<%= clazz %>StoreSelectors.selectAll);
-
-    this.store$.dispatch(
-      <%= clazz %>StoreActions.SearchRequest({queryParams: {}})
-    );
-
-  }
-
-  onEdit(item): void {
-    console.log('<%= clazz %>ListComponent.onEdit()');
-
-/*
-
-    this.store$.dispatch(RouterStoreActions.RouterGoPopUp({
-      path: ['<%= dasherize(clazz) %>', {outlets: {popUp: ['edit']}}]
-    }));
-
-*/
-
-  }
-
-  onCopy(value): void {
-    console.log('<%= clazz %>ListComponent.onCopy()');
-/*
-
-    this.store$.dispatch(RouterStoreActions.RouterGoPopUp({
-      path: ['<%= dasherize(clazz) %>', {outlets: {popUp: ['edit']}}]
-    }));
-
-*/
-
-  }
-
-  onDelete(item): void {
-    // this.store$.dispatch(<%= clazz %>StoreActions.DeleteRequest({item}));
   }
 
 }
