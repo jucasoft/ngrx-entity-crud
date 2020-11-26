@@ -11,11 +11,6 @@ How did I get to this result?
 
 3) [Schematics for Libraries](https://angular.io/guide/schematics-for-libraries).
 
-## Installation
-```
-npm i ngrx-entity-crud -S
-```
-
 # How to use it?
 We create an [Angular](https://angular.io/) + [NgRx](https://ngrx.io/) application with the classical [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) features.
     
@@ -39,16 +34,13 @@ npm i
 ```
 For more information ([help.github.com cloning-a-repository](https://help.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository))
 
-## 3) Rename project
-Search in the all project: "ngrx-entity-crud-prime-ng-boilerplate" replace it with {projectName}
-
-## 4) Run application:
+## 3) Run application:
 ```
 npm run start:dev
 ```
 if there are no errors, we can continue
 
-## 5) Project structure:
+## 4 Project structure:
 
 ```
 dist/                           compiled version
@@ -82,7 +74,7 @@ src/                            project source code
 + ...
 ```
 
-## 6) Back-End
+## 5) Back-End
 In this project we will use [jsonserver](https://github.com/typicode/json-server):
 
 Edit the /db.json file add some data:
@@ -113,7 +105,7 @@ Now if you go to http://localhost:3000/api/v1/coin/1, you'll get:
 }
 ```
 
-## 7) Create the NgRx store to manage the coins
+## 6) Create the NgRx store to manage the coins
 the command to use: ":store" and the parameters to pass: "--type=CRUD", "--clazz=Coin" and "--name=coin"
 ```
 ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=CRUD
@@ -185,12 +177,12 @@ CREATE src/app/main/views/coin/coin-main/coin-main.component.ts (536 bytes)
 UPDATE src/app/app-routing.module.ts (517 bytes)
 ```
 
-## 9) compile the application
+## 8) compile the application
 ```
 ng build --aot --prod
 ```
 
-## 10) start server
+## 9) start server
 ```
 npm run start
 ```
@@ -199,11 +191,11 @@ Go to http://localhost:3000/coin
 
 You have finished creating the new crud section, now you can filter, create, edit and delete coins.
 
-## 11) deploy app to Heroku
+## 10) deploy app to Heroku
 The application (FE and BE) is ready to be started on heroku, register on heroku and run this guide [github-integration](https://devcenter.heroku.com/articles/github-integration)
 
 ## Running unit tests
-Run `ng test NgrxEntityCrud` to execute the unit tests via [Karma](https://karma-runner.github.io).
+Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
 
 ## Help
 If you need help, or want to help me: [https://github.com/jucasoft/ngrx-entity-crud/issues](https://github.com/jucasoft/ngrx-entity-crud/issues)
