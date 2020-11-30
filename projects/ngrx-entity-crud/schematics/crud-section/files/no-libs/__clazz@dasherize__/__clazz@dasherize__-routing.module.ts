@@ -1,7 +1,7 @@
 import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
 import {<%= clazz %>MainComponent} from './<%= dasherize(clazz) %>-main/<%= dasherize(clazz) %>-main.component';
-import {<%= clazz %>EditComponent} from '@views/<%= dasherize(clazz) %>/<%= dasherize(clazz) %>-edit/<%= dasherize(clazz) %>-edit.component';
+import {<%= clazz %>EditComponent} from './<%= dasherize(clazz) %>-edit/<%= dasherize(clazz) %>-edit.component';
 
 const routes: Routes = [
   {
