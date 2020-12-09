@@ -5,10 +5,17 @@ import {State} from './state';
 import {HttpErrorResponse} from '@angular/common/http';
 
 const getIsLoggedIn = (state: State): boolean => state.isLoggedIn;
-const getAuth = (state: State): Auth => state.auth;
-const getRoles = (data: Auth): string[] => data.roles;
-const getUser = (data: Auth): AuthUser => data.user;
-const getToken = (data: Auth): string => data.token;
+const getAuth = (state: State): Auth => {
+  return state.auth;
+};
+
+const getRoles = (data: Auth): string[] => {
+  console.log('.getRoles()');
+  return !!data ? data.roles : [];
+};
+
+const getUser = (data: Auth): AuthUser => !!data ? data.user : null;
+const getToken = (data: Auth): string => !!data ? data.token : null;
 const getHasError = (state: State): boolean => state.hasError;
 const getErr = (state: State): HttpErrorResponse => state.err;
 

@@ -15,9 +15,9 @@ export class AuthStoreEffects {
     this.actions$.pipe(
       ofType(actions.LoginRequest),
       switchMap((payload) => this.authService.login(payload.username, payload.password).pipe(
-        switchMap(user => [
+        switchMap(auth => [
             RouterGo({path: [afterLoginUri]}),
-            actions.LoginResult({user, isLoggedIn: true})
+            actions.LoginResult({auth, isLoggedIn: true})
           ]
         ),
         catchError(err => {

@@ -17,7 +17,7 @@ export enum ActionTypes {
 }
 
 export const LoginRequest = createAction(ActionTypes.LOGIN_REQUEST, props<{ username: string, password: string }>());
-export const LoginResult = createAction(ActionTypes.LOGIN_RESULT, props<{ isLoggedIn: boolean, user: Auth }>());
+export const LoginResult = createAction(ActionTypes.LOGIN_RESULT, props<{ isLoggedIn: boolean, auth: Auth }>());
 export const LoginError = createAction(ActionTypes.LOGIN_ERROR, props<{ err: HttpErrorResponse }>());
 
 export const Reset = createAction(ActionTypes.RESET);
