@@ -10,7 +10,7 @@ export interface State {
 
 export const initialState: State = {
   isLoggedIn: false,
-  auth: null,
+  auth: new Auth(),
   hasError: false,
   err: null
 };

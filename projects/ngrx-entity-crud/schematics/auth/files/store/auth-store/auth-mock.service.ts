@@ -36,7 +36,7 @@ export class AuthMockService {
 
 const cipo: Auth = {
   token: 'xxx.xxx.xxx',
-  roles: ['roleA', 'roleB', 'roleC'],
+  roles: ['roleA'],
   user: {
     user: 'cipo',
     email: 'cipollino@mail.com',
