@@ -1,7 +1,8 @@
 import {chain, Rule, SchematicContext, SchematicsException, Tree} from '@angular-devkit/schematics';
-import {addRouteDeclarationToNgModule, render} from '../my-utility';
+import {addDeclarationToNgModule, addExport, addImport, addRouteDeclarationToNgModule, render, updateState} from '../my-utility';
+import {normalize, strings} from '@angular-devkit/core';
 
-export function make(options: CrudSection): Rule {
+export function makeAuth(options: Auth): Rule {
   return (tree: Tree, _context: SchematicContext) => {
     const workspaceConfig = tree.read('/angular.json');
     if (!workspaceConfig) {
@@ -24,25 +25,49 @@ export function make(options: CrudSection): Rule {
     const projectType = project.projectType === 'application' ? 'app' : 'lib';
 
     options.path = `${project.sourceRoot}/${projectType}`;
+    options.clazz = 'Auth';
+    options.name = 'auth';
 
-    const path: string = 'src/app/main/views';
+    const pathView: string = 'src/app/main/views';
+    const pathStore: string = 'src/app/root-store';
     const pathVo: string = 'src/app/main/models/vo/';
 
-    console.log('path', path);
+    console.log('pathView', pathView);
+    console.log('pathStore', pathStore);
     console.log('pathVo', pathVo);
 
-    const _chain = [];
-    _chain.push(render(options, `./files/views`, path));
+    const view = getView(options, pathView);
+    const store = getStore(options, pathStore, pathVo);
 
-    _chain.push(addRouteDeclarationToNgModule({
-        module: `/src/app/app-routing.module.ts`,
-        routeLiteral: `{path: 'login', loadChildren: () => import('./main/views/login.module').then(m => m.LoginModule)}`
-      }
-    ));
-    return chain(_chain);
+    return chain([...view, ...store]);
   };
 }
 
 
+function getView(options: Auth, path: string): Rule[] {
+  const result: Rule[] = [
+    render(options, `./files/views`, path),
+    addRouteDeclarationToNgModule({
+        module: `/src/app/app-routing.module.ts`,
+        routeLiteral: `{path: 'login', loadChildren: () => import('./main/views/login/login.module').then(m => m.LoginModule)}`
+      }
+    )];
+  return result;
+}
 
-
+function getStore(options: Auth, path: string, pathVo: string): Rule[] {
+  const result: Rule[] = [
+    addExport(options, normalize(`${path}/index.ts`)),
+    addExport(options, normalize(`${path}/index.d.ts`)),
+    addImport(normalize(`${path}/state.ts`), `import {${options.clazz}} from '@models/vo/${strings.dasherize(options.clazz)}';`),
+    updateState(`${strings.underscore(options.name)}:${options.clazz};`, normalize(`${path}/state.ts`)),
+    render(options, './files/store', path),
+    render(options, './files/model', pathVo),
+    addDeclarationToNgModule({
+      module: `/src/app/root-store/root-store.module.ts`,
+      name: `${options.clazz}Store`,
+      path: `@root-store/${strings.dasherize(options.clazz)}-store`
+    })
+  ];
+  return result;
+}

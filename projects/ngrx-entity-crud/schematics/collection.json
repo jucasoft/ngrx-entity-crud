@@ -11,10 +11,10 @@
       "factory": "./section/index#crudSection",
       "schema": "./section/schema.json"
     },
-    "login": {
+    "auth": {
       "description": "add login integration",
-      "factory": "./login/index#make",
-      "schema": "./login/schema.json"
+      "factory": "./auth/index#makeAuth",
+      "schema": "./auth/schema.json"
     }
   }
 }
