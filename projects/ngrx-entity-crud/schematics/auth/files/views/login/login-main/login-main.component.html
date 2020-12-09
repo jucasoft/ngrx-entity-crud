@@ -1,0 +1,25 @@
+<p-card header="Login" [style]="{width: '360px'}" styleClass="p-card-shadow">
+
+  <div *ngIf="(hasError$ | async)"><small class="p-invalid">{{err$ | async}}</small></div>
+  <form class="dynamic-form" [formGroup]="form">
+    <div class="p-fluid">
+      <div class="p-field">
+        <label for="username"><strong>username</strong></label><br>
+        <input id="username" name="name" type="text" class="form-control" pInputText [formControl]="username"/>
+        <app-form-error-msg [fc]="username"></app-form-error-msg>
+      </div>
+      <div class="p-field">
+        <label for="password"><strong>password</strong></label><br>
+        <input id="password" name="name" type="text" class="form-control" pInputText [formControl]="password"/>
+        <app-form-error-msg [fc]="password"></app-form-error-msg>
+      </div>
+    </div>
+  </form>
+
+  <ng-template pTemplate="footer">
+    <div class="p-text-right">
+      <p-button label="Login" [disabled]="!form.valid" (click)="submit(form.getRawValue())" icon="pi pi-check mr-2"></p-button>
+    </div>
+  </ng-template>
+</p-card>
+

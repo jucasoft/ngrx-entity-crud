@@ -3,13 +3,18 @@
   "schematics": {
     "store": {
       "description": "add store",
-      "factory": "./crud-store/index#makeStore",
-      "schema": "./crud-store/schema.json"
+      "factory": "./store/index#makeStore",
+      "schema": "./store/schema.json"
     },
     "section": {
       "description": "add section",
-      "factory": "./crud-section/index#crudSection",
-      "schema": "./crud-section/schema.json"
+      "factory": "./section/index#crudSection",
+      "schema": "./section/schema.json"
+    },
+    "login": {
+      "description": "add login integration",
+      "factory": "./login/index#make",
+      "schema": "./login/schema.json"
     }
   }
 }
