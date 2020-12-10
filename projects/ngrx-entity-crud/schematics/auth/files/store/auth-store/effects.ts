@@ -43,4 +43,11 @@ export class AuthStoreEffects {
     )
   );
 
+  goToLogin$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(actions.GoToLogin),
+      switchMap(() => [RouterGo({path: [afterLogoutUri]})])
+    )
+  );
+
 }
