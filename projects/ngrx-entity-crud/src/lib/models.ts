@@ -156,6 +156,11 @@ export interface EntityCrudAdapter<T> extends EntityAdapter<T> {
   createCrudReducer<S>(initialState: S, actions: Actions<any>);
 }
 
+interface PropsSearchSuccess<T> {
+  items: T;
+  request: ICriteria;
+}
+
 export interface Actions<T> {
 
   // azione dispacciata dall'effect se:
@@ -171,7 +176,7 @@ export interface Actions<T> {
    */
   SearchRequest: ActionCreator<string, (props: ICriteria) => ICriteria & TypedAction<string>>;
   SearchFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  SearchSuccess: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
+  SearchSuccess: ActionCreator<string, (props: { items: T[], request: ICriteria }) => { items: T[], request: ICriteria } & TypedAction<string>>;
 
   DeleteRequest: ActionCreator<string, (props: OptRequest<T>) => OptRequest<T> & TypedAction<string>>;
   DeleteFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
