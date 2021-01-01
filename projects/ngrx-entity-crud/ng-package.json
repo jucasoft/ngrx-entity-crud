@@ -4,6 +4,7 @@
   "lib": {
     "entryFile": "src/public-api.ts",
     "umdModuleIds": {
+      "@ngrx/effects": "effects",
       "@ngrx/entity": "entity",
       "@ngrx/store": "store",
       "ts-action": "tsAction"
