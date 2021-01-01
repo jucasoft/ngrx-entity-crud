@@ -11,71 +11,6 @@ export function evalData<T>(fn: () => T, def: any = null): T {
   }
 }
 
-export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
-  function createCrudReducer<S extends EntityCrudState<T>>(initialState: S, actions: Actions<T>, ...ons: On<S>[]) {
-    const {
-      responseOn,
-      resetResponsesOn,
-      searchRequestOn,
-      deleteRequestOn,
-      editRequestOn,
-      createRequestOn,
-      selectRequestOn,
-      searchSuccessOn,
-      deleteSuccessOn,
-      createSuccessOn,
-      selectSuccessOn,
-      editSuccessOn,
-      searchFailureOn,
-      deleteFailureOn,
-      createFailureOn,
-      selectFailureOn,
-      editFailureOn,
-      resetOn,
-      filtersOn,
-      selectItemsOn,
-      selectItemOn,
-      editOn,
-      createOn,
-      deleteOn
-    } = createCrudOns(adapter, initialState, actions);
-    const totalOns: On<S>[] = [
-      ...ons,
-      responseOn,
-      resetResponsesOn,
-      searchRequestOn,
-      deleteRequestOn,
-      editRequestOn,
-      createRequestOn,
-      selectRequestOn,
-      searchSuccessOn,
-      deleteSuccessOn,
-      createSuccessOn,
-      selectSuccessOn,
-      editSuccessOn,
-      searchFailureOn,
-      deleteFailureOn,
-      createFailureOn,
-      selectFailureOn,
-      editFailureOn,
-      resetOn,
-      filtersOn,
-      selectItemsOn,
-      selectItemOn,
-      editOn,
-      createOn,
-      deleteOn
-    ];
-    return createReducer<S>(initialState,
-      ...totalOns
-    );
-  }
-
-  return {
-    createCrudReducer
-  };
-}
-
 export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAdapter<T>, initialState: S, actions: Actions<T>): { [key: string]: On<S> } {
   const searchRequestOn = on(actions.SearchRequest, (state: S, criteria: ICriteria) => {
     if (!criteria.path && !criteria.mode && !criteria.queryParams) {
@@ -327,4 +262,69 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
     deleteOn
   };
 
+}
+
+export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
+  function createCrudReducer<S extends EntityCrudState<T>>(initialState: S, actions: Actions<T>, ...ons: On<S>[]) {
+    const {
+      responseOn,
+      resetResponsesOn,
+      searchRequestOn,
+      deleteRequestOn,
+      editRequestOn,
+      createRequestOn,
+      selectRequestOn,
+      searchSuccessOn,
+      deleteSuccessOn,
+      createSuccessOn,
+      selectSuccessOn,
+      editSuccessOn,
+      searchFailureOn,
+      deleteFailureOn,
+      createFailureOn,
+      selectFailureOn,
+      editFailureOn,
+      resetOn,
+      filtersOn,
+      selectItemsOn,
+      selectItemOn,
+      editOn,
+      createOn,
+      deleteOn
+    } = createCrudOns(adapter, initialState, actions);
+    const totalOns: On<S>[] = [
+      ...ons,
+      responseOn,
+      resetResponsesOn,
+      searchRequestOn,
+      deleteRequestOn,
+      editRequestOn,
+      createRequestOn,
+      selectRequestOn,
+      searchSuccessOn,
+      deleteSuccessOn,
+      createSuccessOn,
+      selectSuccessOn,
+      editSuccessOn,
+      searchFailureOn,
+      deleteFailureOn,
+      createFailureOn,
+      selectFailureOn,
+      editFailureOn,
+      resetOn,
+      filtersOn,
+      selectItemsOn,
+      selectItemOn,
+      editOn,
+      createOn,
+      deleteOn
+    ];
+    return createReducer<S>(initialState,
+      ...totalOns
+    );
+  }
+
+  return {
+    createCrudReducer
+  };
 }
