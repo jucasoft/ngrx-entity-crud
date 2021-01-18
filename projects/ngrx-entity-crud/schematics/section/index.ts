@@ -27,9 +27,18 @@ export function crudSection(options: CrudSection): Rule {
 
     options.path = `${project.sourceRoot}/${projectType}`;
 
-    const path: string = 'src/app/main/views';
-    const pathService: string = 'src/app/main/services';
-    const pathVo: string = 'src/app/main/models/vo/';
+    let path: string = 'src/app/main/views';
+    let pathService: string = 'src/app/main/services';
+    let pathVo: string = 'src/app/main/models/vo/';
+
+    const conf = tree.read('/ngrx-entity-crud.conf.json');
+    if (conf) {
+      const confData = JSON.parse(conf.toString());
+      console.log('conf', conf);
+      path = confData.pathView;
+      pathService = confData.pathService;
+      pathVo = confData.pathVo;
+    }
 
     const lib = options.lib;
 

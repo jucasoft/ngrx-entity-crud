@@ -27,7 +27,7 @@ describe('Crud', () => {
     });
     const items: Pizza[] = [{id: 0, name: 'a'}, {id: 1, name: 'b'}, {id: 2, name: 'c'}, {id: 3, name: 'd'}];
     state = adapter.getInitialCrudState();
-    state = adapter.addAll(items, state);
+    state = adapter.setAll(items, state);
     selectState = createFeatureSelector<State>(NAME);
     selectors = adapter.getCrudSelectors(selectState);
     actions = adapter.createCrudActions(NAME);
@@ -94,7 +94,7 @@ describe('Crud', () => {
 
       const lastCriteria = actions.SearchRequest({mode: 'REFRESH', queryParams: undefined, path: undefined});
 
-      const expectState: State = adapter.addAll(items, {
+      const expectState: State = adapter.setAll(items, {
         ...state,
         isLoaded: true,
         isLoading: false,
@@ -102,7 +102,7 @@ describe('Crud', () => {
         lastCriteria
       });
 
-      const toState: State = featureReducer({...{}, ...state, ...{lastCriteria}}, actions.SearchSuccess({items}));
+      const toState: State = featureReducer({...{}, ...state, ...{lastCriteria}}, actions.SearchSuccess({items, request: lastCriteria}));
       expect(expectState).toEqual(toState);
     });
 
@@ -112,7 +112,7 @@ describe('Crud', () => {
 
       const lastCriteria = actions.SearchRequest({mode: undefined, queryParams: undefined, path: undefined});
 
-      const expectState: State = adapter.addAll(items, {
+      const expectState: State = adapter.setAll(items, {
         ...state,
         isLoaded: true,
         isLoading: false,
@@ -120,7 +120,7 @@ describe('Crud', () => {
         lastCriteria
       });
 
-      const toState: State = featureReducer({...{}, ...state, ...{lastCriteria}}, actions.SearchSuccess({items}));
+      const toState: State = featureReducer({...{}, ...state, ...{lastCriteria}}, actions.SearchSuccess({items, request: lastCriteria}));
       expect(expectState).toEqual(toState);
     });
 
@@ -138,7 +138,7 @@ describe('Crud', () => {
         lastCriteria
       });
 
-      const toState: State = featureReducer({...{}, ...state, ...{lastCriteria}}, actions.SearchSuccess({items}));
+      const toState: State = featureReducer({...{}, ...state, ...{lastCriteria}}, actions.SearchSuccess({items, request: lastCriteria}));
       expect(expectState).toEqual(toState);
     });
 

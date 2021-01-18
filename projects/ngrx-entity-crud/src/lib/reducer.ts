@@ -66,7 +66,6 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
   });
 
   const searchSuccessOn = on(actions.SearchSuccess, (state: S, {type, items, request }) => {
-    console.log('createCrudOns()');
     const mode = evalData(() => request.mode, null) || 'setAll';
     let method;
     switch (mode) {
@@ -85,6 +84,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
         method = adapter.setAll;
         break;
       }
+
       default: {
         // console.log('default');
         method = adapter.setAll;

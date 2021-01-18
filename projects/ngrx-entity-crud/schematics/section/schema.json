@@ -18,7 +18,6 @@
     "lib": {
       "description": "choose the library.",
       "type": "string",
-      "default": "primeng",
       "enum": [
         "primeng",
         "no-libs"
@@ -34,6 +33,7 @@
     }
   },
   "required": [
-    "clazz"
+    "clazz",
+    "lib"
   ]
 }

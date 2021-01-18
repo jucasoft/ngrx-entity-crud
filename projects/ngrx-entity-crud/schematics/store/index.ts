@@ -20,16 +20,18 @@ export function makeStore(options: CrudStore): Rule {
       options.project = workspace.defaultProject;
     }
 
-    // const projectName = options.project as string;
 
-    // const project = workspace.projects[projectName];
+    let path: string = 'src/app/root-store';
+    let pathService: string = 'src/app/main/services';
+    let pathVo: string = 'src/app/main/models/vo/';
 
-    // const projectType = project.projectType === 'application' ? 'app' : 'lib';
-
-    // options.path = `${project.sourceRoot}/${projectType}`;
-    const path: string = 'src/app/root-store';
-    const pathService: string = 'src/app/main/services';
-    const pathVo: string = 'src/app/main/models/vo/';
+    const conf = tree.read('/ngrx-entity-crud.conf.json');
+    if (conf) {
+      const confData = JSON.parse(conf.toString());
+      path = confData.pathStore;
+      pathService = confData.pathService;
+      pathVo = confData.pathVo;
+    }
 
     console.log('path', path);
     console.log('pathService', pathService);

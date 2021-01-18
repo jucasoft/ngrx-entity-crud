@@ -39,6 +39,6 @@
     }
   },
   "required": [
-    "name", "clazz"
+    "name", "clazz", "type"
   ]
 }
