@@ -1,5 +1,5 @@
 import {EntityAdapter, EntityState} from '@ngrx/entity';
-import {Action, ActionCreator, MemoizedSelector} from '@ngrx/store';
+import {Action, ActionCreator, DefaultProjectorFn, MemoizedSelector} from '@ngrx/store';
 
 // COPIATO DA @ngrx/store/src/models
 // se viene importato da @ngrx/store/src/models, da errori nei progetti dove viene utilizzato.
@@ -111,16 +111,17 @@ export interface CrudState<T> extends EntityState<T> {
   isLoaded: boolean;
   filters: { [s: string]: FilterMetadata; };
   lastCriteria: ICriteria;
+  idsSelected: string[] | number[];
   itemSelected: T;
+  idSelected: string | number;
   itemsSelected: T[];
   // ogni entità registra l'azione scatenata e la risposta dal server.
   responses: OptResponse<T>[];
 }
 
-
 export interface EntityCrudSelectors<T, V> extends EntitySelectors<T, V> {
-  selectItemSelected: (state: V) => T;
-  selectItemsSelected: (state: V) => T[];
+  selectItemSelected: any;
+  selectItemsSelected: any;
   selectLastCriteria: (state: V) => ICriteria;
   selectError: (state: V) => string;
   selectIsLoading: (state: V) => boolean;
@@ -136,9 +137,20 @@ export interface EntityCrudState<T> extends EntityState<T> {
   isLoaded: boolean;
   filters: { [s: string]: FilterMetadata; };
   lastCriteria: ICriteria;
-  // attributo popolato dal result di SelectccRequest
+  /**
+   * TODO: questo attributo andra sostituiro da una lista di id, d
+   *  a utilizzare come riferimenti agli elementi selezionati.
+   * @deprecated utilizzare entitySelected/idSelected
+   */
   itemSelected: T;
+  idSelected: string | number;
+  /**
+   * TODO: questo attributo andra sostituiro da una lista di id, d
+   *  a utilizzare come riferimenti agli elementi selezionati.
+   * @deprecated utilizzare entitySelected/idSelected
+   */
   itemsSelected: T[];
+  idsSelected: string[] | number[];
   // ogni entità registra l'azione scatenata e la risposta dal server.
   responses: OptResponse<T>[];
 }

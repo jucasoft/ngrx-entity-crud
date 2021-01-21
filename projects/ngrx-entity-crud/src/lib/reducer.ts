@@ -2,6 +2,8 @@ import {Actions, EntityCrudState, ICriteria, OptRequest} from './models';
 import {EntityAdapter} from '@ngrx/entity';
 import {createReducer, on} from '@ngrx/store';
 import {On} from '@ngrx/store/src/reducer_creator';
+import {selectIdValue} from '@ngrx/entity/src/utils';
+import {isDevMode} from '@angular/core';
 
 export function evalData<T>(fn: () => T, def: any = null): T {
   try {
@@ -65,7 +67,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
     );
   });
 
-  const searchSuccessOn = on(actions.SearchSuccess, (state: S, {type, items, request }) => {
+  const searchSuccessOn = on(actions.SearchSuccess, (state: S, {type, items, request}) => {
     const mode = evalData(() => request.mode, null) || 'setAll';
     let method;
     switch (mode) {
@@ -167,18 +169,55 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
       }
     )));
   const filtersOn = on(actions.Filters, (state: S, {type, filters}) => Object.assign({}, state, {filters}));
-  const selectItemOn = on(actions.SelectItem, (state: S, {type, item}) => Object.assign({}, state, {itemSelected: item}));
-  const selectItemsOn = on(actions.SelectItems, (state: S, {type, items}) => Object.assign({}, state, {itemsSelected: items}));
-  const selectSuccessOn = on(actions.SelectSuccess, (state: S, {type, item}) =>
-    Object.assign(
-      {}, state,
-      {
+  const selectItemsOn = on(actions.SelectItems, (state: S, {type, items}) => {
+    const idsSelected = items.map(item => selectIdValue(item, adapter.selectId));
+    const result = {
+      ...state,
+      idsSelected,
+      itemsSelected: items
+    };
+    if (isDevMode()) {
+      console.log(type);
+      console.log('items', items);
+      console.log('state', state);
+      console.log('result', result);
+    }
+    return result;
+  });
+  const selectItemOn = on(actions.SelectItem, (state: S, {type, item}) => {
+    const idSelected = selectIdValue(item, adapter.selectId);
+    const result = {
+      ...state,
+      idSelected,
+      itemSelected: item
+    };
+    if (isDevMode()) {
+      console.log(type);
+      console.log('item', item);
+      console.log('state', state);
+      console.log('result', result);
+    }
+    return result;
+  });
+  const selectSuccessOn = on(actions.SelectSuccess, (state: S, {type, item}) => {
+      const idSelected = selectIdValue(item, adapter.selectId);
+      const result = {
+        ...state,
+        idSelected,
         itemSelected: item,
         isLoaded: true,
         isLoading: false,
         error: null
+      };
+      if (isDevMode()) {
+        console.log(type);
+        console.log('item', item);
+        console.log('state', state);
+        console.log('result', result);
       }
-    ));
+      return result;
+    }
+  );
   const searchFailureOn = on(
     actions.SearchFailure,
     (state: S, {type, error}) => Object.assign(

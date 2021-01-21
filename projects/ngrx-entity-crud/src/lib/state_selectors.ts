@@ -1,4 +1,4 @@
-import {CrudState, EntityCrudSelectors, EntityCrudState, FilterMetadata, ICriteria, OptResponse} from './models';
+import {CrudState, Dictionary, EntityCrudSelectors, EntityCrudState, FilterMetadata, ICriteria, OptResponse} from './models';
 import {createSelector, MemoizedSelector} from '@ngrx/store';
 import {jNgrxFilter} from './j-ngrx-filter';
 
@@ -16,8 +16,10 @@ export function createCrudSelectorsFactory<T>(adapter) {
     const getIsLoaded = (state: CrudState<T>): boolean => state.isLoaded;
     const getFilters = (state: CrudState<T>): { [s: string]: FilterMetadata; } => state.filters;
     const getLastCriteria = (state: CrudState<T>): ICriteria => state.lastCriteria;
-    const getItemSelected = (state: CrudState<T>): T => state.itemSelected;
-    const getItemsSelected = (state: CrudState<T>): T[] => state.itemsSelected;
+    // const getItemSelected = (state: CrudState<T>): T => state.itemSelected;
+    const getIdSelected = (state: CrudState<T>): string | number => state.idSelected;
+    // const getItemsSelected = (state: CrudState<T>): T[] => state.itemsSelected;
+    const getIdsSelected = (state: CrudState<T>): string[] | number[] => state.idsSelected;
     const getRespones = (state: CrudState<T>): OptResponse<T>[] => state.responses;
 
     const selectError: MemoizedSelector<V, any> = createSelector(selectState, getError);
@@ -28,8 +30,10 @@ export function createCrudSelectorsFactory<T>(adapter) {
       getFilters
     );
     const selectLastCriteria: MemoizedSelector<V, ICriteria> = createSelector(selectState, getLastCriteria);
-    const selectItemSelected: MemoizedSelector<V, T> = createSelector(selectState, getItemSelected);
-    const selectItemsSelected: MemoizedSelector<V, T[]> = createSelector(selectState, getItemsSelected);
+
+    // const selectItemSelected: MemoizedSelector<V, T> = createSelector(selectState, getItemSelected);
+    // const selectItemsSelected: MemoizedSelector<V, T[]> = createSelector(selectState, getItemsSelected);
+
     const selectResponses: MemoizedSelector<V, OptResponse<T>[]> = createSelector(selectState, getRespones);
 
     const {
@@ -38,6 +42,19 @@ export function createCrudSelectorsFactory<T>(adapter) {
       selectIds,
       selectTotal
     } = adapter.getSelectors(selectState);
+
+    const selectItemsSelected = createSelector(
+      getIdsSelected,
+      selectEntities,
+      (ids: any[], entities: Dictionary<T>): any =>
+        ids.map((id: any) => (entities[id] as T))
+    );
+
+    const selectItemSelected = createSelector(
+      getIdSelected,
+      selectEntities,
+      (id, entities: Dictionary<T>): any => entities[id]
+    );
 
     const selectFilteredItems: MemoizedSelector<any, T[]> = createSelector([selectAll, selectFilters],
       (allTasks: T[], filters: { [s: string]: FilterMetadata; }): T[] => {

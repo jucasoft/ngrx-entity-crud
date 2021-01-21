@@ -1,4 +1,4 @@
-import {EntityCrudState, OptResponse} from './models';
+import {EntityCrudState} from './models';
 
 export function getInitialEntityCrudState<V>(): EntityCrudState<V> {
   return {
@@ -10,7 +10,9 @@ export function getInitialEntityCrudState<V>(): EntityCrudState<V> {
     filters: {},
     lastCriteria: null,
     itemsSelected: [],
+    idsSelected: [],
     itemSelected: null,
+    idSelected: null,
     responses: []
   };
 }
