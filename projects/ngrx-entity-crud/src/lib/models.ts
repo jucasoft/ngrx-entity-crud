@@ -17,6 +17,20 @@ export declare abstract class Dictionary<T> implements DictionaryNum<T> {
   [id: string]: T | undefined;
 }
 
+// COPIATO DA @ngrx/store/src/models
+// se viene importato da @ngrx/entity/src/models, da errori nei progetti dove viene utilizzato.
+export type IdSelectorStr<T> = (model: T) => string;
+export type IdSelectorNum<T> = (model: T) => number;
+// COPIATO DA @ngrx/store/src/models
+// se viene importato da @ngrx/entity/src/models, da errori nei progetti dove viene utilizzato.
+export type IdSelector<T> = IdSelectorStr<T> | IdSelectorNum<T>;
+
+// per evitare l'importazione
+// import {Comparer, EntityAdapter, IdSelector} from '@ngrx/entity/src/models';
+// ho copiato i seguenti type
+export declare type ComparerStr<T> = (a: T, b: T) => string;
+export declare type Comparer<T> = (a: T, b: T) => number;
+
 export interface EntitySelectors<T, V> {
   selectIds: (state: V) => string[] | number[];
   selectEntities: (state: V) => Dictionary<T>;

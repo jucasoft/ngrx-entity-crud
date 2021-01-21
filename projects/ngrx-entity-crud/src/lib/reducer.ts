@@ -2,8 +2,8 @@ import {Actions, EntityCrudState, ICriteria, OptRequest} from './models';
 import {EntityAdapter} from '@ngrx/entity';
 import {createReducer, on} from '@ngrx/store';
 import {On} from '@ngrx/store/src/reducer_creator';
-import {selectIdValue} from '@ngrx/entity/src/utils';
 import {isDevMode} from '@angular/core';
+import {selectIdValue} from './utils';
 
 export function evalData<T>(fn: () => T, def: any = null): T {
   try {

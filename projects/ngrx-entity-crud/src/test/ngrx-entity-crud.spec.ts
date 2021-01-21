@@ -218,7 +218,7 @@ describe('Crud', () => {
     it('SelectItem', () => {
       const payload = {item: {id: 0, name: 'a'}};
 
-      const expectState: State = ({...state, ...{itemSelected: payload.item}});
+      const expectState: State = ({...state, ...{itemSelected: payload.item, idSelected: payload.item.id}});
 
       const toState: State = featureReducer(state, actions.SelectItem(payload));
 
@@ -228,7 +228,7 @@ describe('Crud', () => {
     it('SelectItems', () => {
       const payload = {items: [{id: 0, name: 'a'}, {id: 1, name: 'b'}]};
 
-      const expectState: State = ({...state, ...{itemsSelected: payload.items}});
+      const expectState: State = ({...state, ...{itemsSelected: payload.items, idsSelected: payload.items.map(value => value.id)}});
 
       const toState: State = featureReducer(state, actions.SelectItems(payload));
 
@@ -240,6 +240,7 @@ describe('Crud', () => {
 
       const expectState: State = ({
         ...state,
+        idSelected: payload.item.id,
         itemSelected: payload.item,
         isLoaded: true,
         isLoading: false,
