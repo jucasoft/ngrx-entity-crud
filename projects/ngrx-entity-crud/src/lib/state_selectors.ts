@@ -34,6 +34,9 @@ export function createCrudSelectorsFactory<T>(adapter) {
     // const selectItemSelected: MemoizedSelector<V, T> = createSelector(selectState, getItemSelected);
     // const selectItemsSelected: MemoizedSelector<V, T[]> = createSelector(selectState, getItemsSelected);
 
+    const selectIdSelected: MemoizedSelector<V, string | number> = createSelector(selectState, getIdSelected);
+    const selectIdsSelected: MemoizedSelector<V, string[] | number[]> = createSelector(selectState, getIdsSelected);
+
     const selectResponses: MemoizedSelector<V, OptResponse<T>[]> = createSelector(selectState, getRespones);
 
     const {
@@ -44,14 +47,14 @@ export function createCrudSelectorsFactory<T>(adapter) {
     } = adapter.getSelectors(selectState);
 
     const selectItemsSelected = createSelector(
-      getIdsSelected,
+      selectIdsSelected,
       selectEntities,
       (ids: any[], entities: Dictionary<T>): any =>
         ids.map((id: any) => (entities[id] as T))
     );
 
     const selectItemSelected = createSelector(
-      getIdSelected,
+      selectIdSelected,
       selectEntities,
       (id, entities: Dictionary<T>): any => entities[id]
     );
@@ -73,7 +76,9 @@ export function createCrudSelectorsFactory<T>(adapter) {
       selectIds,
       selectTotal,
       selectLastCriteria,
+      selectIdSelected,
       selectItemSelected,
+      selectIdsSelected,
       selectItemsSelected,
       selectResponses,
     };

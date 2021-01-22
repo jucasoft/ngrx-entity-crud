@@ -1,5 +1,5 @@
 import {EntityAdapter, EntityState} from '@ngrx/entity';
-import {Action, ActionCreator, DefaultProjectorFn, MemoizedSelector} from '@ngrx/store';
+import {Action, ActionCreator, MemoizedSelector} from '@ngrx/store';
 
 // COPIATO DA @ngrx/store/src/models
 // se viene importato da @ngrx/store/src/models, da errori nei progetti dove viene utilizzato.
@@ -134,8 +134,10 @@ export interface CrudState<T> extends EntityState<T> {
 }
 
 export interface EntityCrudSelectors<T, V> extends EntitySelectors<T, V> {
-  selectItemSelected: any;
-  selectItemsSelected: any;
+  selectIdSelected: (state: V) => string | number;
+  selectIdsSelected: (state: V) => string[] | number[];
+  selectItemSelected: (state: V) => T;
+  selectItemsSelected: (state: V) => T[];
   selectLastCriteria: (state: V) => ICriteria;
   selectError: (state: V) => string;
   selectIsLoading: (state: V) => boolean;
