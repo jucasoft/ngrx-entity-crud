@@ -7,8 +7,11 @@ import {<%= clazz %>} from '@models/vo/<%= dasherize(clazz) %>';
 import {<%= clazz %>Service} from '@services/<%= dasherize(clazz) %>.service';
 import {
   createCall, createCatchError, createResponse,
+  createManyCall, createManyCatchError, createManyResponse,
   deleteCall, deleteCatchError, deleteResponse,
+  deleteManyCall, deleteManyCatchError, deleteManyResponse,
   editCall, editCatchError, editResponse,
+  editManyCall, editManyCatchError, editManyResponse,
   searchCall, searchCatchError, searchResponse,
   selectCall, selectCatchError, selectResponse
 } from 'ngrx-entity-crud';
@@ -35,6 +38,14 @@ export class <%= clazz %>StoreEffects {
     repeat()
   ));
 
+  deleteManyRequestEffect$: Observable<Action>  = createEffect(() => this.actions$.pipe(
+    ofType(actions.DeleteManyRequest),
+    deleteManyCall<<%= clazz %>>(this.service),
+    deleteManyResponse<<%= clazz %>>(actions, <%= clazz %>, {dispatchResponse: false}),
+    deleteManyCatchError<<%= clazz %>>(actions),
+    repeat()
+  ));
+
   createRequestEffect$: Observable<Action>  = createEffect(() => this.actions$.pipe(
     ofType(actions.CreateRequest),
     createCall<<%= clazz %>>(this.service),
@@ -43,11 +54,27 @@ export class <%= clazz %>StoreEffects {
     repeat()
   ));
 
+  createManyRequestEffect$: Observable<Action>  = createEffect(() => this.actions$.pipe(
+    ofType(actions.CreateManyRequest),
+    createManyCall<<%= clazz %>>(this.service),
+    createManyResponse<<%= clazz %>>(actions, {dispatchResponse: false}),
+    createManyCatchError<<%= clazz %>>(actions),
+    repeat()
+  ));
+
   editRequestEffect$: Observable<Action>  = createEffect(() => this.actions$.pipe(
     ofType(actions.EditRequest),
     editCall<<%= clazz %>>(this.service),
     editResponse<<%= clazz %>>(actions, {dispatchResponse: false}),
     editCatchError<<%= clazz %>>(actions),
+    repeat()
+  ));
+
+  editManyRequestEffect$: Observable<Action>  = createEffect(() => this.actions$.pipe(
+    ofType(actions.EditManyRequest),
+    editManyCall<<%= clazz %>>(this.service),
+    editManyResponse<<%= clazz %>>(actions, {dispatchResponse: false}),
+    editManyCatchError<<%= clazz %>>(actions),
     repeat()
   ));
 

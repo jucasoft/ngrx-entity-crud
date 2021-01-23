@@ -15,9 +15,17 @@ export const {
   DeleteFailure,
   DeleteSuccess,
 
+  DeleteManyRequest,
+  DeleteManyFailure,
+  DeleteManySuccess,
+
   CreateRequest,
   CreateFailure,
   CreateSuccess,
+
+  CreateManyRequest,
+  CreateManyFailure,
+  CreateManySuccess,
 
   SelectRequest,
   SelectFailure,
@@ -26,6 +34,10 @@ export const {
   EditRequest,
   EditFailure,
   EditSuccess,
+
+  EditManyRequest,
+  EditManyFailure,
+  EditManySuccess,
 
   Reset,
   Filters,
