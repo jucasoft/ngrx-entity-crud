@@ -1,4 +1,4 @@
-import {CrudState, EntityCrudAdapter, ICriteria} from '../lib/models';
+import {Actions, CrudState, EntityCrudAdapter, EntityCrudSelectors, EntityCrudState, ICriteria} from '../lib/models';
 import {createCrudEntityAdapter} from '../lib/create_adapter';
 import {createFeatureSelector, MemoizedSelector, Store} from '@ngrx/store';
 
@@ -15,11 +15,11 @@ export interface State extends CrudState<Pizza> {
 describe('Crud', () => {
 
   let adapter: EntityCrudAdapter<Pizza>;
-  let state: State;
+  let state: EntityCrudState<Pizza>;
   let selectState: MemoizedSelector<object, State>;
-  let selectors;
+  let selectors: EntityCrudSelectors<Pizza, object>;
   let featureReducer;
-  let actions;
+  let actions: Actions<Pizza>;
 
   beforeEach(() => {
     adapter = createCrudEntityAdapter<Pizza>({
@@ -46,6 +46,16 @@ describe('Crud', () => {
       expect(expectState).toEqual(toState);
     });
 
+    it('CreateManyRequest', () => {
+      const payload = {items: [{id: 5, name: 'e'}, {id: 6, name: 'f'}]};
+      const expectState: State = ({
+        ...state,
+        isLoading: true
+      });
+      const toState: State = featureReducer(state, actions.CreateManyRequest(payload));
+      expect(expectState).toEqual(toState);
+    });
+
     it('DeleteRequest', () => {
       const payload = {item: {id: 0, name: 'a'}};
       const expectState: State = ({
@@ -56,6 +66,16 @@ describe('Crud', () => {
       expect(expectState).toEqual(toState);
     });
 
+    it('DeleteManyRequest', () => {
+      const payload = {items: [{id: 0, name: 'a'}, {id: 1, name: 'b'}]};
+      const expectState: State = ({
+        ...state,
+        isLoading: true
+      });
+      const toState: State = featureReducer(state, actions.DeleteManyRequest(payload));
+      expect(expectState).toEqual(toState);
+    });
+
     it('EditRequest', () => {
       const payload = {item: {id: 0, name: 'aa'}};
       const expectState: State = ({
@@ -63,6 +83,16 @@ describe('Crud', () => {
         isLoading: true
       });
       const toState: State = featureReducer(state, actions.EditRequest(payload));
+      expect(expectState).toEqual(toState);
+    });
+
+    it('EditRequest many elements', () => {
+      const payload = {items: [{id: 0, name: 'aa'}, {id: 1, name: 'bb'}]};
+      const expectState: State = ({
+        ...state,
+        isLoading: true
+      });
+      const toState: State = featureReducer(state, actions.EditManyRequest(payload));
       expect(expectState).toEqual(toState);
     });
 
@@ -142,13 +172,13 @@ describe('Crud', () => {
       expect(expectState).toEqual(toState);
     });
 
-    it('SearchSuccess mode: "addAll"', () => {
+    it('SearchSuccess mode: "setAll"', () => {
 
       const items: Pizza[] = [{id: 4, name: 'e'}, {id: 5, name: 'f'}, {id: 6, name: 'g'}, {id: 7, name: 'h'}];
 
       const lastCriteria = actions.SearchRequest({mode: 'addAll', queryParams: undefined, path: undefined});
 
-      const expectState: State = adapter.addAll(items, {
+      const expectState: State = adapter.setAll(items, {
         ...state,
         isLoaded: true,
         isLoading: false,
@@ -156,7 +186,7 @@ describe('Crud', () => {
         lastCriteria
       });
 
-      const toState: State = featureReducer({...{}, ...state, ...{lastCriteria}}, actions.SearchSuccess({items}));
+      const toState: State = featureReducer({...{}, ...state, ...{lastCriteria}}, actions.SearchSuccess({items, request: lastCriteria}));
       expect(expectState).toEqual(toState);
     });
 
@@ -171,6 +201,21 @@ describe('Crud', () => {
       });
 
       const toState: State = featureReducer(expectState, actions.DeleteSuccess(payload));
+
+      expect(expectState).toEqual(toState);
+    });
+
+    it('DeleteSuccess many elements', () => {
+      const payload = {ids: ['0', '1']};
+
+      const expectState: State = adapter.removeMany(payload.ids, {
+        ...state,
+        isLoaded: true,
+        isLoading: false,
+        error: null
+      });
+
+      const toState: State = featureReducer(expectState, actions.DeleteManySuccess(payload));
 
       expect(expectState).toEqual(toState);
     });
@@ -201,6 +246,21 @@ describe('Crud', () => {
       });
 
       const toState: State = featureReducer(state, actions.EditSuccess(payload));
+
+      expect(expectState).toEqual(toState);
+    });
+
+    it('EditManySuccess', () => {
+      const payload = {items: [{id: 5, name: 'edit'}, {id: 6, name: 'edit'}]};
+
+      const expectState: State = adapter.upsertMany(payload.items, {
+        ...state,
+        isLoaded: true,
+        isLoading: false,
+        error: null
+      });
+
+      const toState: State = featureReducer(state, actions.EditManySuccess(payload));
 
       expect(expectState).toEqual(toState);
     });
@@ -288,6 +348,21 @@ describe('Crud', () => {
       expect(expectState).toEqual(toState);
     });
 
+    it('DeleteManyFailure', () => {
+      const payload = {error: 'error'};
+
+      const expectState: State = ({
+        ...state,
+        isLoaded: false,
+        isLoading: false,
+        error: payload.error
+      });
+
+      const toState: State = featureReducer(state, actions.DeleteManyFailure(payload));
+
+      expect(expectState).toEqual(toState);
+    });
+
     it('CreateFailure', () => {
       const payload = {error: 'error'};
 
@@ -303,6 +378,21 @@ describe('Crud', () => {
       expect(expectState).toEqual(toState);
     });
 
+    it('CreateManyFailure', () => {
+      const payload = {error: 'error'};
+
+      const expectState: State = ({
+        ...state,
+        isLoaded: false,
+        isLoading: false,
+        error: payload.error
+      });
+
+      const toState: State = featureReducer(state, actions.CreateManyFailure(payload));
+
+      expect(expectState).toEqual(toState);
+    });
+
     it('EditFailure', () => {
       const payload = {error: 'error'};
 
@@ -314,6 +404,21 @@ describe('Crud', () => {
       });
 
       const toState: State = featureReducer(state, actions.EditFailure(payload));
+
+      expect(expectState).toEqual(toState);
+    });
+
+    it('EditManyFailure', () => {
+      const payload = {error: 'error'};
+
+      const expectState: State = ({
+        ...state,
+        isLoaded: false,
+        isLoading: false,
+        error: payload.error
+      });
+
+      const toState: State = featureReducer(state, actions.EditManyFailure(payload));
 
       expect(expectState).toEqual(toState);
     });
@@ -344,6 +449,14 @@ describe('Crud', () => {
       expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
     });
 
+    it('CreateMAnyRequest', () => {
+      const payload = {items: [{id: 5, name: 'e'}, {id: 6, name: 'e'}]};
+      const expectedAction = actions.CreateManyRequest(payload);
+      const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
+      store.dispatch(actions.CreateManyRequest(payload));
+      expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+    });
+
     it('DeleteRequest', () => {
       const payload = {item: {id: 0, name: 'a'}};
       const expectedAction = actions.DeleteRequest(payload);
@@ -352,11 +465,27 @@ describe('Crud', () => {
       expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
     });
 
+    it('DeleteRequest', () => {
+      const payload = {items: [{id: 0, name: 'a'}, {id: 1, name: 'b'}]};
+      const expectedAction = actions.DeleteManyRequest(payload);
+      const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
+      store.dispatch(actions.DeleteManyRequest(payload));
+      expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+    });
+
     it('EditRequest', () => {
       const payload = {item: {id: 0, name: 'aa'}};
       const expectedAction = actions.EditRequest(payload);
       const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
       store.dispatch(actions.EditRequest(payload));
+      expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+    });
+
+    it('EditManyRequest', () => {
+      const payload = {items: [{id: 0, name: 'a'}, {id: 1, name: 'b'}]};
+      const expectedAction = actions.EditManyRequest(payload);
+      const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
+      store.dispatch(actions.EditManyRequest(payload));
       expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
     });
 
@@ -378,9 +507,9 @@ describe('Crud', () => {
 
     it('SearchSuccess', () => {
       const items: Pizza[] = [{id: 4, name: 'e'}, {id: 5, name: 'f'}, {id: 6, name: 'g'}, {id: 7, name: 'h'}];
-      const expectedAction = actions.SearchSuccess({items});
+      const expectedAction = actions.SearchSuccess({items, request: null});
       const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
-      store.dispatch(actions.SearchSuccess({items}));
+      store.dispatch(actions.SearchSuccess({items, request: null}));
       expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
     });
 
@@ -392,6 +521,14 @@ describe('Crud', () => {
       expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
     });
 
+    it('DeleteManySuccess', () => {
+      const payload = {ids: ['0', '1']};
+      const expectedAction = actions.DeleteManySuccess(payload);
+      const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
+      store.dispatch(actions.DeleteManySuccess(payload));
+      expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+    });
+
     it('CreateSuccess', () => {
       const payload = {item: {id: 5, name: 'create'}};
       const expectedAction = actions.CreateSuccess(payload);
@@ -400,11 +537,27 @@ describe('Crud', () => {
       expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
     });
 
+    it('CreateManySuccess', () => {
+      const payload = {items: [{id: 5, name: 'create'}, {id: 6, name: 'create'}]};
+      const expectedAction = actions.CreateManySuccess(payload);
+      const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
+      store.dispatch(actions.CreateManySuccess(payload));
+      expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+    });
+
     it('EditSuccess', () => {
       const payload = {item: {id: 5, name: 'create'}};
       const expectedAction = actions.EditSuccess(payload);
       const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
       store.dispatch(actions.EditSuccess(payload));
+      expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+    });
+
+    it('EditManySuccess', () => {
+      const payload = {items: [{id: 5, name: 'edit'}, {id: 6, name: 'edit'}]};
+      const expectedAction = actions.EditManySuccess(payload);
+      const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
+      store.dispatch(actions.EditManySuccess(payload));
       expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
     });
 
@@ -455,11 +608,27 @@ describe('Crud', () => {
       expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
     });
 
+    it('DeleteManyFailure', () => {
+      const payload = {error: 'error'};
+      const expectedAction = actions.DeleteManyFailure(payload);
+      const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
+      store.dispatch(actions.DeleteManyFailure(payload));
+      expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+    });
+
     it('CreateFailure', () => {
       const payload = {error: 'error'};
       const expectedAction = actions.CreateFailure(payload);
       const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
       store.dispatch(actions.CreateFailure(payload));
+      expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+    });
+
+    it('CreateManyFailure', () => {
+      const payload = {error: 'error'};
+      const expectedAction = actions.CreateManyFailure(payload);
+      const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
+      store.dispatch(actions.CreateManyFailure(payload));
       expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
     });
 
@@ -471,8 +640,16 @@ describe('Crud', () => {
       expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
     });
 
-    it('SelectRequest', () => {
+    it('EditManyFailure', () => {
       const payload = {error: 'error'};
+      const expectedAction = actions.EditManyFailure(payload);
+      const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
+      store.dispatch(actions.EditManyFailure(payload));
+      expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+    });
+
+    it('SelectRequest', () => {
+      const payload = {item: {id: 0, name: 'a'}};
       const expectedAction = actions.SelectRequest(payload);
       const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
       store.dispatch(actions.SelectRequest(payload));

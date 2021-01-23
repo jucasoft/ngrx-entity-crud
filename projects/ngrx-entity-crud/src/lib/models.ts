@@ -93,6 +93,10 @@ export interface OptRequest<T> extends OptRequestBase {
   item: T;
 }
 
+export interface OptManyRequest<T> extends OptRequestBase {
+  items: T[];
+}
+
 export interface OptResponse<T> {
   actionType: string;
   response: Response<T>;
@@ -108,7 +112,7 @@ export interface OptEffect {
 }
 
 export interface Response<T> {
-  data: T;
+  data: T | any;
   hasError: boolean;
   message: string;
 }
@@ -210,9 +214,17 @@ export interface Actions<T> {
   DeleteFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
   DeleteSuccess: ActionCreator<string, (props: { id: string; }) => { id: string; } & TypedAction<string>>;
 
+  DeleteManyRequest: ActionCreator<string, (props: OptManyRequest<T>) => OptManyRequest<T> & TypedAction<string>>;
+  DeleteManyFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
+  DeleteManySuccess: ActionCreator<string, (props: { ids: string[]; }) => { ids: string[]; } & TypedAction<string>>;
+
   CreateRequest: ActionCreator<string, (props: OptRequest<T>) => OptRequest<T> & TypedAction<string>>;
   CreateFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
   CreateSuccess: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+
+  CreateManyRequest: ActionCreator<string, (props: OptManyRequest<T>) => OptManyRequest<T> & TypedAction<string>>;
+  CreateManyFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
+  CreateManySuccess: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
 
   SelectRequest: ActionCreator<string, (props: OptRequest<T>) => OptRequest<T> & TypedAction<string>>;
   SelectFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
@@ -221,6 +233,10 @@ export interface Actions<T> {
   EditRequest: ActionCreator<string, (props: OptRequest<T>) => OptRequest<T> & TypedAction<string>>;
   EditFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
   EditSuccess: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+
+  EditManyRequest: ActionCreator<string, (props: OptManyRequest<T>) => OptManyRequest<T> & TypedAction<string>>;
+  EditManyFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
+  EditManySuccess: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
 
   Reset: ActionCreator<string, () => { type: string; }>;
   Filters: ActionCreator<string, (props: { filters: { [s: string]: FilterMetadata; }; }) => { filters: { [s: string]: FilterMetadata; }; } & TypedAction<string>>;

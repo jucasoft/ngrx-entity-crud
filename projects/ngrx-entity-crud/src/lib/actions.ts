@@ -1,4 +1,4 @@
-import {ActionEnum, Actions, CrudEnum, FilterMetadata, ICriteria, OptRequest, OptResponse} from './models';
+import {ActionEnum, Actions, CrudEnum, FilterMetadata, ICriteria, OptManyRequest, OptRequest, OptResponse} from './models';
 import {createAction, props} from '@ngrx/store';
 
 export function createCrudActionsFactory<T>() {
@@ -21,9 +21,17 @@ export function createCrudActionsFactory<T>() {
     const DeleteFailure = createAction(`[${name}] ${CrudEnum.DELETE} ${ActionEnum.FAILURE}`, props<{ error: string }>());
     const DeleteSuccess = createAction(`[${name}] ${CrudEnum.DELETE} ${ActionEnum.SUCCESS}`, props<{ id: string }>());
 
+    const DeleteManyRequest = createAction(`[${name}] ${CrudEnum.DELETE} many ${ActionEnum.REQUEST}`, props<OptManyRequest<T>>());
+    const DeleteManyFailure = createAction(`[${name}] ${CrudEnum.DELETE} many ${ActionEnum.FAILURE}`, props<{ error: string }>());
+    const DeleteManySuccess = createAction(`[${name}] ${CrudEnum.DELETE} many ${ActionEnum.SUCCESS}`, props<{ ids: string[] }>());
+
     const CreateRequest = createAction(`[${name}] ${CrudEnum.CREATE} ${ActionEnum.REQUEST}`, props<OptRequest<T>>());
     const CreateFailure = createAction(`[${name}] ${CrudEnum.CREATE} ${ActionEnum.FAILURE}`, props<{ error: string }>());
     const CreateSuccess = createAction(`[${name}] ${CrudEnum.CREATE} ${ActionEnum.SUCCESS}`, props<{ item: T }>());
+
+    const CreateManyRequest = createAction(`[${name}] ${CrudEnum.CREATE} many ${ActionEnum.REQUEST}`, props<OptManyRequest<T>>());
+    const CreateManyFailure = createAction(`[${name}] ${CrudEnum.CREATE} many ${ActionEnum.FAILURE}`, props<{ error: string }>());
+    const CreateManySuccess = createAction(`[${name}] ${CrudEnum.CREATE} many ${ActionEnum.SUCCESS}`, props<{ items: T[] }>());
 
     const SelectRequest = createAction(`[${name}] ${CrudEnum.SELECT} ${ActionEnum.REQUEST}`, props<OptRequest<T>>());
     const SelectFailure = createAction(`[${name}] ${CrudEnum.SELECT} ${ActionEnum.FAILURE}`, props<{ error: string }>());
@@ -32,6 +40,10 @@ export function createCrudActionsFactory<T>() {
     const EditRequest = createAction(`[${name}] ${CrudEnum.EDIT} ${ActionEnum.REQUEST}`, props<OptRequest<T>>());
     const EditFailure = createAction(`[${name}] ${CrudEnum.EDIT} ${ActionEnum.FAILURE}`, props<{ error: string }>());
     const EditSuccess = createAction(`[${name}] ${CrudEnum.EDIT} ${ActionEnum.SUCCESS}`, props<{ item: T }>());
+
+    const EditManyRequest = createAction(`[${name}] ${CrudEnum.EDIT} many ${ActionEnum.REQUEST}`, props<OptManyRequest<T>>());
+    const EditManyFailure = createAction(`[${name}] ${CrudEnum.EDIT} many ${ActionEnum.FAILURE}`, props<{ error: string }>());
+    const EditManySuccess = createAction(`[${name}] ${CrudEnum.EDIT} many ${ActionEnum.SUCCESS}`, props<{ items: T[] }>());
 
     const Reset = createAction(`[${name}] ${CrudEnum.RESET}`);
     const Filters = createAction(`[${name}] Filters`, props<{ filters: { [s: string]: FilterMetadata; } }>());
@@ -53,9 +65,17 @@ export function createCrudActionsFactory<T>() {
       DeleteFailure,
       DeleteSuccess,
 
+      DeleteManyRequest,
+      DeleteManyFailure,
+      DeleteManySuccess,
+
       CreateRequest,
       CreateFailure,
       CreateSuccess,
+
+      CreateManyRequest,
+      CreateManyFailure,
+      CreateManySuccess,
 
       SelectRequest,
       SelectFailure,
@@ -64,6 +84,10 @@ export function createCrudActionsFactory<T>() {
       EditRequest,
       EditFailure,
       EditSuccess,
+
+      EditManyRequest,
+      EditManyFailure,
+      EditManySuccess,
 
       Reset,
       Filters,

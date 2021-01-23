@@ -3,7 +3,7 @@ import {HttpClient, HttpHeaders} from '@angular/common/http';
 
 import {map} from 'rxjs/operators';
 import {Observable} from 'rxjs';
-import {ICriteria, OptRequest, Response} from './models';
+import {ICriteria, OptManyRequest, OptRequest, Response} from './models';
 
 export interface IBaseCrudService<T> {
   service: string;
@@ -16,9 +16,9 @@ export interface IBaseCrudService<T> {
 
   debugMode(): void;
 
-  creates(value: T[]): Observable<Response<T[]>>;
-
   create(opt: OptRequest<T>): Observable<Response<T>>;
+
+  createMany(opt: OptManyRequest<T>): Observable<Response<T[]>>;
 
   search(value?: ICriteria): Observable<Response<T[]>>;
 
@@ -26,7 +26,11 @@ export interface IBaseCrudService<T> {
 
   update(opt: OptRequest<T>): Observable<Response<T>>;
 
-  delete(opt: OptRequest<T>): Observable<Response<string>>;
+  updateMany(opt: OptManyRequest<T>): Observable<Response<T[]>>;
+
+  delete(opt: OptRequest<T>): Observable<Response<string[]>>;
+
+  deleteMany(opt: OptManyRequest<T>): Observable<Response<string[]>>;
 
   getUrl(path?: string[]): string;
 }
@@ -53,14 +57,6 @@ export class BaseCrudService<T> implements IBaseCrudService<T> {
     };
   }
 
-  creates(value: T[]): Observable<Response<T[]>> {
-    if (typeof (console) !== 'undefined' && this.debug) {
-      console.log('%c BaseCrudService.creates()', 'color: #777777');
-      console.log('%c Extended from: ' + this.constructor.name, 'color: #777777');
-    }
-    return this.http.post<Response<T[]>>(`${this.getUrl()}`, value, this.httpOptions());
-  }
-
   create(opt: OptRequest<T>): Observable<Response<T>> {
     if (typeof (console) !== 'undefined' && this.debug) {
       console.log('%c BaseCrudService.create()', 'color: #777777');
@@ -68,6 +64,10 @@ export class BaseCrudService<T> implements IBaseCrudService<T> {
     }
     const path = !!opt && !!opt.path ? opt.path : null;
     return this.http.post<Response<T>>(`${this.getUrl(path)}`, opt.item, this.httpOptions());
+  }
+
+  createMany(opt: OptManyRequest<T>): Observable<Response<T[]>> {
+    return undefined;
   }
 
   search(value?: ICriteria): Observable<Response<T[]>> {
@@ -115,6 +115,10 @@ export class BaseCrudService<T> implements IBaseCrudService<T> {
     return this.http.put<Response<T>>(`${this.getUrl(path)}/${id}`, opt.item, this.httpOptions());
   }
 
+  updateMany(opt: OptManyRequest<T>): Observable<Response<T[]>> {
+    return undefined;
+  }
+
   delete(opt: OptRequest<T>): Observable<Response<string>> {
     if (typeof (console) !== 'undefined' && this.debug) {
       console.log('%c BaseCrudService.delete()', 'color: #777777');
@@ -123,6 +127,10 @@ export class BaseCrudService<T> implements IBaseCrudService<T> {
     const id = this.getId(opt.item);
     const path = !!opt && !!opt.path ? opt.path : null;
     return this.http.delete<Response<string>>(`${this.getUrl(path)}/${id}`, this.httpOptions());
+  }
+
+  deleteMany(opt: OptManyRequest<T>): Observable<Response<string[]>> {
+    return undefined;
   }
 
   getId = (value) => value[this.id];

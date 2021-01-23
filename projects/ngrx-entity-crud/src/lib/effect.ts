@@ -1,5 +1,5 @@
 import {ofType} from '@ngrx/effects';
-import {Actions, OptEffect, OptRequest, Response} from './models';
+import {Actions, OptEffect, OptManyRequest, OptRequest, Response} from './models';
 import {from, MonoTypeOperatorFunction} from 'rxjs';
 import {Action} from '@ngrx/store';
 import {catchError, map, repeat, switchMap} from 'rxjs/operators';
@@ -188,6 +188,75 @@ export const deleteRequestEffect = <T>(actions$, actions: Actions<T>, service: I
 );
 
 
+export const deleteManyCall = <T>(service: IBaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+  return input$ => input$.pipe(
+    switchMap(payload => service.deleteMany((payload as OptManyRequest<T>)).pipe(
+      map((response: Response<string>) => ({response, payload}))
+    )),
+  );
+};
+
+export const deleteManyResponse = <T>(actions: Actions<T>, clazz: any, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+  return input$ => input$.pipe(
+    switchMap(({response, payload}) => {
+        const result = [];
+        if (response.hasError) {
+          result.push(actions.DeleteManyFailure({error: response.message}));
+          if (payload.onFault) {
+            result.push(...payload.onFault);
+          }
+        } else {
+          if (!clazz.selectId) {
+            throw Error('the selectId method is not present in the managed entity.');
+          }
+          const ids = (payload as OptManyRequest<T>).items.map(id => clazz.selectId(id));
+          result.push(actions.DeleteManySuccess({ids}));
+          if (payload.onResult) {
+            const onResults = (payload.onResult as Action[]).map(a => (a as any).newAction ? (a as any).newAction(response, payload) : a);
+            result.push(...onResults);
+          }
+        }
+
+        if ((optEffect || {}).dispatchResponse || payload.dispatchResponse) {
+          result.push(actions.Response({
+            actionType: payload.type,
+            request: payload,
+            response
+          }));
+        }
+
+        return result;
+      }
+    ),
+  );
+};
+
+export const deleteManyCatchError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+  return input$ => input$.pipe(
+    catchError((error, caught) => {
+        const response = [];
+        response.push(actions.EditManyFailure({error}));
+        response.push(actions.Response({
+          actionType: 'Failure',
+          request: null,
+          response: {hasError: true, message: error.message, data: null}
+        }));
+        return from(response);
+      }
+    )
+  );
+};
+
+export const deleteManyRequest = <T>(actions: Actions<T>, service: IBaseCrudService<T>, clazz: any, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+  return input$ => input$.pipe(
+    ofType(actions.DeleteManyRequest),
+    deleteManyCall(service),
+    deleteManyResponse(actions, clazz, optEffect),
+    deleteManyCatchError(actions),
+    repeat()
+  );
+};
+
 export const createCall = <T>(service: IBaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     switchMap(payload => service.create((payload as OptRequest<T>)).pipe(
@@ -232,7 +301,7 @@ export const createCatchError = <T>(actions: Actions<T>): MonoTypeOperatorFuncti
   return input$ => input$.pipe(
     catchError((error, caught) => {
         const response = [];
-        response.push(actions.EditFailure({error}));
+        response.push(actions.CreateFailure({error}));
         response.push(actions.Response({
           actionType: 'Failure',
           request: null,
@@ -246,7 +315,7 @@ export const createCatchError = <T>(actions: Actions<T>): MonoTypeOperatorFuncti
 
 export const createRequest = <T>(actions: Actions<T>, service: IBaseCrudService<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
-    ofType(actions.DeleteRequest),
+    ofType(actions.CreateRequest),
     createCall(service),
     createResponse(actions, optEffect),
     createCatchError(actions),
@@ -275,6 +344,73 @@ export const createRequest = <T>(actions: Actions<T>, service: IBaseCrudService<
 export const createRequestEffect = <T>(actions$, actions: Actions<T>, service: IBaseCrudService<T>, optEffect?: OptEffect) => actions$.pipe(
   createRequest(actions, service, optEffect)
 );
+
+export const createManyCall = <T>(service: IBaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+  return input$ => input$.pipe(
+    switchMap(payload => service.createMany((payload as OptManyRequest<T>)).pipe(
+      map((response: Response<T[]>) => ({response, payload}))
+    ))
+  );
+};
+
+export const createManyResponse = <T>(actions: Actions<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+  return input$ => input$.pipe(
+    switchMap(({response, payload}) => {
+        const result = [];
+        if (response.hasError) {
+          result.push(actions.CreateManyFailure({error: response.message}));
+          if (payload.onFault) {
+            result.push(...payload.onFault);
+          }
+        } else {
+          const items = response.data;
+          result.push(actions.CreateManySuccess({items}));
+          if (payload.onResult) {
+            const onResults = (payload.onResult as Action[]).map(a => (a as any).newAction ? (a as any).newAction(response, payload) : a);
+            result.push(...onResults);
+          }
+        }
+
+        if ((optEffect || {}).dispatchResponse || payload.dispatchResponse) {
+          result.push(actions.Response({
+            actionType: payload.type,
+            request: payload,
+            response
+          }));
+        }
+
+        return result;
+      }
+    )
+  );
+};
+
+export const createManyCatchError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+  return input$ => input$.pipe(
+    catchError((error, caught) => {
+        const response = [];
+        response.push(actions.EditManyFailure({error}));
+        response.push(actions.Response({
+          actionType: 'Failure',
+          request: null,
+          response: {hasError: true, message: error.message, data: null}
+        }));
+        return from(response);
+      }
+    )
+  );
+};
+
+export const createManyRequest = <T>(actions: Actions<T>, service: IBaseCrudService<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+  return input$ => input$.pipe(
+    ofType(actions.CreateManyRequest),
+    createManyCall(service),
+    createManyResponse(actions, optEffect),
+    createManyCatchError(actions),
+    repeat()
+  );
+};
+
 
 export const editCall = <T>(service: IBaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
@@ -363,6 +499,73 @@ export const editRequest = <T>(actions: Actions<T>, service: IBaseCrudService<T>
 export const editRequestEffect = <T>(actions$, actions: Actions<T>, service: IBaseCrudService<T>, optEffect?: OptEffect) => actions$.pipe(
   editRequest(actions, service, optEffect)
 );
+
+
+export const editManyCall = <T>(service: IBaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+  return input$ => input$.pipe(
+    switchMap(payload => service.updateMany((payload as OptManyRequest<T>)).pipe(
+      map((response: Response<T>) => ({response, payload}))
+    )),
+  );
+};
+
+export const editManyResponse = <T>(actions: Actions<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+  return input$ => input$.pipe(
+    switchMap(({response, payload}) => {
+        const result = [];
+        if (response.hasError) {
+          result.push(actions.EditManyFailure({error: response.message}));
+          if (payload.onFault) {
+            result.push(...payload.onFault);
+          }
+        } else {
+          const items = response.data;
+          result.push(actions.EditManySuccess({items}));
+          if (payload.onResult) {
+            const onResults = (payload.onResult as Action[]).map(a => (a as any).newAction ? (a as any).newAction(response, payload) : a);
+            result.push(...onResults);
+          }
+        }
+
+        if ((optEffect || {}).dispatchResponse || payload.dispatchResponse) {
+          result.push(actions.Response({
+            actionType: payload.type,
+            request: payload,
+            response
+          }));
+        }
+
+        return result;
+      }
+    )
+  );
+};
+
+export const editManyCatchError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+  return input$ => input$.pipe(
+    catchError((error, caught) => {
+        const response = [];
+        response.push(actions.EditManyFailure({error}));
+        response.push(actions.Response({
+          actionType: 'Failure',
+          request: null,
+          response: {hasError: true, message: error.message, data: null}
+        }));
+        return from(response);
+      }
+    ),
+  );
+};
+
+export const editManyRequest = <T>(actions: Actions<T>, service: IBaseCrudService<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+  return input$ => input$.pipe(
+    ofType(actions.EditManyRequest),
+    editManyCall(service),
+    editManyResponse(actions, optEffect),
+    editManyCatchError(actions),
+    repeat()
+  );
+};
 
 
 export const selectCall = <T>(service: IBaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any

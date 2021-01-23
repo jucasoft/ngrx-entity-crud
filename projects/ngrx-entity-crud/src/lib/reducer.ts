@@ -1,4 +1,4 @@
-import {Actions, EntityCrudState, ICriteria, OptRequest} from './models';
+import {Actions, EntityCrudState, ICriteria, OptManyRequest, OptRequest} from './models';
 import {EntityAdapter} from '@ngrx/entity';
 import {createReducer, on} from '@ngrx/store';
 import {On} from '@ngrx/store/src/reducer_creator';
@@ -45,6 +45,13 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
       {isLoading: true}
     );
   });
+  const deleteManyRequestOn = on(actions.DeleteManyRequest, (state: S, request: OptManyRequest<T>) => {
+    return Object.assign(
+      {},
+      state,
+      {isLoading: true}
+    );
+  });
   const editRequestOn = on(actions.EditRequest, (state: S, request: OptRequest<T>) => {
     return Object.assign(
       {},
@@ -52,7 +59,21 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
       {isLoading: true}
     );
   });
+  const editManyRequestOn = on(actions.EditManyRequest, (state: S, request: OptManyRequest<T>) => {
+    return Object.assign(
+      {},
+      state,
+      {isLoading: true}
+    );
+  });
   const createRequestOn = on(actions.CreateRequest, (state: S, request: OptRequest<T>) => {
+    return Object.assign(
+      {},
+      state,
+      {isLoading: true}
+    );
+  });
+  const createManyRequestOn = on(actions.CreateManyRequest, (state: S, request: OptManyRequest<T>) => {
     return Object.assign(
       {},
       state,
@@ -113,6 +134,15 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
         error: null
       }
     )));
+  const deleteManySuccessOn = on(actions.DeleteManySuccess, (state: S, {type, ids}) => adapter.removeMany(ids,
+    Object.assign(
+      {}, state,
+      {
+        isLoaded: true,
+        isLoading: false,
+        error: null
+      }
+    )));
   const deleteOn = on(actions.Delete, (state: S, {type, id}) => adapter.removeOne(id,
     Object.assign(
       {}, state,
@@ -141,6 +171,15 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
         error: null
       }
     )));
+  const createManySuccessOn = on(actions.CreateManySuccess, (state: S, {type, items}) => adapter.addMany(items,
+    Object.assign(
+      {}, state,
+      {
+        isLoaded: true,
+        isLoading: false,
+        error: null
+      }
+    )));
   const createOn = on(actions.Create, (state: S, {type, item}) => adapter.addOne(item,
     Object.assign(
       {}, state,
@@ -151,6 +190,15 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
       }
     )));
   const editSuccessOn = on(actions.EditSuccess, (state: S, {item, type}) => adapter.upsertOne(item,
+    Object.assign(
+      {}, state,
+      {
+        isLoaded: true,
+        isLoading: false,
+        error: null
+      }
+    )));
+  const editManySuccessOn = on(actions.EditManySuccess, (state: S, {items, type}) => adapter.upsertMany(items,
     Object.assign(
       {}, state,
       {
@@ -240,6 +288,17 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
         error
       }
     ));
+  const deleteManyFailureOn = on(
+    actions.DeleteManyFailure,
+    (state: S, {type, error}) => Object.assign(
+      {},
+      state,
+      {
+        isLoaded: false,
+        isLoading: false,
+        error
+      }
+    ));
   const createFailureOn = on(
     actions.CreateFailure,
     (state: S, {type, error}) => Object.assign(
@@ -251,8 +310,30 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
         error
       }
     ));
+  const createManyFailureOn = on(
+    actions.CreateManyFailure,
+    (state: S, {type, error}) => Object.assign(
+      {},
+      state,
+      {
+        isLoaded: false,
+        isLoading: false,
+        error
+      }
+    ));
   const editFailureOn = on(
     actions.EditFailure,
+    (state: S, {error, type}) => Object.assign(
+      {},
+      state,
+      {
+        isLoaded: false,
+        isLoading: false,
+        error
+      }
+    ));
+  const editManyFailureOn = on(
+    actions.EditManyFailure,
     (state: S, {error, type}) => Object.assign(
       {},
       state,
@@ -279,19 +360,28 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
     resetResponsesOn,
     searchRequestOn,
     deleteRequestOn,
+    deleteManyRequestOn,
     editRequestOn,
+    editManyRequestOn,
     createRequestOn,
+    createManyRequestOn,
     selectRequestOn,
     searchSuccessOn,
     deleteSuccessOn,
+    deleteManySuccessOn,
     createSuccessOn,
+    createManySuccessOn,
     selectSuccessOn,
     editSuccessOn,
+    editManySuccessOn,
     searchFailureOn,
     deleteFailureOn,
+    deleteManyFailureOn,
     createFailureOn,
+    createManyFailureOn,
     selectFailureOn,
     editFailureOn,
+    editManyFailureOn,
     resetOn,
     filtersOn,
     selectItemsOn,
@@ -310,19 +400,28 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
       resetResponsesOn,
       searchRequestOn,
       deleteRequestOn,
+      deleteManyRequestOn,
       editRequestOn,
+      editManyRequestOn,
       createRequestOn,
+      createManyRequestOn,
       selectRequestOn,
       searchSuccessOn,
       deleteSuccessOn,
+      deleteManySuccessOn,
       createSuccessOn,
+      createManySuccessOn,
       selectSuccessOn,
       editSuccessOn,
+      editManySuccessOn,
       searchFailureOn,
       deleteFailureOn,
+      deleteManyFailureOn,
       createFailureOn,
+      createManyFailureOn,
       selectFailureOn,
       editFailureOn,
+      editManyFailureOn,
       resetOn,
       filtersOn,
       selectItemsOn,
@@ -337,19 +436,28 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
       resetResponsesOn,
       searchRequestOn,
       deleteRequestOn,
+      deleteManyRequestOn,
       editRequestOn,
+      editManyRequestOn,
       createRequestOn,
+      createManyRequestOn,
       selectRequestOn,
       searchSuccessOn,
       deleteSuccessOn,
+      deleteManySuccessOn,
       createSuccessOn,
+      createManySuccessOn,
       selectSuccessOn,
       editSuccessOn,
+      editManySuccessOn,
       searchFailureOn,
       deleteFailureOn,
+      deleteManyFailureOn,
       createFailureOn,
+      createManyFailureOn,
       selectFailureOn,
       editFailureOn,
+      editManyFailureOn,
       resetOn,
       filtersOn,
       selectItemsOn,
