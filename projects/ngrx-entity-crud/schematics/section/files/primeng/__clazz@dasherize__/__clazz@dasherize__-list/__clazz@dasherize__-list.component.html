@@ -7,7 +7,7 @@
       <th *ngFor="let col of cols">
         {{col}}
       </th>
-      <th>actions</th>
+      <th style="width: 10em">actions</th>
     </tr>
   </ng-template>
   <ng-template pTemplate="body" let-item>
@@ -19,9 +19,11 @@
         {{item[col]}}
       </td>
       <td>
-        <p-button icon="fa fa-edit" class="mr-1" (click)="onEdit(item)"></p-button>
-        <p-button icon="fa fa-copy" class="mr-1" (click)="onCopy(item)"></p-button>
-        <p-button icon="fa fa-trash" class="mr-1 p-button-danger" (click)="onDelete(item)"></p-button>
+
+        <button pButton pRipple type="button" icon="pi pi-copy" class="p-button-rounded p-button-outlined p-mr-1" (click)="onCopy(item)"></button>
+        <button pButton pRipple type="button" icon="pi pi-pencil" class="p-button-rounded p-button-success p-button-outlined p-mr-1" (click)="onEdit(item)"></button>
+        <button pButton pRipple type="button" icon="pi pi-times" class="p-button-rounded p-button-danger p-button-outlined" (click)="onDelete(item)"></button>
+
       </td>
     </tr>
   </ng-template>
