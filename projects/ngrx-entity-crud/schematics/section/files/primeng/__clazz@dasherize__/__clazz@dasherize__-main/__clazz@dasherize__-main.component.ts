@@ -16,6 +16,6 @@ export class <%= clazz %>MainComponent implements OnInit {
 
   actions: Actions<<%= clazz %>> = <%= clazz %>StoreActions.actions;
 
-  ngOnInit() {
+  ngOnInit(): void {
   }
 }

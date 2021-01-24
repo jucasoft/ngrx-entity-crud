@@ -1,13 +1,10 @@
-<div class="p-grid">
-  <div class="p-col">
+<p-toolbar styleClass="p-mb-4">
+  <ng-template pTemplate="left">
     <app-search [actions]="actions"></app-search>
-  </div>
-  <div class="p-col p-text-right">
-    <app-button-new-<%= dasherize(clazz) %> class="float-right mr-2"></app-button-new-<%= dasherize(clazz) %>>
-  </div>
-</div>
-<div class="p-grid">
-  <div class="p-col">
-  <app-<%= dasherize(clazz) %>-list></app-<%= dasherize(clazz) %>-list>
-  </div>
-</div>
+  </ng-template>
+  <ng-template pTemplate="right">
+    <app-button-new-<%= dasherize(clazz) %> class="p-mr-2"></app-button-new-<%= dasherize(clazz) %>>
+    <app-button-delete-<%= dasherize(clazz) %>></app-button-delete-<%= dasherize(clazz) %>>
+  </ng-template>
+</p-toolbar>
+<app-<%= dasherize(clazz) %>-list></app-<%= dasherize(clazz) %>-list>
