@@ -5,17 +5,17 @@ import {<%= clazz %>StoreActions, <%= clazz %>StoreSelectors, RootStoreState} fr
 import {<%= clazz %>} from '@models/vo/<%= dasherize(clazz) %>';
 
 @Component({
-  selector: 'app-button-edit-many-test-<%= dasherize(clazz) %>',
+  selector: 'app-button-create-many-test-<%= dasherize(clazz) %>',
   template: `
     <button type="button" *ngLet="(itemsSelected$|async) as itemsSelected" pButton icon="pi pi-plus"
-            label="Edit many test" (click)="onEditMany(itemsSelected)"
+            label="Create many test" (click)="onCreateMany(itemsSelected)"
             [disabled]="!(itemsSelected.length > 0)"
             class="p-button-success"></button>
   `,
   styles: [],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ButtonEditManyTest<%= clazz %>Component implements OnInit {
+export class ButtonCreateManyTest<%= clazz %>Component implements OnInit {
 
   itemsSelected$: Observable<<%= clazz %>[]>;
 
@@ -28,18 +28,19 @@ export class ButtonEditManyTest<%= clazz %>Component implements OnInit {
     );
   }
 
-  onEditMany(values: <%= clazz %>[]): void {
+  onCreateMany(values: <%= clazz %>[]): void {
     const items = values.map(value => {
       const keys = Object.keys(value);
       const result = {...value};
       keys.forEach(key => {
+        result.id = null;
         if (key !== 'id' && typeof result[key] === 'string') {
           result[key] = result[key] + ' edited' + new Date().getSeconds();
         }
       });
       return result;
     });
-    this.store$.dispatch(<%= clazz %>StoreActions.EditManyRequest({items}));
+    this.store$.dispatch(<%= clazz %>StoreActions.CreateManyRequest({items}));
   }
 
 }

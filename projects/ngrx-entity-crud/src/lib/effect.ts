@@ -387,7 +387,7 @@ export const createManyResponse = <T>(actions: Actions<T>, optEffect?: OptEffect
 
 export const createManyCatchError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
-    concatMap((error, caught) => {
+    catchError((error, caught) => {
         const response = [];
         response.push(actions.EditManyFailure({error}));
         response.push(actions.Response({
