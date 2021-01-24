@@ -13,6 +13,7 @@ import {InputTextModule} from 'primeng/inputtext';
 import {SearchModule} from '@components/search/search.module';
 import {PipesModule} from '@core/pipe/pipes.module';
 import {ButtonDelete<%= clazz %>Component} from './components/button-delete-<%= dasherize(clazz) %>.component';
+import {ButtonEditManyTest<%= clazz %>Component} from './components/button-edit-many-test-<%= dasherize(clazz) %>.component';
 import {NgLetModule} from '@core/directive/ng-let.directive';
 import {ToolbarModule} from 'primeng/toolbar';
 
@@ -22,7 +23,8 @@ import {ToolbarModule} from 'primeng/toolbar';
     <%= clazz %>MainComponent,
     <%= clazz %>ListComponent,
     ButtonNew<%= clazz %>Component,
-    ButtonDelete<%= clazz %>Component
+    ButtonDelete<%= clazz %>Component,
+    ButtonEditManyTest<%= clazz %>Component
   ],
   imports: [
     CommonModule,

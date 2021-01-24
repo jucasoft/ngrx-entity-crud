@@ -66,7 +66,15 @@ export class BaseCrudService<T> implements IBaseCrudService<T> {
   }
 
   createMany(opt: OptManyRequest<T>): Observable<Response<T[]>> {
-    return undefined;
+    const result = opt.items.map(item => {
+      const optB: OptRequest<T> = {...opt, item};
+      return this.create(optB).pipe(
+        map(value => ({...value, data: [value.data]})) // trasformo la singola risposta da {data:T} in {data:T[]}
+      );
+    });
+    return of(...result).pipe(
+      mergeMap(value => value)
+    );
   }
 
   search(value?: ICriteria): Observable<Response<T[]>> {
@@ -115,7 +123,15 @@ export class BaseCrudService<T> implements IBaseCrudService<T> {
   }
 
   updateMany(opt: OptManyRequest<T>): Observable<Response<T[]>> {
-    return undefined;
+    const result = opt.items.map(item => {
+      const optB: OptRequest<T> = {...opt, item};
+      return this.update(optB).pipe(
+        map(value => ({...value, data: [value.data]})) // trasformo la singola risposta da {data:T} in {data:T[]}
+      );
+    });
+    return of(...result).pipe(
+      mergeMap(value => value)
+    );
   }
 
   delete(opt: OptRequest<T>): Observable<Response<string>> {
