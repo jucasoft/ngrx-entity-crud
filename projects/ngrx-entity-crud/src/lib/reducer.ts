@@ -125,33 +125,69 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
       }
     ));
   });
-  const deleteSuccessOn = on(actions.DeleteSuccess, (state: S, {type, id}) => adapter.removeOne(id,
-    Object.assign(
-      {}, state,
-      {
-        isLoaded: true,
-        isLoading: false,
-        error: null
-      }
-    )));
-  const deleteManySuccessOn = on(actions.DeleteManySuccess, (state: S, {type, ids}) => adapter.removeMany(ids,
-    Object.assign(
-      {}, state,
-      {
-        isLoaded: true,
-        isLoading: false,
-        error: null
-      }
-    )));
-  const deleteOn = on(actions.Delete, (state: S, {type, id}) => adapter.removeOne(id,
-    Object.assign(
-      {}, state,
-      {
-        isLoaded: true,
-        isLoading: false,
-        error: null
-      }
-    )));
+  const deleteSuccessOn = on(actions.DeleteSuccess, (state: S, {type, id}) => {
+
+    // tolgo dallo store.idsSelected l'elemento cancellato
+    const idsSelected = (state.idsSelected as any[]).filter((idA) => idA === id);
+
+    // se ho cancellato l'id seezionato, lo tolgo dallo store.
+    const idSelected = !!state.idSelected && state.idSelected === id ? null : state.idSelected;
+
+    return adapter.removeOne(id,
+        Object.assign(
+          {}, state,
+          {
+            isLoaded: true,
+            isLoading: false,
+            error: null,
+            idSelected,
+            idsSelected
+          }
+        ));
+    }
+  );
+
+  const deleteManySuccessOn = on(actions.DeleteManySuccess, (state: S, {type, ids}) => {
+
+    // tolgo dallo store.idsSelected gli elementi che sono stati cancellati.
+    const idsSelected = (state.idsSelected as any[]).filter((id) => !(id in ids));
+
+    // se ho cancellato l'id seezionato, lo tolgo dallo store.
+    const idSelected = !!state.idSelected && state.idSelected in ids ? null : state.idSelected;
+
+    adapter.removeMany(ids,
+      Object.assign(
+        {}, state,
+        {
+          isLoaded: true,
+          isLoading: false,
+          error: null,
+          idSelected,
+          idsSelected
+        }
+      ));
+  });
+
+  const deleteOn = on(actions.Delete, (state: S, {type, id}) => {
+    // tolgo dallo store.idsSelected l'elemento cancellato
+    const idsSelected = (state.idsSelected as any[]).filter((idA) => idA === id);
+
+    // se ho cancellato l'id seezionato, lo tolgo dallo store.
+    const idSelected = !!state.idSelected && state.idSelected === id ? null : state.idSelected;
+
+      return adapter.removeOne(id,
+        Object.assign(
+          {}, state,
+          {
+            isLoaded: true,
+            isLoading: false,
+            error: null,
+            idSelected,
+            idsSelected
+          }
+        ));
+    }
+  );
   const responseOn = on(actions.Response, (state: S, response) => {
     const responses = [...state.responses, response];
     return {...{}, ...state, ...{responses}};

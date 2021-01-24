@@ -1,6 +1,6 @@
 {
   "name": "ngrx-entity-crud",
-  "version": "11.6.0",
+  "version": "11.6.1",
   "repository": "https://github.com/jucasoft/ngrx-entity-crud",
   "license": "MIT",
   "schematics": "./schematics/collection.json",
