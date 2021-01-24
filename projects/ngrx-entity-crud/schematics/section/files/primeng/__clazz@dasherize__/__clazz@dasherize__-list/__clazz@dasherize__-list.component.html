@@ -1,6 +1,9 @@
-<p-table [value]="collection$ | async">
+<p-table [value]="collection$ | async" [selection]="itemsSelected$ | async" (selectionChange)="onSelectionChange($event)">
   <ng-template pTemplate="header">
     <tr>
+      <th style="width: 3rem">
+        <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+      </th>
       <th *ngFor="let col of cols">
         {{col}}
       </th>
@@ -9,13 +12,16 @@
   </ng-template>
   <ng-template pTemplate="body" let-item>
     <tr>
+      <td>
+        <p-tableCheckbox [value]="item"></p-tableCheckbox>
+      </td>
       <td *ngFor="let col of cols">
         {{item[col]}}
       </td>
       <td>
         <p-button icon="fa fa-edit" class="mr-1" (click)="onEdit(item)"></p-button>
         <p-button icon="fa fa-copy" class="mr-1" (click)="onCopy(item)"></p-button>
-        <p-button icon="fa fa-trash" class="mr-1 p-button-danger"  (click)="onDelete(item)"></p-button>
+        <p-button icon="fa fa-trash" class="mr-1 p-button-danger" (click)="onDelete(item)"></p-button>
       </td>
     </tr>
   </ng-template>

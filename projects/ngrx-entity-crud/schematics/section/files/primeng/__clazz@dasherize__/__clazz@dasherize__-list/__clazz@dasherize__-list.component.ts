@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
-import {Store} from '@ngrx/store';
+import {select, Store} from '@ngrx/store';
 import {<%= clazz %>StoreActions, <%= clazz %>StoreSelectors, RootStoreState} from '@root-store/index';
 import {Observable} from 'rxjs';
 import {<%= clazz %>} from '@models/vo/<%= dasherize(clazz) %>';
@@ -19,14 +19,19 @@ export class <%= clazz %>ListComponent implements OnInit {
 
   collection$: Observable<<%= clazz %>[]>;
   cols: any;
+  itemsSelected$: Observable<<%= clazz %>[]>;
 
   constructor(private store$: Store<RootStoreState.State>,
               private confirmationService: ConfirmationService) {
     console.log('<%= clazz %>ListComponent.constructor()');
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     console.log('<%= clazz %>ListComponent.ngOnInit()');
+
+    this.itemsSelected$ = this.store$.pipe(
+      select(<%= clazz %>StoreSelectors.selectItemsSelected)
+    );
 
     this.collection$ = this.store$.select(
       <%= clazz %>StoreSelectors.selectAll
@@ -44,7 +49,7 @@ export class <%= clazz %>ListComponent implements OnInit {
 
   }
 
-  onEdit(item) {
+  onEdit(item): void {
     console.log('<%= clazz %>ListComponent.onEdit()');
 
     const data: PopUpData<<%= clazz %>> = {
@@ -60,7 +65,7 @@ export class <%= clazz %>ListComponent implements OnInit {
 
   }
 
-  onCopy(value) {
+  onCopy(value): void {
     console.log('<%= clazz %>ListComponent.onCopy()');
 
     const item = {...{}, ...value, ...{id: null}};
@@ -76,7 +81,7 @@ export class <%= clazz %>ListComponent implements OnInit {
 
   }
 
-  onDelete(item) {
+  onDelete(item): void {
 
     this.confirmationService.confirm({
       message: 'Are you sure that you want to perform this action?',
@@ -85,6 +90,12 @@ export class <%= clazz %>ListComponent implements OnInit {
       }
     });
 
+  }
+
+  onSelectionChange(items: <%= clazz %>[]): void {
+    console.log('<%= clazz %>ListComponent.onSelectionChange()');
+    console.log('items', items);
+    this.store$.dispatch(<%= clazz %>StoreActions.SelectItems({items}));
   }
 
 }
