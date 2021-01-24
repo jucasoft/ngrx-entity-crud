@@ -8,7 +8,7 @@ import {<%= clazz %>} from '@models/vo/<%= dasherize(clazz) %>';
   selector: 'app-button-delete-<%= dasherize(clazz) %>',
   template: `
     <button type="button" *ngLet="(itemsSelected$|async) as itemsSelected" pButton icon="pi pi-trash"
-            label="Delete" (click)="onDelete(itemsSelected)"
+            label="Delete ({{itemsSelected.length}})" (click)="onDelete(itemsSelected)"
             [disabled]="!(itemsSelected.length > 0)"
             class="p-button-danger"></button>
   `,

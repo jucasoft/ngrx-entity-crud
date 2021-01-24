@@ -8,7 +8,7 @@ import {<%= clazz %>} from '@models/vo/<%= dasherize(clazz) %>';
   selector: 'app-button-edit-many-test-<%= dasherize(clazz) %>',
   template: `
     <button type="button" *ngLet="(itemsSelected$|async) as itemsSelected" pButton icon="pi pi-plus"
-            label="Edit many test" (click)="onEditMany(itemsSelected)"
+            label="Edit many ({{itemsSelected.length}})" (click)="onEditMany(itemsSelected)"
             [disabled]="!(itemsSelected.length > 0)"
             class="p-button-success"></button>
   `,

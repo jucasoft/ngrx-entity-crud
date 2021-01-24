@@ -8,7 +8,7 @@ import {<%= clazz %>} from '@models/vo/<%= dasherize(clazz) %>';
   selector: 'app-button-create-many-test-<%= dasherize(clazz) %>',
   template: `
     <button type="button" *ngLet="(itemsSelected$|async) as itemsSelected" pButton icon="pi pi-plus"
-            label="Create many test" (click)="onCreateMany(itemsSelected)"
+            label="Create many ({{itemsSelected.length}})" (click)="onCreateMany(itemsSelected)"
             [disabled]="!(itemsSelected.length > 0)"
             class="p-button-success"></button>
   `,
