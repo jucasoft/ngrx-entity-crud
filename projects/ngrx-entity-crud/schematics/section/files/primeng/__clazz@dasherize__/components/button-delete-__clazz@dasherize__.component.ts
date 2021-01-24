@@ -1,9 +1,8 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {select, Store} from '@ngrx/store';
 import {Observable} from 'rxjs';
-import {<%= clazz %>} from '@models/vo/<%= dasherize(clazz) %>';
-import {RootStoreState} from '@root-store/index';
 import {<%= clazz %>StoreActions, <%= clazz %>StoreSelectors, RootStoreState} from '@root-store/index';
+import {<%= clazz %>} from '@models/vo/<%= dasherize(clazz) %>';
 
 @Component({
   selector: 'app-button-delete-<%= dasherize(clazz) %>',
@@ -32,6 +31,5 @@ export class ButtonDelete<%= clazz %>Component implements OnInit {
   onDelete(items: <%= clazz %>[]): void {
     this.store$.dispatch(<%= clazz %>StoreActions.DeleteManyRequest({items}));
   }
-
 
 }
