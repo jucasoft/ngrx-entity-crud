@@ -1,10 +1,9 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
-import {Store} from '@ngrx/store';
-import {Observable, of} from 'rxjs';
-import {RouterStoreActions} from '@root-store/router-store/index';
-import {PopUpData} from '@root-store/router-store/pop-up-base.component';
+import {select, Store} from '@ngrx/store';
+import {Observable} from 'rxjs';
 import {<%= clazz %>} from '@models/vo/<%= dasherize(clazz) %>';
 import {RootStoreState} from '@root-store/index';
+import {<%= clazz %>StoreActions, <%= clazz %>StoreSelectors, RootStoreState} from '@root-store/index';
 
 @Component({
   selector: 'app-button-delete-<%= dasherize(clazz) %>',

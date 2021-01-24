@@ -21,7 +21,7 @@ import {ToolbarModule} from 'primeng/toolbar';
     <%= clazz %>EditComponent,
     <%= clazz %>MainComponent,
     <%= clazz %>ListComponent,
-    ButtonNew<%= clazz %>Component
+    ButtonNew<%= clazz %>Component,
     ButtonDelete<%= clazz %>Component
   ],
   imports: [
