@@ -9,7 +9,7 @@ import {RootStoreState} from '@root-store/index';
 @Component({
   selector: 'app-button-new-<%= dasherize(clazz) %>',
   template: `
-    <button type="button" pButton icon="fa fa-fw fa-plus"
+    <button type="button" pButton icon="pi pi-plus"
             label="New <%= clazz %>" (click)="onCreate()"
             [disabled]="(disabled$ |async)"
             class="p-button-success"></button>
