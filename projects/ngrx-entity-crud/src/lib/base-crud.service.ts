@@ -1,9 +1,8 @@
 import {Injectable} from '@angular/core';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
-
-import {map} from 'rxjs/operators';
-import {Observable} from 'rxjs';
+import {map, mergeMap} from 'rxjs/operators';
 import {ICriteria, OptManyRequest, OptRequest, Response} from './models';
+import {Observable, of} from 'rxjs';
 
 export interface IBaseCrudService<T> {
   service: string;
@@ -130,7 +129,13 @@ export class BaseCrudService<T> implements IBaseCrudService<T> {
   }
 
   deleteMany(opt: OptManyRequest<T>): Observable<Response<string[]>> {
-    return undefined;
+    const result = opt.items.map(item => {
+      const optB: OptRequest<T> = {...opt, item};
+      return this.delete(optB);
+    });
+    return of(...result).pipe(
+      mergeMap(value => value)
+    );
   }
 
   getId = (value) => value[this.id];
