@@ -127,13 +127,13 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
   });
   const deleteSuccessOn = on(actions.DeleteSuccess, (state: S, {type, id}) => {
 
-    // tolgo dallo store.idsSelected l'elemento cancellato
-    const idsSelected = (state.idsSelected as any[]).filter((idA) => idA === id);
+      // tolgo dallo store.idsSelected l'elemento cancellato
+      const idsSelected = (state.idsSelected as any[]).filter((idA) => idA === id);
 
-    // se ho cancellato l'id seezionato, lo tolgo dallo store.
-    const idSelected = !!state.idSelected && state.idSelected === id ? null : state.idSelected;
+      // se ho cancellato l'id seezionato, lo tolgo dallo store.
+      const idSelected = !!state.idSelected && state.idSelected === id ? null : state.idSelected;
 
-    return adapter.removeOne(id,
+      return adapter.removeOne(id,
         Object.assign(
           {}, state,
           {
@@ -155,7 +155,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
     // se ho cancellato l'id seezionato, lo tolgo dallo store.
     const idSelected = !!state.idSelected && state.idSelected in ids ? null : state.idSelected;
 
-    adapter.removeMany(ids,
+    return adapter.removeMany(ids,
       Object.assign(
         {}, state,
         {
@@ -169,11 +169,11 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
   });
 
   const deleteOn = on(actions.Delete, (state: S, {type, id}) => {
-    // tolgo dallo store.idsSelected l'elemento cancellato
-    const idsSelected = (state.idsSelected as any[]).filter((idA) => idA === id);
+      // tolgo dallo store.idsSelected l'elemento cancellato
+      const idsSelected = (state.idsSelected as any[]).filter((idA) => idA === id);
 
-    // se ho cancellato l'id seezionato, lo tolgo dallo store.
-    const idSelected = !!state.idSelected && state.idSelected === id ? null : state.idSelected;
+      // se ho cancellato l'id seezionato, lo tolgo dallo store.
+      const idSelected = !!state.idSelected && state.idSelected === id ? null : state.idSelected;
 
       return adapter.removeOne(id,
         Object.assign(
