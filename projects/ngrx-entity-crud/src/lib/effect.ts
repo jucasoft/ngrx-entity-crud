@@ -16,8 +16,6 @@ export const searchCall = <T>(service: IBaseCrudService<T>): MonoTypeOperatorFun
 export const searchResponse = <T>(actions: Actions<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     switchMap(({response, payload}) => {
-        console.log('switchMap(({response, payload})');
-        console.log({response, payload});
         const result: Action[] = [];
         if (response.hasError) {
           result.push(actions.SearchFailure({error: response.message}));

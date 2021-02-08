@@ -41,7 +41,7 @@ export class BaseCrudService<T> implements IBaseCrudService<T> {
 
   service = '';
   id = 'id';
-  debug = true;
+  debug = false;
 
   debugMode() {
     this.debug = true;
@@ -83,14 +83,11 @@ export class BaseCrudService<T> implements IBaseCrudService<T> {
       console.log('Extended from: ' + this.constructor.name);
     }
     const url = value && value.hasOwnProperty('path') && !!value.path ? value.path.join('/') : '';
-    console.log('url', url);
     let httpOptions = this.httpOptions();
 
     if (value && value.hasOwnProperty('queryParams') && !!value.queryParams) {
       httpOptions = ({...httpOptions, ...{params: value.queryParams}});
     }
-    console.log('this.getUrl() + url', this.getUrl() + url);
-    console.log('httpOptions', httpOptions);
     return this.http.get(this.getUrl() + url, httpOptions).pipe(
       map(this.searchMap),
     ) as Observable<Response<T[]>>;
