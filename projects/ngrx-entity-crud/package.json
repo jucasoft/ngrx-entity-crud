@@ -10,9 +10,9 @@
     "@angular-devkit/schematics-cli": "^0.1100.1",
     "@angular/common": "^11.0.2",
     "@angular/core": "^11.0.2",
-    "@ngrx/store": "^10.0.1",
-    "@ngrx/entity": "^10.0.1",
-    "@ngrx/effects": "^10.0.1",
+    "@ngrx/store": "^11.0.0",
+    "@ngrx/entity": "^11.0.0",
+    "@ngrx/effects": "^11.0.0",
     "deepmerge": "^4.2.2",
     "rxjs": "~6.6.3"
   },
@@ -29,5 +29,5 @@
   "private": false,
   "dependencies": {
     "tslib": "^2.0.0"
-}
+  }
 }
