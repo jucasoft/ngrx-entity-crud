@@ -34,7 +34,6 @@ export function crudSection(options: CrudSection): Rule {
     const conf = tree.read('/ngrx-entity-crud.conf.json');
     if (conf) {
       const confData = JSON.parse(conf.toString());
-      console.log('conf', conf);
       path = confData.pathView;
       pathService = confData.pathService;
       pathVo = confData.pathVo;
@@ -42,10 +41,10 @@ export function crudSection(options: CrudSection): Rule {
 
     const lib = options.lib;
 
-    console.log('path', path);
-    console.log('pathService', pathService);
-    console.log('pathVo', pathVo);
-    console.log('lib', lib);
+    console.log('path: ', path);
+    console.log('pathService: ', pathService);
+    console.log('pathVo: ', pathVo);
+    console.log('lib: ', lib);
 
     const _chain = [];
     _chain.push(render(options, `./files/${lib}`, path));

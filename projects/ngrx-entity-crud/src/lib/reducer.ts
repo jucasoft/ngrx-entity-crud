@@ -1,9 +1,10 @@
 import {Actions, EntityCrudState, ICriteria, OptManyRequest, OptRequest} from './models';
 import {EntityAdapter} from '@ngrx/entity';
 import {createReducer, on} from '@ngrx/store';
-import {On} from '@ngrx/store/src/reducer_creator';
 import {isDevMode} from '@angular/core';
 import {selectIdValue} from './utils';
+import {ActionCreator} from '@ngrx/store/src/models';
+import {ReducerTypes} from '@ngrx/store/src/reducer_creator';
 
 export function evalData<T>(fn: () => T, def: any = null): T {
   try {
@@ -13,7 +14,7 @@ export function evalData<T>(fn: () => T, def: any = null): T {
   }
 }
 
-export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAdapter<T>, initialState: S, actions: Actions<T>): { [key: string]: On<S> } {
+export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAdapter<T>, initialState: S, actions: Actions<T>): { [key: string]: ReducerTypes<S, ActionCreator[]> } {
   const searchRequestOn = on(actions.SearchRequest, (state: S, criteria: ICriteria) => {
     if (!criteria.path && !criteria.mode && !criteria.queryParams) {
       throw new Error('It is not possible a search without payload, use :\'{criteria:{}}\'');
@@ -390,7 +391,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
         error
       }
     ));
-  const resetOn = on(actions.Reset, () => initialState);
+  const resetOn = on(actions.Reset, (state: S) => ({...state, ...initialState}));
   return {
     responseOn,
     resetResponsesOn,
@@ -430,7 +431,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
 }
 
 export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
-  function createCrudReducer<S extends EntityCrudState<T>>(initialState: S, actions: Actions<T>, ...ons: On<S>[]) {
+  function createCrudReducer<S extends EntityCrudState<T>>(initialState: S, actions: Actions<T>, ...ons: ReducerTypes<S, ActionCreator[]>[]) {
     const {
       responseOn,
       resetResponsesOn,
@@ -466,7 +467,7 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
       createOn,
       deleteOn
     } = createCrudOns(adapter, initialState, actions);
-    const totalOns: On<S>[] = [
+    const totalOns: ReducerTypes<S, ActionCreator[]>[] = [
       ...ons,
       responseOn,
       resetResponsesOn,
