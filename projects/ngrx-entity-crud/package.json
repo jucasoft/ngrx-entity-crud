@@ -4,6 +4,17 @@
   "repository": "https://github.com/jucasoft/ngrx-entity-crud",
   "license": "MIT",
   "schematics": "./schematics/collection.json",
+  "ngPackage": {
+    "lib": {
+      "entryFile": "src/public-api.ts"
+    },
+    "assets": [
+      "./schematics/*/schema.json",
+      "./schematics/*/files/**",
+      "./schematics/collection.json"
+    ],
+    "dest": "../../libs/ngrx-entity-crud"
+  },
   "peerDependencies": {
     "@angular-devkit/core": "^11.0.2",
     "@angular-devkit/schematics": "^11.0.2",
