@@ -14,10 +14,10 @@
     "build:schematics": "tsc -p ./projects/ngrx-entity-crud/tsconfig.schematics.json",
     "copy:schemas": "rsync -R ./projects/ngrx-entity-crud/schematics/*/schema.json ./libs/ngrx-entity-crud/",
     "copy:files": "rsync -Ravz ./projects/ngrx-entity-crud/schematics/*/files/** ./libs/ngrx-entity-crud/",
-    "copy:collection": "cp ./projects/ngrx-entity-crud/schematics/collection.json ./libs/ngrx-entity-crud/schematics/collection.json",
+    "copy:collection": "rsync ./projects/ngrx-entity-crud/schematics/collection.json ./libs/ngrx-entity-crud/schematics/collection.json",
     "merge": "rsync -a ./libs/ngrx-entity-crud/projects/ngrx-entity-crud/schematics/ ./libs/ngrx-entity-crud/schematics/",
     "remove": "rm -rf ./libs/ngrx-entity-crud/projects",
-    "postbuild": "npm run copy:schemas && npm run copy:files && npm run copy:collection && npm run merge && npm run remove"
+    "postbuild": "npm run copy:schemas && npm run copy:files && npm run copy:collection && npm run merge"
   },
   "dependencies": {
     "@angular/animations": "^11.1.2",
