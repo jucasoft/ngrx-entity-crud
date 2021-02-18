@@ -202,52 +202,149 @@ export interface Actions<T> {
   ResetResponses: ActionCreator<string, () => { type: string; }>;
 
   /**
-   * criteria: ICriteria: criteria di ricerca
-   * mode?: 'REFRESH': se viene passato il valore REFRESH, il dato presente nello store viene cancellato prima di eseguire la chiamata,
+   * - action used to execute asynchronous researches
+   * @example StoreActions.SearchRequest({queryParams: {}})
+   * - criteria: ICriteria: criteria di ricerca
+   * - mode?: 'REFRESH': se viene passato il valore REFRESH, il dato presente nello store viene cancellato prima di eseguire la chiamata,
    *        altrimenti il dato verrà sostituito al result della chiamata
+   * @param mode?: 'REFRESH' | 'upsertMany' | 'addAll'
+   * @param queryParams?: any
+   * @param path?: any[]
+   * @param onFault?: Action[]
+   * @param onResult?: Action[]
+   * @param dispatchResponse?: boolean
+   * @param type: string
    */
   SearchRequest: ActionCreator<string, (props: ICriteria) => ICriteria & TypedAction<string>>;
   SearchFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
   SearchSuccess: ActionCreator<string, (props: { items: T[], request: ICriteria }) => { items: T[], request: ICriteria } & TypedAction<string>>;
 
+  /**
+   * - action used to execute a request to remove an item
+   * @param item: T
+   * @param path?: any[]
+   * @param onFault?: Action[]
+   * @param onResult?: Action[]
+   * @param dispatchResponse?: boolean
+   */
   DeleteRequest: ActionCreator<string, (props: OptRequest<T>) => OptRequest<T> & TypedAction<string>>;
   DeleteFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
   DeleteSuccess: ActionCreator<string, (props: { id: string; }) => { id: string; } & TypedAction<string>>;
 
+  /**
+   * - action used to execute a request to remove more items
+   * @param items: T[]
+   * @param path?: any[]
+   * @param onFault?: Action[]
+   * @param onResult?: Action[]
+   * @param dispatchResponse?: boolean
+   */
   DeleteManyRequest: ActionCreator<string, (props: OptManyRequest<T>) => OptManyRequest<T> & TypedAction<string>>;
   DeleteManyFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
   DeleteManySuccess: ActionCreator<string, (props: { ids: string[]; }) => { ids: string[]; } & TypedAction<string>>;
 
+  /**
+   * - action used to execute a request to create a new item
+   * @param item: T
+   * @param path?: any[]
+   * @param onFault?: Action[]
+   * @param onResult?: Action[]
+   * @param dispatchResponse?: boolean
+   */
   CreateRequest: ActionCreator<string, (props: OptRequest<T>) => OptRequest<T> & TypedAction<string>>;
   CreateFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
   CreateSuccess: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 
+  /**
+   * - action used to execute a request to create more new items
+   * @param items: T[]
+   * @param path?: any[]
+   * @param onFault?: Action[]
+   * @param onResult?: Action[]
+   * @param dispatchResponse?: boolean
+   */
   CreateManyRequest: ActionCreator<string, (props: OptManyRequest<T>) => OptManyRequest<T> & TypedAction<string>>;
   CreateManyFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
   CreateManySuccess: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
 
+  /**
+   *  - action used to execute a request to select an item
+   * @param item: T
+   * @param path?: any[]
+   * @param onFault?: Action[]
+   * @param onResult?: Action[]
+   * @param dispatchResponse?: boolean
+   */
   SelectRequest: ActionCreator<string, (props: OptRequest<T>) => OptRequest<T> & TypedAction<string>>;
   SelectFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
   SelectSuccess: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 
+  /**
+   *  - action used to execute a request to modify an item
+   * @param item: T
+   * @param path?: any[]
+   * @param onFault?: Action[]
+   * @param onResult?: Action[]
+   * @param dispatchResponse?: boolean
+   */
   EditRequest: ActionCreator<string, (props: OptRequest<T>) => OptRequest<T> & TypedAction<string>>;
   EditFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
   EditSuccess: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 
+  /**
+   *  - action used to execute a request to modify more items
+   * @param items: T[]
+   * @param path?: any[]
+   * @param onFault?: Action[]
+   * @param onResult?: Action[]
+   * @param dispatchResponse?: boolean
+   */
   EditManyRequest: ActionCreator<string, (props: OptManyRequest<T>) => OptManyRequest<T> & TypedAction<string>>;
   EditManyFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
   EditManySuccess: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
 
+  /**
+   * - action used to execute a store reset
+   * @param type: string
+   */
   Reset: ActionCreator<string, () => { type: string; }>;
+
+  /**
+   * - action used to apply some filters on data
+   * @param filters: { [s: string]: FilterMetadata;}
+   */
   Filters: ActionCreator<string, (props: { filters: { [s: string]: FilterMetadata; }; }) => { filters: { [s: string]: FilterMetadata; }; } & TypedAction<string>>;
 
   // selezione locale di + elementi
+  /**
+   * - action used to identify a group of items to select
+   * @param items: T[]
+   */
   SelectItems: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
   // selezione locale di un elemento
+
+  /**
+   * - action used to identify a single item to select
+   * @param item: T
+   */
   SelectItem: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 
+  /**
+   * - action used to modify an item on the store
+   * @param item: T
+   */
   Edit: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+
+  /**
+   * - action used to create an item on the store
+   * @param item: T
+   */
   Create: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+
+  /**
+   * - action used to remove an item on the store
+   * @param id: string
+   */
   Delete: ActionCreator<string, (props: { id: string; }) => { id: string; } & TypedAction<string>>;
 
 }
