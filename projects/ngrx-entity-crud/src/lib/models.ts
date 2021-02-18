@@ -78,6 +78,9 @@ export interface OptRequestBase {
   dispatchResponse?: boolean;
 }
 
+/**
+ * - criteria: ICriteria: criteria di ricerca
+ */
 export interface ICriteria extends OptRequestBase {
   /**
    *
@@ -204,7 +207,6 @@ export interface Actions<T> {
   /**
    * - action used to execute asynchronous researches
    * @example StoreActions.SearchRequest({queryParams: {}})
-   * - criteria: ICriteria: criteria di ricerca
    * - mode?: 'REFRESH': se viene passato il valore REFRESH, il dato presente nello store viene cancellato prima di eseguire la chiamata,
    *        altrimenti il dato verrà sostituito al result della chiamata
    * @param mode?: 'REFRESH' | 'upsertMany' | 'addAll'
@@ -222,6 +224,7 @@ export interface Actions<T> {
 
   /**
    * - action used to execute a request to remove an item
+   * @example const toState: State = featureReducer(state, actions.DeleteRequest(payload));
    * @param item: T
    * @param path?: any[]
    * @param onFault?: Action[]
@@ -234,6 +237,7 @@ export interface Actions<T> {
 
   /**
    * - action used to execute a request to remove more items
+   * @example this.store$.dispatch(<%= clazz %>StoreActions.DeleteManyRequest({items}));
    * @param items: T[]
    * @param path?: any[]
    * @param onFault?: Action[]
@@ -246,6 +250,7 @@ export interface Actions<T> {
 
   /**
    * - action used to execute a request to create a new item
+   * @example  store.dispatch(actions.CreateRequest(payload));
    * @param item: T
    * @param path?: any[]
    * @param onFault?: Action[]
@@ -258,6 +263,7 @@ export interface Actions<T> {
 
   /**
    * - action used to execute a request to create more new items
+   * @example store.dispatch(actions.CreateManyRequest(payload));
    * @param items: T[]
    * @param path?: any[]
    * @param onFault?: Action[]
@@ -270,6 +276,7 @@ export interface Actions<T> {
 
   /**
    *  - action used to execute a request to select an item
+   * @example store.dispatch(actions.SelectRequest(payload));
    * @param item: T
    * @param path?: any[]
    * @param onFault?: Action[]
@@ -282,6 +289,7 @@ export interface Actions<T> {
 
   /**
    *  - action used to execute a request to modify an item
+   * @example store.dispatch(actions.EditRequest(payload));
    * @param item: T
    * @param path?: any[]
    * @param onFault?: Action[]
@@ -294,6 +302,7 @@ export interface Actions<T> {
 
   /**
    *  - action used to execute a request to modify more items
+   * @example store.dispatch(actions.EditManyRequest(payload));
    * @param items: T[]
    * @param path?: any[]
    * @param onFault?: Action[]
@@ -306,12 +315,14 @@ export interface Actions<T> {
 
   /**
    * - action used to execute a store reset
+   * @example store.dispatch(actions.Reset());
    * @param type: string
    */
   Reset: ActionCreator<string, () => { type: string; }>;
 
   /**
    * - action used to apply some filters on data
+   * @example store.dispatch(actions.Filters(payload));
    * @param filters: { [s: string]: FilterMetadata;}
    */
   Filters: ActionCreator<string, (props: { filters: { [s: string]: FilterMetadata; }; }) => { filters: { [s: string]: FilterMetadata; }; } & TypedAction<string>>;
@@ -319,6 +330,7 @@ export interface Actions<T> {
   // selezione locale di + elementi
   /**
    * - action used to identify a group of items to select
+   * @example store.dispatch(actions.SelectItems(payload));
    * @param items: T[]
    */
   SelectItems: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
@@ -326,24 +338,28 @@ export interface Actions<T> {
 
   /**
    * - action used to identify a single item to select
+   * @example store.dispatch(actions.SelectItem(payload));
    * @param item: T
    */
   SelectItem: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 
   /**
    * - action used to modify an item on the store
+   * @example store.dispatch(actions.Edit(payload));
    * @param item: T
    */
   Edit: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 
   /**
    * - action used to create an item on the store
+   * @example store.dispatch(actions.Create(payload));
    * @param item: T
    */
   Create: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 
   /**
    * - action used to remove an item on the store
+   * @example const toState: State = featureReducer(expectState, actions.Delete(payload));
    * @param id: string
    */
   Delete: ActionCreator<string, (props: { id: string; }) => { id: string; } & TypedAction<string>>;
