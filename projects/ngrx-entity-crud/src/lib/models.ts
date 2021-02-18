@@ -214,6 +214,7 @@ export interface Actions<T> {
    * @param onResult?: Action[]
    * @param dispatchResponse?: boolean
    * @param type: string
+   *
    */
   SearchRequest: ActionCreator<string, (props: ICriteria) => ICriteria & TypedAction<string>>;
   SearchFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
