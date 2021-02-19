@@ -32,9 +32,25 @@ export declare type ComparerStr<T> = (a: T, b: T) => string;
 export declare type Comparer<T> = (a: T, b: T) => number;
 
 export interface EntitySelectors<T, V> {
+  /**
+   * - used to select a group of ids
+   * @param (state: V) => string[] | number[]
+   */
   selectIds: (state: V) => string[] | number[];
+  /**
+   * - used to select a group of entities
+   * @param (state: V) => Dictionary<T>
+   */
   selectEntities: (state: V) => Dictionary<T>;
+  /**
+   * - used to select all items
+   * @param (state: V) => T[]
+   */
   selectAll: (state: V) => T[];
+  /**
+   * - used to select the sum of items
+   * @param (state: V) => number
+   */
   selectTotal: (state: V) => number;
 }
 
@@ -141,16 +157,60 @@ export interface CrudState<T> extends EntityState<T> {
 }
 
 export interface EntityCrudSelectors<T, V> extends EntitySelectors<T, V> {
+  /**
+   * - used to select selected id
+   * @param (state: V) => string | number
+   */
   selectIdSelected: (state: V) => string | number;
+  /**
+   * - used to select selected ids
+   * @param (state: V) => string[] | number[]
+   */
   selectIdsSelected: (state: V) => string[] | number[];
+  /**
+   * - used to select selected item
+   * @param (state: V) => T
+   */
   selectItemSelected: (state: V) => T;
+  /**
+   * - used to select a group of selected items
+   * @param (state: V) => T[]
+   */
   selectItemsSelected: (state: V) => T[];
+  /**
+   * - used to select last criteria
+   * @param (state: V) => ICriteria
+   */
   selectLastCriteria: (state: V) => ICriteria;
+  /**
+   * - used to select an error
+   * @param (state: V) => string
+   */
   selectError: (state: V) => string;
+  /**
+   * - returns true if there are calls in progress
+   * @@param (state: V) => boolean
+   */
   selectIsLoading: (state: V) => boolean;
+  /**
+   * - returns true if all calls are completed
+   * @@param (state: V) => boolean
+   */
   selectIsLoaded: (state: V) => boolean;
+  /**
+   * - used to select filters
+   * @param (state: V) => {[s: string]: FilterMetadata;}
+   */
   selectFilters: (state: V) => { [s: string]: FilterMetadata; };
+  /**
+   * - used to select filtered items
+   * @param MemoizedSelector<V, T[]>
+   */
   selectFilteredItems: MemoizedSelector<V, T[]>;
+  /**
+   * - used to select response variable contained in the formula
+   * @param (state: V) => OptResponse<T>[]
+   */
   selectResponses: (state: V) => OptResponse<T>[];
 }
 
