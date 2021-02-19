@@ -158,6 +158,8 @@ export interface CrudState<T> extends EntityState<T> {
 
 export interface EntityCrudSelectors<T, V> extends EntitySelectors<T, V> {
   /**
+   *
+   *
    * - used to select selected id
    * @param (state: V) => string | number
    */
