@@ -3,8 +3,8 @@ import {EntityAdapter} from '@ngrx/entity';
 import {createReducer, on} from '@ngrx/store';
 import {isDevMode} from '@angular/core';
 import {selectIdValue} from './utils';
-import {ActionCreator} from '@ngrx/store/src/models';
-import {ReducerTypes} from '@ngrx/store/src/reducer_creator';
+import {ActionCreator} from '@ngrx/store';
+import {ReducerTypes} from '@ngrx/store';
 
 export function evalData<T>(fn: () => T, def: any = null): T {
   try {

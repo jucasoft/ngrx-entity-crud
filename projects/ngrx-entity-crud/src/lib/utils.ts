@@ -1,7 +1,7 @@
 import {MonoTypeOperatorFunction} from 'rxjs';
 import {filter} from 'rxjs/operators';
 import {ActionEnum, IdSelector} from './models';
-import {Action} from '@ngrx/store/src/models';
+import {Action} from '@ngrx/store';
 import {isDevMode} from '@angular/core';
 
 export const ofFailure = <T extends Action>(): MonoTypeOperatorFunction<T> => {
