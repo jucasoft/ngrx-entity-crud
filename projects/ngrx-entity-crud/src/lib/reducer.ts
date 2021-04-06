@@ -25,6 +25,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
         state,
         {
           isLoading: true,
+          error: initialState.error,
           lastCriteria: criteria
         }
       );
@@ -35,6 +36,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
         state,
         {
           isLoading: true,
+          error: initialState.error,
           lastCriteria: criteria
         })
     );
@@ -43,49 +45,49 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
     return Object.assign(
       {},
       state,
-      {isLoading: true}
+      {isLoading: true, error: initialState.error}
     );
   });
   const deleteManyRequestOn = on(actions.DeleteManyRequest, (state: S, request: OptManyRequest<T>) => {
     return Object.assign(
       {},
       state,
-      {isLoading: true}
+      {isLoading: true, error: initialState.error}
     );
   });
   const editRequestOn = on(actions.EditRequest, (state: S, request: OptRequest<T>) => {
     return Object.assign(
       {},
       state,
-      {isLoading: true}
+      {isLoading: true, error: initialState.error}
     );
   });
   const editManyRequestOn = on(actions.EditManyRequest, (state: S, request: OptManyRequest<T>) => {
     return Object.assign(
       {},
       state,
-      {isLoading: true}
+      {isLoading: true, error: initialState.error}
     );
   });
   const createRequestOn = on(actions.CreateRequest, (state: S, request: OptRequest<T>) => {
     return Object.assign(
       {},
       state,
-      {isLoading: true}
+      {isLoading: true, error: initialState.error}
     );
   });
   const createManyRequestOn = on(actions.CreateManyRequest, (state: S, request: OptManyRequest<T>) => {
     return Object.assign(
       {},
       state,
-      {isLoading: true}
+      {isLoading: true, error: initialState.error}
     );
   });
   const selectRequestOn = on(actions.SelectRequest, (state: S, request: OptRequest<T>) => {
     return Object.assign(
       {},
       state,
-      {isLoading: true}
+      {isLoading: true, error: initialState.error}
     );
   });
 
