@@ -1,10 +1,8 @@
 import {Actions, EntityCrudState, ICriteria, OptManyRequest, OptRequest} from './models';
 import {EntityAdapter} from '@ngrx/entity';
-import {createReducer, on} from '@ngrx/store';
+import {ActionCreator, createReducer, on, ReducerTypes} from '@ngrx/store';
 import {isDevMode} from '@angular/core';
-import {selectIdValue} from './utils';
-import {ActionCreator} from '@ngrx/store';
-import {ReducerTypes} from '@ngrx/store';
+import {selectIdValue, toDictionary} from './utils';
 
 export function evalData<T>(fn: () => T, def: any = null): T {
   try {
@@ -256,16 +254,70 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
       }
     )));
   const filtersOn = on(actions.Filters, (state: S, {type, filters}) => Object.assign({}, state, {filters}));
-  const selectItemsOn = on(actions.SelectItems, (state: S, {type, items}) => {
-    const idsSelected = items.map(item => selectIdValue(item, adapter.selectId));
+
+  const removeAllSelectedOn = on(actions.RemoveAllSelected, (state: S, {type}: { type: string }) => {
     const result = {
       ...state,
-      idsSelected,
-      itemsSelected: items
+      idsSelected: [],
+      itemsSelected: [], //todo: @deprecated da cancellare questo tipo di assegnazione.
+      entitiesSelected: {}
     };
     if (isDevMode()) {
       console.log(type);
-      console.log('items', items);
+      console.log('state', state);
+      console.log('result', result);
+    }
+    return result;
+  });
+
+  const addManySelectedOn = on(actions.AddManySelected, (state: S, {type, items}: { type: string, items: T[] }) => {
+    const entitiesCurr = toDictionary(items, adapter);
+    const entitiesSelected = {...state.entitiesSelected, ...entitiesCurr};
+    const idsSelected = Object.keys(entitiesSelected);
+    const result = {
+      ...state,
+      idsSelected,
+      itemsSelected: items, //todo: @deprecated da cancellare questo tipo di assegnazione.
+      entitiesSelected
+    };
+    if (isDevMode()) {
+      console.log(type);
+      console.log('state', state);
+      console.log('result', result);
+    }
+    return result;
+  });
+
+  const removeManySelectedOn = on(actions.RemoveManySelected, (state: S, {type, ids}: { type: string, ids: string[] }) => {
+    const idsSelected = Object.keys(state.entitiesSelected).filter(id => !ids.includes(id));
+    const entitiesSelected = idsSelected.map(id => state.entitiesSelected[id]);
+    const itemsSelected = Object.values(entitiesSelected);
+
+    const result = {
+      ...state,
+      idsSelected,
+      itemsSelected, //todo: @deprecated da cancellare questo tipo di assegnazione.
+      entitiesSelected
+    };
+    if (isDevMode()) {
+      console.log(type);
+      console.log('state', state);
+      console.log('result', result);
+    }
+    return result;
+  });
+
+  const selectItemsOn = on(actions.SelectItems, (state: S, {type, items}) => {
+    const entitiesSelected = toDictionary(items, adapter);
+    const idsSelected = Object.keys(entitiesSelected);
+    const result = {
+      ...state,
+      idsSelected,
+      itemsSelected: items,
+      entitiesSelected
+    };
+    if (isDevMode()) {
+      console.log(type);
       console.log('state', state);
       console.log('result', result);
     }

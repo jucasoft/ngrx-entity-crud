@@ -47,7 +47,12 @@ export function createCrudActionsFactory<T>() {
 
     const Reset = createAction(`[${name}] ${CrudEnum.RESET}`);
     const Filters = createAction(`[${name}] Filters`, props<{ filters: { [s: string]: FilterMetadata; } }>());
+
     const SelectItems = createAction(`[${name}] SelectItems`, props<{ items: T[] }>());
+    const AddManySelected = createAction(`[${name}] AddManySelected`, props<{ items: T[] }>());
+    const RemoveManySelected = createAction(`[${name}] RemoveManySelected`, props<{ ids: string[] }>());
+    const RemoveAllSelected = createAction(`[${name}] RemoveAllSelected`);
+
     const SelectItem = createAction(`[${name}] SelectItem`, props<{ item: T }>());
 
     const Edit = createAction(`[${name}] ${CrudEnum.EDIT} `, props<{ item: T }>());
@@ -92,6 +97,9 @@ export function createCrudActionsFactory<T>() {
       Reset,
       Filters,
       SelectItems,
+      RemoveManySelected,
+      AddManySelected,
+      RemoveAllSelected,
       SelectItem,
       Edit,
       Create,

@@ -258,6 +258,8 @@ export interface EntityCrudState<T> extends EntityState<T> {
    * @deprecated utilizzare entitySelected/idSelected
    */
   itemsSelected: T[];
+  entitiesSelected: Dictionary<T>;
+
   idsSelected: string[] | number[];
   // ogni entità registra l'azione scatenata e la risposta dal server.
   responses: OptResponse<T>[];
@@ -419,8 +421,12 @@ export interface Actions<T> {
    * @param items: T[]
    */
   SelectItems: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
-  // selezione locale di un elemento
-
+  // TODO: doc
+  AddManySelected: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
+  // TODO: doc
+  RemoveManySelected: ActionCreator<string, (props: { ids: string[]; }) => { ids: string[]; } & TypedAction<string>>;
+  // TODO: doc
+  RemoveAllSelected: ActionCreator<string>;
   /**
    * - action used to identify a single item to select
    * @example store.dispatch(actions.SelectItem(payload));
