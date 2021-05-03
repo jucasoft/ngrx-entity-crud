@@ -15,6 +15,11 @@
       "description": "add login integration",
       "factory": "./auth/index#makeAuth",
       "schema": "./auth/schema.json"
+    },
+    "auth0": {
+      "description": "add login integration",
+      "factory": "./auth0/index#makeAuth0",
+      "schema": "./auth0/schema.json"
     }
   }
 }
