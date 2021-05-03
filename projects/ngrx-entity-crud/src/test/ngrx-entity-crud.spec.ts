@@ -1,6 +1,7 @@
 import {Actions, CrudState, EntityCrudAdapter, EntityCrudSelectors, EntityCrudState, ICriteria} from '../lib/models';
 import {createCrudEntityAdapter} from '../lib/create_adapter';
 import {createFeatureSelector, MemoizedSelector, Store} from '@ngrx/store';
+import {toDictionary} from '../lib/utils';
 
 export const NAME = 'client';
 
@@ -288,10 +289,40 @@ describe('Crud', () => {
     it('SelectItems', () => {
       const payload = {items: [{id: 0, name: 'a'}, {id: 1, name: 'b'}]};
 
-      const expectState: State = ({...state, ...{itemsSelected: payload.items, idsSelected: payload.items.map(value => value.id)}});
+      const entitiesSelected = toDictionary(payload.items, adapter);
+      const idsSelected = Object.keys(entitiesSelected);
+      const expectState: State = ({...state, entitiesSelected, idsSelected});
 
       const toState: State = featureReducer(state, actions.SelectItems(payload));
 
+      expect(expectState).toEqual(toState);
+    });
+
+    it('AddManySelected + RemoveManySelected', () => {
+      const payloadA = {items: [{id: 0, name: 'a'}, {id: 1, name: 'b'}]};
+      const payloadB = {items: [{id: 2, name: 'c'}, {id: 1, name: 'b'}]};
+
+      let entitiesSelected = toDictionary([{id: 0, name: 'a'}, {id: 1, name: 'b'}, {id: 2, name: 'c'}], adapter);
+      let idsSelected = Object.keys(entitiesSelected);
+      let expectState: State = ({...state, entitiesSelected, idsSelected});
+      let toState: State = featureReducer(state, actions.AddManySelected(payloadA));
+      toState = featureReducer(toState, actions.AddManySelected(payloadB));
+      expect(expectState).toEqual(toState);
+
+      toState = featureReducer(toState, actions.RemoveManySelected({ids: ['0']}));
+
+      entitiesSelected = toDictionary([{id: 1, name: 'b'}, {id: 2, name: 'c'}], adapter);
+      idsSelected = Object.keys(entitiesSelected);
+      expectState = ({...state, entitiesSelected, idsSelected});
+      expect(expectState).toEqual(toState);
+    });
+
+    it('RemoveAllSelected', () => {
+      const entitiesSelected = toDictionary([{id: 0, name: 'a'}, {id: 1, name: 'b'}, {id: 2, name: 'c'}], adapter);
+      const idsSelected = Object.keys(entitiesSelected);
+      const fromState: State = ({...state, entitiesSelected, idsSelected});
+      const expectState: State = ({...state, entitiesSelected: {}, idsSelected: []});
+      const toState: State = featureReducer(fromState, actions.RemoveAllSelected());
       expect(expectState).toEqual(toState);
     });
 

@@ -130,7 +130,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
 
       // tolgo dallo store.idsSelected l'elemento cancellato
       const idsSelected = (state.idsSelected as any[]).filter((idA) => idA === id);
-      const entitiesSelectd = idsSelected.reduce((prev, curr) => {
+      const entitiesSelected = idsSelected.reduce((prev, curr) => {
         prev[curr] = state.entitiesSelected[curr];
         return prev;
       }, {});
@@ -149,7 +149,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
             idSelected,
             idsSelected,
             itemSelected,
-            entitiesSelectd
+            entitiesSelected
           }
         ));
     }
@@ -159,7 +159,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
 
     // tolgo dallo store.idsSelected gli elementi che sono stati cancellati.
     const idsSelected: string[] = (state.idsSelected as any[]).filter((id) => !(id in ids));
-    const entitiesSelectd = idsSelected.reduce((prev, curr) => {
+    const entitiesSelected = idsSelected.reduce((prev, curr) => {
       prev[curr] = state.entitiesSelected[curr];
       return prev;
     }, {});
@@ -177,7 +177,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
           idSelected,
           idsSelected,
           itemSelected,
-          entitiesSelectd
+          entitiesSelected
         }
       ));
   });
@@ -303,7 +303,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
 
   const removeManySelectedOn = on(actions.RemoveManySelected, (state: S, {type, ids}: { type: string, ids: string[] }) => {
     const idsSelected = Object.keys(state.entitiesSelected).filter(id => !ids.includes(id));
-    const entitiesSelected = idsSelected.map(id => state.entitiesSelected[id]);
+    const entitiesSelected = idsSelected.reduce((prec, curr) => ({...prec, [curr]: state.entitiesSelected[curr]}), {});
     // const itemsSelected = Object.values(entitiesSelected);
 
     const result = {
@@ -489,6 +489,9 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
     resetOn,
     filtersOn,
     selectItemsOn,
+    removeAllSelectedOn,
+    addManySelectedOn,
+    removeManySelectedOn,
     selectItemOn,
     editOn,
     createOn,
@@ -529,6 +532,9 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
       resetOn,
       filtersOn,
       selectItemsOn,
+      removeAllSelectedOn,
+      addManySelectedOn,
+      removeManySelectedOn,
       selectItemOn,
       editOn,
       createOn,
@@ -565,6 +571,9 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
       resetOn,
       filtersOn,
       selectItemsOn,
+      removeAllSelectedOn,
+      addManySelectedOn,
+      removeManySelectedOn,
       selectItemOn,
       editOn,
       createOn,
