@@ -9,7 +9,6 @@ export function getInitialEntityCrudState<V>(): EntityCrudState<V> {
     error: null,
     filters: {},
     lastCriteria: null,
-    itemsSelected: [],
     entitiesSelected: {},
     idsSelected: [],
     itemSelected: null,

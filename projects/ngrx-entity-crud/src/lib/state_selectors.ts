@@ -18,7 +18,8 @@ export function createCrudSelectorsFactory<T>(adapter) {
     const getLastCriteria = (state: CrudState<T>): ICriteria => state.lastCriteria;
     const getItemSelected = (state: CrudState<T>): T => state.itemSelected;
     const getIdSelected = (state: CrudState<T>): string | number => state.idSelected;
-    const getItemsSelected = (state: CrudState<T>): T[] => state.itemsSelected;
+    // const getItemsSelected = (state: CrudState<T>): T[] => state.itemsSelected;
+    const getEntitiesSelected = (state: CrudState<T>): Dictionary<T> => state.entitiesSelected;
     const getIdsSelected = (state: CrudState<T>): string[] | number[] => state.idsSelected;
     const getRespones = (state: CrudState<T>): OptResponse<T>[] => state.responses;
 
@@ -32,7 +33,8 @@ export function createCrudSelectorsFactory<T>(adapter) {
     const selectLastCriteria: MemoizedSelector<V, ICriteria> = createSelector(selectState, getLastCriteria);
 
     const selectItemSelected: MemoizedSelector<V, T> = createSelector(selectState, getItemSelected);
-    const selectItemsSelected: MemoizedSelector<V, T[]> = createSelector(selectState, getItemsSelected);
+    const selectEntitiesSelected: MemoizedSelector<V, Dictionary<T>> = createSelector(selectState, getEntitiesSelected);
+    const selectItemsSelected: MemoizedSelector<V, T[]> = createSelector(selectEntitiesSelected, (entities: Dictionary<T>) => Object.values(entities));
 
     const selectIdSelected: MemoizedSelector<V, string | number> = createSelector(selectState, getIdSelected);
     const selectIdsSelected: MemoizedSelector<V, string[] | number[]> = createSelector(selectState, getIdsSelected);
@@ -81,6 +83,7 @@ export function createCrudSelectorsFactory<T>(adapter) {
       selectItemSelectedOrigin,
       selectIdsSelected,
       selectItemsSelected,
+      selectEntitiesSelected,
       selectItemsSelectedOrigin,
       selectResponses,
     };

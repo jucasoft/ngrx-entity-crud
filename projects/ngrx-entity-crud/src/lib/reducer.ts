@@ -130,9 +130,14 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
 
       // tolgo dallo store.idsSelected l'elemento cancellato
       const idsSelected = (state.idsSelected as any[]).filter((idA) => idA === id);
+      const entitiesSelectd = idsSelected.reduce((prev, curr) => {
+        prev[curr] = state.entitiesSelected[curr];
+        return prev;
+      }, {});
 
       // se ho cancellato l'id seezionato, lo tolgo dallo store.
       const idSelected = !!state.idSelected && state.idSelected === id ? null : state.idSelected;
+      const itemSelected = !idSelected ? null : state.itemSelected;
 
       return adapter.removeOne(id,
         Object.assign(
@@ -142,7 +147,9 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
             isLoading: false,
             error: null,
             idSelected,
-            idsSelected
+            idsSelected,
+            itemSelected,
+            entitiesSelectd
           }
         ));
     }
@@ -151,11 +158,15 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
   const deleteManySuccessOn = on(actions.DeleteManySuccess, (state: S, {type, ids}) => {
 
     // tolgo dallo store.idsSelected gli elementi che sono stati cancellati.
-    const idsSelected = (state.idsSelected as any[]).filter((id) => !(id in ids));
+    const idsSelected: string[] = (state.idsSelected as any[]).filter((id) => !(id in ids));
+    const entitiesSelectd = idsSelected.reduce((prev, curr) => {
+      prev[curr] = state.entitiesSelected[curr];
+      return prev;
+    }, {});
 
     // se ho cancellato l'id seezionato, lo tolgo dallo store.
     const idSelected = !!state.idSelected && state.idSelected in ids ? null : state.idSelected;
-
+    const itemSelected = !idSelected ? null : state.itemSelected;
     return adapter.removeMany(ids,
       Object.assign(
         {}, state,
@@ -164,7 +175,9 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
           isLoading: false,
           error: null,
           idSelected,
-          idsSelected
+          idsSelected,
+          itemSelected,
+          entitiesSelectd
         }
       ));
   });
@@ -259,7 +272,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
     const result = {
       ...state,
       idsSelected: [],
-      itemsSelected: [], //todo: @deprecated da cancellare questo tipo di assegnazione.
+      // itemsSelected: [], //todo: @deprecated da cancellare questo tipo di assegnazione.
       entitiesSelected: {}
     };
     if (isDevMode()) {
@@ -277,7 +290,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
     const result = {
       ...state,
       idsSelected,
-      itemsSelected: items, //todo: @deprecated da cancellare questo tipo di assegnazione.
+      // itemsSelected: items, //todo: @deprecated da cancellare questo tipo di assegnazione.
       entitiesSelected
     };
     if (isDevMode()) {
@@ -291,12 +304,12 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
   const removeManySelectedOn = on(actions.RemoveManySelected, (state: S, {type, ids}: { type: string, ids: string[] }) => {
     const idsSelected = Object.keys(state.entitiesSelected).filter(id => !ids.includes(id));
     const entitiesSelected = idsSelected.map(id => state.entitiesSelected[id]);
-    const itemsSelected = Object.values(entitiesSelected);
+    // const itemsSelected = Object.values(entitiesSelected);
 
     const result = {
       ...state,
       idsSelected,
-      itemsSelected, //todo: @deprecated da cancellare questo tipo di assegnazione.
+      // itemsSelected, //todo: @deprecated da cancellare questo tipo di assegnazione.
       entitiesSelected
     };
     if (isDevMode()) {
@@ -313,7 +326,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
     const result = {
       ...state,
       idsSelected,
-      itemsSelected: items,
+      // itemsSelected: items,
       entitiesSelected
     };
     if (isDevMode()) {

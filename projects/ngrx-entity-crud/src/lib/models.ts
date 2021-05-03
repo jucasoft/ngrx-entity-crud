@@ -151,7 +151,8 @@ export interface CrudState<T> extends EntityState<T> {
   idsSelected: string[] | number[];
   itemSelected: T;
   idSelected: string | number;
-  itemsSelected: T[];
+  // itemsSelected: T[];
+  entitiesSelected: Dictionary<T>;
   // ogni entità registra l'azione scatenata e la risposta dal server.
   responses: OptResponse<T>[];
 }
@@ -194,6 +195,14 @@ export interface EntityCrudSelectors<T, V> extends EntitySelectors<T, V> {
    * @param (state: V) => T[]
    */
   selectItemsSelected: (state: V) => T[];
+
+  /**
+   * - used to select a group of selected entities
+   * - populated with action "...SelectedItems({item})",
+   * - local clone, does not match the instance in the store
+   * @param (state: V) => Dictionary<T>
+   */
+  selectEntitiesSelected: (state: V) => Dictionary<T>;
   /**
    * - used to select a group of selected items
    * - populated with action "...SelectedItems({item})",
@@ -245,19 +254,14 @@ export interface EntityCrudState<T> extends EntityState<T> {
   isLoaded: boolean;
   filters: { [s: string]: FilterMetadata; };
   lastCriteria: ICriteria;
-  /**
-   * TODO: questo attributo andra sostituiro da una lista di id, d
-   *  a utilizzare come riferimenti agli elementi selezionati.
-   * @deprecated utilizzare entitySelected/idSelected
-   */
   itemSelected: T;
   idSelected: string | number;
-  /**
-   * TODO: questo attributo andra sostituiro da una lista di id, d
-   *  a utilizzare come riferimenti agli elementi selezionati.
-   * @deprecated utilizzare entitySelected/idSelected
-   */
-  itemsSelected: T[];
+  // /**
+  //  * TODO: questo attributo andra sostituiro da una lista di id, d
+  //  *  a utilizzare come riferimenti agli elementi selezionati.
+  //  * @deprecated utilizzare entitySelected/idSelected
+  //  */
+  // itemsSelected: T[];
   entitiesSelected: Dictionary<T>;
 
   idsSelected: string[] | number[];
