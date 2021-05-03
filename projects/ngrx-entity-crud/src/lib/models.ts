@@ -161,24 +161,47 @@ export interface EntityCrudSelectors<T, V> extends EntitySelectors<T, V> {
    *
    *
    * - used to select selected id
+   * - populated with action "...SelectedItem({item})",
    * @param (state: V) => string | number
    */
   selectIdSelected: (state: V) => string | number;
   /**
    * - used to select selected ids
+   * - populated with action "...SelectedItems({item})",
    * @param (state: V) => string[] | number[]
    */
   selectIdsSelected: (state: V) => string[] | number[];
   /**
-   * - used to select selected item
+   * - used to select selectedItem
+   * - populated with action "...SelectedItems({item})",
+   * - local clone, does not match the instance in the store
    * @param (state: V) => T
    */
   selectItemSelected: (state: V) => T;
   /**
+   * - used to select selected item
+   * - populated with action "...SelectedItems({item:{id:string ...}})",
+   * - same instance of the store (state.entities)
+   * - the selector is created with:
+   *    - selectIdSelected + selectEntities,
+   * @param (state: V) => T
+   */
+  selectItemSelectedOrigin: (state: V) => T;
+  /**
    * - used to select a group of selected items
+   * - populated with action "...SelectedItems({item})",
+   * - local clone, does not match the instance in the store
    * @param (state: V) => T[]
    */
   selectItemsSelected: (state: V) => T[];
+  /**
+   * - used to select a group of selected items
+   * - populated with action "...SelectedItems({item})",
+   * - same instance of the store (state.entities)
+   *    - selectIdsSelected + selectEntities,
+   * @param (state: V) => T[]
+   */
+  selectItemsSelectedOrigin: (state: V) => T[];
   /**
    * - used to select last criteria
    * @param (state: V) => ICriteria
