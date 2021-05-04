@@ -1,8 +1,9 @@
 import {MonoTypeOperatorFunction} from 'rxjs';
 import {filter} from 'rxjs/operators';
-import {ActionEnum, IdSelector} from './models';
+import {ActionEnum, Dictionary, IdSelector} from './models';
 import {Action} from '@ngrx/store';
 import {isDevMode} from '@angular/core';
+import {EntityAdapter} from '@ngrx/entity';
 
 export const ofFailure = <T extends Action>(): MonoTypeOperatorFunction<T> => {
   return input$ => input$.pipe(filter(value => value.type.endsWith(ActionEnum.FAILURE)));
@@ -24,3 +25,9 @@ export function selectIdValue<T>(entity: T, selectId: IdSelector<T>) {
 
   return key;
 }
+
+export const toDictionary = <T>(items: T[], adapter: EntityAdapter<T>) => items.reduce((prev, curr): Dictionary<T> => {
+  const key = selectIdValue(curr, adapter.selectId);
+  prev[key] = curr;
+  return prev;
+}, {});
