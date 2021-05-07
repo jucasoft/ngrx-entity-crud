@@ -1,7 +1,6 @@
 import {Actions, EntityCrudState, ICriteria, OptManyRequest, OptRequest} from './models';
 import {EntityAdapter} from '@ngrx/entity';
 import {ActionCreator, createReducer, on, ReducerTypes} from '@ngrx/store';
-import {isDevMode} from '@angular/core';
 import {selectIdValue, toDictionary} from './utils';
 
 export function evalData<T>(fn: () => T, def: any = null): T {
@@ -17,6 +16,9 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
     if (!criteria.path && !criteria.mode && !criteria.queryParams) {
       throw new Error('It is not possible a search without payload, use :\'{criteria:{}}\'');
     }
+
+    const {itemSelected, idSelected, entitiesSelected, idsSelected} = initialState;
+
     if (criteria.mode === 'REFRESH' || criteria.mode === 'upsertMany') {
       return Object.assign(
         {},
@@ -24,7 +26,11 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
         {
           isLoading: true,
           error: initialState.error,
-          lastCriteria: criteria
+          lastCriteria: criteria,
+          itemSelected,
+          idSelected,
+          entitiesSelected,
+          idsSelected
         }
       );
     }
@@ -35,7 +41,11 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
         {
           isLoading: true,
           error: initialState.error,
-          lastCriteria: criteria
+          lastCriteria: criteria,
+          itemSelected,
+          idSelected,
+          entitiesSelected,
+          idsSelected
         })
     );
   });
@@ -275,11 +285,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
       // itemsSelected: [], //todo: @deprecated da cancellare questo tipo di assegnazione.
       entitiesSelected: {}
     };
-    if (isDevMode()) {
-      console.log(type);
-      console.log('state', state);
-      console.log('result', result);
-    }
+
     return result;
   });
 
@@ -293,11 +299,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
       // itemsSelected: items, //todo: @deprecated da cancellare questo tipo di assegnazione.
       entitiesSelected
     };
-    if (isDevMode()) {
-      console.log(type);
-      console.log('state', state);
-      console.log('result', result);
-    }
+
     return result;
   });
 
@@ -312,11 +314,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
       // itemsSelected, //todo: @deprecated da cancellare questo tipo di assegnazione.
       entitiesSelected
     };
-    if (isDevMode()) {
-      console.log(type);
-      console.log('state', state);
-      console.log('result', result);
-    }
+
     return result;
   });
 
@@ -329,11 +327,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
       // itemsSelected: items,
       entitiesSelected
     };
-    if (isDevMode()) {
-      console.log(type);
-      console.log('state', state);
-      console.log('result', result);
-    }
+
     return result;
   });
   const selectItemOn = on(actions.SelectItem, (state: S, {type, item}) => {
@@ -343,12 +337,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
       idSelected,
       itemSelected: item
     };
-    if (isDevMode()) {
-      console.log(type);
-      console.log('item', item);
-      console.log('state', state);
-      console.log('result', result);
-    }
+
     return result;
   });
   const selectSuccessOn = on(actions.SelectSuccess, (state: S, {type, item}) => {
@@ -361,12 +350,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
         isLoading: false,
         error: null
       };
-      if (isDevMode()) {
-        console.log(type);
-        console.log('item', item);
-        console.log('state', state);
-        console.log('result', result);
-      }
+
       return result;
     }
   );
