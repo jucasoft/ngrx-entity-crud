@@ -28,15 +28,29 @@ export function makeAuth(options: Auth): Rule {
     options.clazz = 'Auth';
     options.name = 'auth';
 
-    const pathView: string = 'src/app/main/views';
-    const pathStore: string = 'src/app/root-store';
-    const pathVo: string = 'src/app/main/models/vo/';
+    let pathApp: string = 'src/app';
+    let pathStore: string = 'src/app/root-store';
+    let pathView: string = 'src/app/main/views';
+    let pathService: string = 'src/app/main/services';
+    let pathVo: string = 'src/app/main/models/vo/';
+
+    const conf = tree.read('/ngrx-entity-crud.conf.json');
+    if (conf) {
+      const confData = JSON.parse(conf.toString());
+      pathView = confData.pathView;
+      pathStore = confData.pathStore;
+      pathApp = confData.pathApp;
+      pathService = confData.pathService;
+      pathVo = confData.pathVo;
+    }
 
     console.log('pathView', pathView);
     console.log('pathStore', pathStore);
+    console.log('pathApp', pathApp);
+    console.log('pathService', pathService);
     console.log('pathVo', pathVo);
 
-    const view = getView(options, pathView);
+    const view = getView(options, pathView, pathApp);
     const store = getStore(options, pathStore, pathVo);
 
     return chain([...view, ...store]);
@@ -44,27 +58,27 @@ export function makeAuth(options: Auth): Rule {
 }
 
 
-function getView(options: Auth, path: string): Rule[] {
+function getView(options: Auth, pathView: string, pathApp: string): Rule[] {
   const result: Rule[] = [
-    render(options, `./files/views`, path),
+    render(options, `./files/views`, pathView),
     addRouteDeclarationToNgModule({
-        module: `/src/app/app-routing.module.ts`,
+        module: `${pathApp}/app-routing.module.ts`,
         routeLiteral: `{path: 'login', loadChildren: () => import('./main/views/login/login.module').then(m => m.LoginModule)}`
       }
     )];
   return result;
 }
 
-function getStore(options: Auth, path: string, pathVo: string): Rule[] {
+function getStore(options: Auth, pathStore: string, pathVo: string): Rule[] {
   const result: Rule[] = [
-    addExport(options, normalize(`${path}/index.ts`)),
-    addExport(options, normalize(`${path}/index.d.ts`)),
-    addImport(normalize(`${path}/state.ts`), `import {${options.clazz}} from '@models/vo/${strings.dasherize(options.clazz)}';`),
-    updateState(`${strings.underscore(options.name)}:${options.clazz};`, normalize(`${path}/state.ts`)),
-    render(options, './files/store', path),
+    addExport(options, normalize(`${pathStore}/index.ts`)),
+    addExport(options, normalize(`${pathStore}/index.d.ts`)),
+    addImport(normalize(`${pathStore}/state.ts`), `import {${options.clazz}} from '@models/vo/${strings.dasherize(options.clazz)}';`),
+    updateState(`${strings.underscore(options.name)}:${options.clazz};`, normalize(`${pathStore}/state.ts`)),
+    render(options, './files/store', pathStore),
     render(options, './files/model', pathVo),
     addDeclarationToNgModule({
-      module: `/src/app/root-store/root-store.module.ts`,
+      module: `${pathStore}/root-store.module.ts`,
       name: `${options.clazz}Store`,
       path: `@root-store/${strings.dasherize(options.clazz)}-store`
     })

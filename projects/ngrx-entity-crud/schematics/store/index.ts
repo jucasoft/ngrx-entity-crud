@@ -4,6 +4,7 @@ import {addDeclarationToNgModule, addExport, addImport, addRootSelector, render,
 
 export function makeStore(options: CrudStore): Rule {
   return (tree: Tree, _context: SchematicContext) => {
+    console.log('makeStore(options: CrudStore): Rule');
     options.clazz = strings.classify(options.clazz);
     options.name = options.name ? strings.underscore(options.name) : strings.underscore(options.clazz);
     const workspaceConfig = tree.read('/angular.json');
@@ -20,49 +21,54 @@ export function makeStore(options: CrudStore): Rule {
       options.project = workspace.defaultProject;
     }
 
-
-    let path: string = 'src/app/root-store';
+    let pathApp: string = 'src/app';
+    let pathStore: string = 'src/app/root-store';
+    let pathView: string = 'src/app/main/views';
     let pathService: string = 'src/app/main/services';
     let pathVo: string = 'src/app/main/models/vo/';
 
     const conf = tree.read('/ngrx-entity-crud.conf.json');
     if (conf) {
       const confData = JSON.parse(conf.toString());
-      path = confData.pathStore;
+      pathView = confData.pathView;
+      pathStore = confData.pathStore;
+      pathApp = confData.pathApp;
       pathService = confData.pathService;
       pathVo = confData.pathVo;
     }
 
-    console.log('path', path);
+    console.log('pathView', pathView);
+    console.log('pathStore', pathStore);
+    console.log('pathApp', pathApp);
     console.log('pathService', pathService);
     console.log('pathVo', pathVo);
 
     const genericRules: Rule[] = [
-      addExport(options, normalize(`${path}/index.ts`)),
-      addExport(options, normalize(`${path}/index.d.ts`)),
+      addExport(options, normalize(`${pathStore}/index.ts`)),
+      addExport(options, normalize(`${pathStore}/index.d.ts`)),
     ];
     const crudRules: Rule[] = [
-      addImport(normalize(`${path}/state.ts`), `import {${options.clazz}StoreState} from '@root-store/${strings.dasherize(options.clazz)}-store';`),
-      updateState(`${strings.underscore(options.name)}:${options.clazz}StoreState.State;`, normalize(`${path}/state.ts`)),
-      addImport(normalize(`${path}/selectors.ts`), `import {${options.clazz}StoreSelectors} from '@root-store/${strings.dasherize(options.clazz)}-store';`),
-      addRootSelector(options, normalize(`${path}/selectors.ts`)),
-      render(options, './files/crud-store', path),
+      addImport(normalize(`${pathStore}/state.ts`), `import {${options.clazz}StoreState} from '@root-store/${strings.dasherize(options.clazz)}-store';`),
+      updateState(`${strings.underscore(options.name)}:${options.clazz}StoreState.State;`, normalize(`${pathStore}/state.ts`)),
+      addImport(normalize(`${pathStore}/selectors.ts`), `import {${options.clazz}StoreSelectors} from '@root-store/${strings.dasherize(options.clazz)}-store';`),
+      addRootSelector(options, normalize(`${pathStore}/selectors.ts`)),
+      render(options, './files/crud-store', pathStore),
       render(options, './files/crud-service', pathService),
       render(options, './files/crud-model', pathVo),
       addDeclarationToNgModule({
-        module: `/src/app/root-store/root-store.module.ts`,
+        module: `${pathStore}/root-store.module.ts`,
         name: `${options.clazz}Store`,
         path: `@root-store/${strings.dasherize(options.clazz)}-store`
       })
     ];
 
     const baseRules: Rule[] = [
-      addImport(normalize(`${path}/state.ts`), `import {${options.clazz}} from '@models/vo/${strings.dasherize(options.clazz)}';`),
-      updateState(`${strings.underscore(options.name)}:${options.clazz};`, normalize(`${path}/state.ts`)),
-      render(options, './files/base-store', path),
+      addImport(normalize(`${pathStore}/state.ts`), `import {${options.clazz}} from '@models/vo/${strings.dasherize(options.clazz)}';`),
+      updateState(`${strings.underscore(options.name)}:${options.clazz};`, normalize(`${pathStore}/state.ts`)),
+      render(options, './files/base-store', pathStore),
       render(options, './files/base-model', pathVo),
       addDeclarationToNgModule({
-        module: `/src/app/root-store/root-store.module.ts`,
+        module: `${pathStore}/root-store.module.ts`,
         name: `${options.clazz}Store`,
         path: `@root-store/${strings.dasherize(options.clazz)}-store`
       })

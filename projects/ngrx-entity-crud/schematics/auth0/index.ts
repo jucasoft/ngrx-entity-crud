@@ -28,34 +28,35 @@ export function makeAuth0(options: Auth): Rule {
     options.clazz = 'Auth';
     options.name = 'auth';
 
-    // pathView e pathVo non servono ma lo lascio
-    const pathView: string = 'src/app/main/views';
-    const pathStore: string = 'src/app/root-store';
-    // pathView e pathVo non servono ma lo lascio
-    const pathVo: string = 'src/app/main/models/vo/';
+
+    let pathApp: string = 'src/app';
+    let pathStore: string = 'src/app/root-store';
+    let pathView: string = 'src/app/main/views';
+    let pathService: string = 'src/app/main/services';
+    let pathVo: string = 'src/app/main/models/vo/';
+
+    const conf = tree.read('/ngrx-entity-crud.conf.json');
+    if (conf) {
+      const confData = JSON.parse(conf.toString());
+      pathView = confData.pathView;
+      pathStore = confData.pathStore;
+      pathApp = confData.pathApp;
+      pathService = confData.pathService;
+      pathVo = confData.pathVo;
+    }
 
     console.log('pathView', pathView);
     console.log('pathStore', pathStore);
+    console.log('pathApp', pathApp);
+    console.log('pathService', pathService);
     console.log('pathVo', pathVo);
 
-  //  const view = getView(options, pathView);
+    //  const view = getView(options, pathView);
     const store = getStore(options, pathStore, pathVo);
 
     return chain([...store]);
   };
 }
-
-/*
-function getView(options: Auth, path: string): Rule[] {
-  const result: Rule[] = [
-    render(options, `./files/views`, path),
-    addRouteDeclarationToNgModule({
-        module: `/src/app/app-routing.module.ts`,
-        routeLiteral: `{path: 'login', loadChildren: () => import('./main/views/login/login.module').then(m => m.LoginModule)}`
-      }
-    )];
-  return result;
-}*/
 
 function getStore(options: Auth, path: string, pathVo: string): Rule[] {
   const result: Rule[] = [
@@ -66,7 +67,7 @@ function getStore(options: Auth, path: string, pathVo: string): Rule[] {
     render(options, './files/store', path),
     render(options, './files/model', pathVo),
     addDeclarationToNgModule({
-      module: `/src/app/root-store/root-store.module.ts`,
+      module: `${path}/root-store.module.ts`,
       name: `${options.clazz}Store`,
       path: `@root-store/${strings.dasherize(options.clazz)}-store`
     })
