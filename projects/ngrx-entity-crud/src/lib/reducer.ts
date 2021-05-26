@@ -304,7 +304,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
   });
 
   const removeManySelectedOn = on(actions.RemoveManySelected, (state: S, {type, ids}: { type: string, ids: string[] }) => {
-    const idsSelected = Object.keys(state.entitiesSelected).filter(id => !ids.includes(id));
+    const idsSelected = Object.keys(state.entitiesSelected).map(x => x + '').filter(id => !ids.includes(id + ''));
     const entitiesSelected = idsSelected.reduce((prec, curr) => ({...prec, [curr]: state.entitiesSelected[curr]}), {});
     // const itemsSelected = Object.values(entitiesSelected);
 
