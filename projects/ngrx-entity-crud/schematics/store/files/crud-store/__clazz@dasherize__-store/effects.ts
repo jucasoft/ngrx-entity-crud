@@ -19,8 +19,6 @@ import {repeat} from 'rxjs/operators';
 
 @Injectable()
 export class <%= clazz %>StoreEffects {
-    constructor(private readonly actions$: Actions, private readonly service: <%= clazz %>Service) {
-    }
 
   searchRequestEffect$: Observable<Action> = createEffect(() => this.actions$.pipe(
     ofType(actions.SearchRequest),
@@ -29,6 +27,7 @@ export class <%= clazz %>StoreEffects {
     searchCatchError<<%= clazz %>>(actions),
     repeat()
   ));
+
 
   deleteRequestEffect$: Observable<Action>  = createEffect(() => this.actions$.pipe(
     ofType(actions.DeleteRequest),
@@ -45,7 +44,6 @@ export class <%= clazz %>StoreEffects {
     deleteManyCatchError<<%= clazz %>>(actions),
     repeat()
   ));
-
   createRequestEffect$: Observable<Action>  = createEffect(() => this.actions$.pipe(
     ofType(actions.CreateRequest),
     createCall<<%= clazz %>>(this.service),
@@ -86,4 +84,7 @@ export class <%= clazz %>StoreEffects {
     repeat()
   ));
 
+  constructor(private readonly actions$: Actions, private readonly service: <%= clazz %>Service) {
+  }
+  
 }
