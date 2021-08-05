@@ -11,7 +11,7 @@ export function evalData<T>(fn: () => T, def: any = null): T {
   }
 }
 
-export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAdapter<T>, initialState: S, actions: Actions<T>): { [key: string]: ReducerTypes<S, ActionCreator[]> } {
+export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAdapter<T>, initialState: S, actions: Actions<T>): { [key: string]: any } {
   const searchRequestOn = on(actions.SearchRequest, (state: S, criteria: ICriteria) => {
     if (!criteria.path && !criteria.mode && !criteria.queryParams) {
       throw new Error('It is not possible a search without payload, use :\'{criteria:{}}\'');

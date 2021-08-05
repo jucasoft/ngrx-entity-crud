@@ -1,6 +1,6 @@
 {
   "name": "ngrx-entity-crud",
-  "version": "11.8.5",
+  "version": "12.0.0-beta.0",
   "repository": "https://github.com/jucasoft/ngrx-entity-crud",
   "license": "MIT",
   "schematics": "./schematics/collection.json",
@@ -16,16 +16,16 @@
     "dest": "../../libs/ngrx-entity-crud"
   },
   "peerDependencies": {
-    "@angular-devkit/core": "^11.0.2",
-    "@angular-devkit/schematics": "^11.0.2",
-    "@angular-devkit/schematics-cli": "^0.1100.1",
-    "@angular/common": "^11.0.2",
-    "@angular/core": "^11.0.2",
-    "@ngrx/store": "^11.0.0",
-    "@ngrx/entity": "^11.0.0",
-    "@ngrx/effects": "^11.0.0",
+    "@angular-devkit/core": "^12.1.0",
+    "@angular-devkit/schematics": "^12.1.0",
+    "@angular-devkit/schematics-cli": "^12.1.0",
+    "@angular/common": "^12.1.0",
+    "@angular/core": "^12.1.0",
+    "@ngrx/store": "^12.3.0",
+    "@ngrx/entity": "^12.3.0",
+    "@ngrx/effects": "^12.3.0",
     "deepmerge": "^4.2.2",
-    "rxjs": "~6.6.3"
+    "rxjs": "~6.6.0"
   },
   "keywords": [
     "angular",
@@ -39,6 +39,5 @@
   "author": "Giuseppe Luca Lo Re <juca@jucasoft.com>",
   "private": false,
   "dependencies": {
-    "tslib": "^2.0.0"
   }
 }
