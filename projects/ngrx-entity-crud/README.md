@@ -1,19 +1,85 @@
 # NgrxEntityCrud
-This library helps create the CRUD Angular application that makes use of NgRx, provides actions, reducers and selectors for the CRUD management of the entities.
-
-How did I get to this result?
-
-1) I adopted this best practice:   
-[NgRx — Best Practices for Enterprise Angular Applications](https://itnext.io/ngrx-best-practices-for-enterprise-angular-applications-6f00bcdf36d7)
-
-2) I found a mechanism to reduced repeated code in my projects, after reading this article:   
-[How to Reduce Action Boilerplate](https://redux.js.org/recipes/reducing-boilerplate)
-
-3) [Schematics for Libraries](https://angular.io/guide/schematics-for-libraries).
+This library helps create the CRUD Angular application that makes use of NgRx.
+Commands:
+ - `store`: Generates a feature set containing an `entity`, `services`, `actions`, `effects`, `reducer`,`selectors`, ... file.
+ - `section`: Generates a new Angular CRUD page containing an `table`, `detail`, `search`, `reactive form`, ... file.
+ - `auth`: Generates a boilerplate for authentication implementation containing an `store section` and `components` file.
+ - `auth0`: Generates Auth0 implementation containing an `store section` and `components` file.
 
 # How to use it?
 To create your first project, follow this [guide](https://github.com/jucasoft/ngrx-entity-crud-prime-ng-boilerplate).
 
+# Commands
+
+## store   
+
+---
+
+### Overview
+
+Generates a feature set containing an `actions`, `effects`, `reducer`, and `selectors` file. You use this to build out a new feature area that provides a new piece of state.
+
+### Command
+
+```sh
+ng generate ngrx-entity-crud:store  [options]
+```
+
+### Options
+
+Name of the store section
+- `--name`
+  - Type: `string`
+  - Default: `false`
+
+Name of the class that will be managed 
+- `--clazz`
+  - Type: `string`
+  - Default: `false`
+
+
+- `--type`
+  - Type: `string`
+  - Enum: `"CRUD" or "BASE"`
+  - Default: `false`
+
+#### Examples
+
+```sh
+ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=CRUD
+```
+
+or
+
+```sh
+ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=BASE
+```
+
+#### Files generated/changed by the “:store” command
+
+```sh
+CREATE src/app/root-store/coin-store/coin-store.module.ts (787 bytes)
+CREATE src/app/root-store/coin-store/actions.ts (462 bytes)
+CREATE src/app/root-store/coin-store/effects.ts (1186 bytes)
+CREATE src/app/root-store/coin-store/index.d.ts (265 bytes)
+CREATE src/app/root-store/coin-store/index.ts (267 bytes)
+CREATE src/app/root-store/coin-store/names.ts (46 bytes)
+CREATE src/app/root-store/coin-store/reducer.ts (162 bytes)
+CREATE src/app/root-store/coin-store/selectors.ts (543 bytes)
+CREATE src/app/root-store/coin-store/state.ts (385 bytes)
+CREATE src/app/main/services/coin.service.ts (347 bytes)
+CREATE src/app/main/models/vo/coin.ts (221 bytes)
+
+UPDATE src/app/root-store/index.ts (309 bytes) 
+UPDATE src/app/root-store/index.d.ts (309 bytes)
+UPDATE src/app/root-store/state.ts (217 bytes)
+UPDATE src/app/root-store/selectors.ts (665 bytes)
+UPDATE src/app/root-store/root-store.module.ts (1051 bytes)
+```
+
+launches
+
+ng generate ngrx-entity-crud:store --name=launche --clazz=Launches --type=CRUD
 ## Running unit tests
 Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
 

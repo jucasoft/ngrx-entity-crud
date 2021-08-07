@@ -17,7 +17,7 @@
       "schema": "./auth/schema.json"
     },
     "auth0": {
-      "description": "add login integration",
+      "description": "add Auth0 login integration",
       "factory": "./auth0/index#makeAuth0",
       "schema": "./auth0/schema.json"
     }
