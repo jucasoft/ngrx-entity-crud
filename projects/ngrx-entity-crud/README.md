@@ -1,15 +1,15 @@
 # ngrx-entity-crud
 This library helps create the CRUD Angular application that makes use of NgRx.
-Commands:
- - `store`: Generates a feature set containing an `entity`, `services`, `actions`, `effects`, `reducer`,`selectors`, ... file.
- - `section`: Generates a new Angular CRUD page containing an `table`, `detail`, `search`, `reactive form`, ... file.
+Commands for code generation:
+ - `store`: Generates a feature set containing an `entity`, `actions`, `reducer`, ... file.
+ - `section`: Generates a new Angular CRUD page containing an `list`, `detail`, `search`, ... file.
  - `auth`: Generates a boilerplate for authentication implementation containing an `store section` and `components` file.
  - `auth0`: Generates Auth0 implementation containing an `store section` and `components` file.
 
 # How to use it?
 To create your first project, follow this [guide](https://github.com/jucasoft/ngrx-entity-crud-prime-ng-boilerplate).
 
-# Commands
+# Command detail for generation
 
 ## store   
 
@@ -81,7 +81,7 @@ UPDATE src/app/root-store/root-store.module.ts (1051 bytes)
 ```
 
 
-## section
+## generate :section
 
 ---
 
