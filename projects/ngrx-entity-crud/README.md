@@ -183,6 +183,49 @@ UPDATE src/app/root-store/state.ts (184 bytes)
 UPDATE src/app/root-store/root-store.module.ts (1051 bytes)
 ```
 
+## auth0
+
+---
+
+### Overview
+
+Generates a boilerplate for authentication implementation containing an `store section` and `components` file.
+
+### Command
+
+```sh
+ng generate ngrx-entity-crud:auth0
+```
+
+#### Examples
+
+```sh
+ng generate ngrx-entity-crud:auth0
+```
+
+#### Files generated/changed by the “:auth0” command
+
+```sh
+CREATE src/app/root-store/auth-store/actions.ts (776 bytes)
+CREATE src/app/root-store/auth-store/auth-store.module.ts (1044 bytes)
+CREATE src/app/root-store/auth-store/auth.guard.ts (1359 bytes)
+CREATE src/app/root-store/auth-store/authentication.service.ts (675 bytes)
+CREATE src/app/root-store/auth-store/conf.ts (75 bytes)
+CREATE src/app/root-store/auth-store/effects.ts (1754 bytes)
+CREATE src/app/root-store/auth-store/index.d.ts (271 bytes)
+CREATE src/app/root-store/auth-store/index.ts (271 bytes)
+CREATE src/app/root-store/auth-store/login.component.ts (2117 bytes)
+CREATE src/app/root-store/auth-store/names.ts (47 bytes)
+CREATE src/app/root-store/auth-store/profile.ts (224 bytes)
+CREATE src/app/root-store/auth-store/reducer.ts (475 bytes)
+CREATE src/app/root-store/auth-store/selectors.ts (699 bytes)
+CREATE src/app/root-store/auth-store/state.ts (192 bytes)
+UPDATE src/app/root-store/index.ts (309 bytes)
+UPDATE src/app/root-store/index.d.ts (309 bytes)
+UPDATE src/app/root-store/state.ts (184 bytes)
+UPDATE src/app/root-store/root-store.module.ts (1051 bytes)
+```
+
 
 ng generate ngrx-entity-crud:store --name=launche --clazz=Launches --type=CRUD
 ## Running unit tests
