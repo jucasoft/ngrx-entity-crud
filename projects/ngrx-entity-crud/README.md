@@ -81,7 +81,7 @@ UPDATE src/app/root-store/root-store.module.ts (1051 bytes)
 ```
 
 
-## generate :section
+## section
 
 ---
 
@@ -120,7 +120,7 @@ or
 ng generate ngrx-entity-crud:section --clazz=Coin --lib=no-libs
 ```
 
-#### Files generated/changed by the “:store” command
+#### Files generated/changed by the “:section” command
 
 ```sh
 CREATE src/app/main/views/coin/coin-routing.module.ts (722 bytes)
@@ -132,6 +132,55 @@ CREATE src/app/main/views/coin/coin-list/coin-list.component.ts (2254 bytes)
 CREATE src/app/main/views/coin/coin-main/coin-main.component.html (188 bytes)
 CREATE src/app/main/views/coin/coin-main/coin-main.component.ts (536 bytes)
 UPDATE src/app/app-routing.module.ts (517 bytes)
+```
+
+## auth
+
+---
+
+### Overview
+
+Generates a boilerplate for authentication implementation containing an `store section` and `components` file.
+
+### Command
+
+```sh
+ng generate ngrx-entity-crud:auth
+```
+
+#### Examples
+
+```sh
+ng generate ngrx-entity-crud:auth
+```
+
+#### Files generated/changed by the “:auth” command
+
+```sh
+CRCREATE src/app/main/views/login/login-routing.module.ts (546 bytes)
+CREATE src/app/main/views/login/login.module.ts (819 bytes)
+CREATE src/app/main/views/login/components/logout-button/logout-button.component.ts (1158 bytes)
+CREATE src/app/main/views/login/login-main/login-main.component.html (1074 bytes)
+CREATE src/app/main/views/login/login-main/login-main.component.ts (1590 bytes)
+CREATE src/app/root-store/auth-store/actions.ts (1148 bytes)
+CREATE src/app/root-store/auth-store/auth-mock.service.ts (2021 bytes)
+CREATE src/app/root-store/auth-store/auth-store.module.ts (1017 bytes)
+CREATE src/app/root-store/auth-store/auth.guard.ts (1359 bytes)
+CREATE src/app/root-store/auth-store/auth.service.ts (731 bytes)
+CREATE src/app/root-store/auth-store/conf.ts (76 bytes)
+CREATE src/app/root-store/auth-store/effects.ts (1503 bytes)
+CREATE src/app/root-store/auth-store/index.d.ts (271 bytes)
+CREATE src/app/root-store/auth-store/index.ts (271 bytes)
+CREATE src/app/root-store/auth-store/names.ts (47 bytes)
+CREATE src/app/root-store/auth-store/reducer.ts (731 bytes)
+CREATE src/app/root-store/auth-store/selectors.ts (1525 bytes)
+CREATE src/app/root-store/auth-store/state.ts (319 bytes)
+CREATE src/app/main/models/vo/auth.ts (277 bytes)
+UPDATE src/app/app-routing.module.ts (558 bytes)
+UPDATE src/app/root-store/index.ts (309 bytes)
+UPDATE src/app/root-store/index.d.ts (309 bytes)
+UPDATE src/app/root-store/state.ts (184 bytes)
+UPDATE src/app/root-store/root-store.module.ts (1051 bytes)
 ```
 
 
