@@ -1,4 +1,4 @@
-# NgrxEntityCrud
+# ngrx-entity-crud
 This library helps create the CRUD Angular application that makes use of NgRx.
 Commands:
  - `store`: Generates a feature set containing an `entity`, `services`, `actions`, `effects`, `reducer`,`selectors`, ... file.
@@ -37,7 +37,10 @@ Name of the class that will be managed
   - Type: `string`
   - Default: `false`
 
-
+Store type:
+  - CRUD: generate action, effect and reducer for the crud management of the entity.
+  - BASE: generate an empty boilerplate
+  
 - `--type`
   - Type: `string`
   - Enum: `"CRUD" or "BASE"`
@@ -77,7 +80,60 @@ UPDATE src/app/root-store/selectors.ts (665 bytes)
 UPDATE src/app/root-store/root-store.module.ts (1051 bytes)
 ```
 
-launches
+
+## section
+
+---
+
+### Overview
+
+Generates a new Angular CRUD page containing an `table`, `detail`, `search`, `reactive form`, ... file.
+
+### Command
+
+```sh
+ng generate ngrx-entity-crud:section  [options]
+```
+
+### Options
+
+Name of the class that will be managed
+- `--clazz`
+  - Type: `string`
+  - Default: `false`
+
+Allows you to decide whether to use the graphic components of PrimeNg, or to create an empty boilerplate
+- `--lib`
+  - Type: `string`
+  - Enum: `"primeng" or "no-libs"`
+  - Default: `true`
+
+#### Examples
+
+```sh
+ng generate ngrx-entity-crud:section --clazz=Coin --lib=primeng
+```
+
+or
+
+```sh
+ng generate ngrx-entity-crud:section --clazz=Coin --lib=no-libs
+```
+
+#### Files generated/changed by the “:store” command
+
+```sh
+CREATE src/app/main/views/coin/coin-routing.module.ts (722 bytes)
+CREATE src/app/main/views/coin/coin.module.ts (1102 bytes)
+CREATE src/app/main/views/coin/coin-edit/coin-edit.component.html (1325 bytes)
+CREATE src/app/main/views/coin/coin-edit/coin-edit.component.ts (1626 bytes)
+CREATE src/app/main/views/coin/coin-list/coin-list.component.html (706 bytes)
+CREATE src/app/main/views/coin/coin-list/coin-list.component.ts (2254 bytes)
+CREATE src/app/main/views/coin/coin-main/coin-main.component.html (188 bytes)
+CREATE src/app/main/views/coin/coin-main/coin-main.component.ts (536 bytes)
+UPDATE src/app/app-routing.module.ts (517 bytes)
+```
+
 
 ng generate ngrx-entity-crud:store --name=launche --clazz=Launches --type=CRUD
 ## Running unit tests
