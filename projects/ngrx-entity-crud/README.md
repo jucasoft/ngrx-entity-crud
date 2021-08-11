@@ -131,6 +131,7 @@ CREATE src/app/main/views/coin/coin-list/coin-list.component.html (706 bytes)
 CREATE src/app/main/views/coin/coin-list/coin-list.component.ts (2254 bytes)
 CREATE src/app/main/views/coin/coin-main/coin-main.component.html (188 bytes)
 CREATE src/app/main/views/coin/coin-main/coin-main.component.ts (536 bytes)
+
 UPDATE src/app/app-routing.module.ts (517 bytes)
 ```
 
@@ -157,7 +158,7 @@ ng generate ngrx-entity-crud:auth
 #### Files generated/changed by the “:auth” command
 
 ```sh
-CRCREATE src/app/main/views/login/login-routing.module.ts (546 bytes)
+CREATE src/app/main/views/login/login-routing.module.ts (546 bytes)
 CREATE src/app/main/views/login/login.module.ts (819 bytes)
 CREATE src/app/main/views/login/components/logout-button/logout-button.component.ts (1158 bytes)
 CREATE src/app/main/views/login/login-main/login-main.component.html (1074 bytes)
@@ -176,6 +177,7 @@ CREATE src/app/root-store/auth-store/reducer.ts (731 bytes)
 CREATE src/app/root-store/auth-store/selectors.ts (1525 bytes)
 CREATE src/app/root-store/auth-store/state.ts (319 bytes)
 CREATE src/app/main/models/vo/auth.ts (277 bytes)
+
 UPDATE src/app/app-routing.module.ts (558 bytes)
 UPDATE src/app/root-store/index.ts (309 bytes)
 UPDATE src/app/root-store/index.d.ts (309 bytes)
@@ -220,14 +222,13 @@ CREATE src/app/root-store/auth-store/profile.ts (224 bytes)
 CREATE src/app/root-store/auth-store/reducer.ts (475 bytes)
 CREATE src/app/root-store/auth-store/selectors.ts (699 bytes)
 CREATE src/app/root-store/auth-store/state.ts (192 bytes)
+
 UPDATE src/app/root-store/index.ts (309 bytes)
 UPDATE src/app/root-store/index.d.ts (309 bytes)
 UPDATE src/app/root-store/state.ts (184 bytes)
 UPDATE src/app/root-store/root-store.module.ts (1051 bytes)
 ```
 
-
-ng generate ngrx-entity-crud:store --name=launche --clazz=Launches --type=CRUD
 ## Running unit tests
 Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
 
