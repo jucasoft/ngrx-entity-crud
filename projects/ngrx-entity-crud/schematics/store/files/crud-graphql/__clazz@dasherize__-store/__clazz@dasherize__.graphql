@@ -1,33 +1,29 @@
+fragment fieldsBase on <%= clazz %>{<% for(let field of gqlSchema.fields) { %>
+  <%= field %><% } %>
+}
+
 query <%= dasherize(clazz) %>Search($page: Int, $perPage: Int, $sortField:String, $sortOrder:String, $filter: <%= clazz %>Filter){
   all<%= clazz %>s(page: $page, perPage: $perPage, sortField:$sortField, sortOrder:$sortOrder, filter:$filter) {
-    name
-    id
-    localized_name
+    ...fieldsBase
   }
 }
 
 query <%= dasherize(clazz) %>Select($id:ID!){
   <%= clazz %>(id: $id) {
-    name
-    id
-    localized_name
+    ...fieldsBase
   }
 }
 
 mutation <%= dasherize(clazz) %>Create($name:String!, $localized_name:String!){
   create<%= clazz %>(name: $name, localized_name: $localized_name){
-    id
-    localized_name
-    name
+    ...fieldsBase
   }
 }
 
 
 mutation <%= dasherize(clazz) %>Update($id:ID!, $name:String!, $localized_name:String!){
   update<%= clazz %>(id:$id, name: $name, localized_name: $localized_name){
-    id
-    localized_name
-    name
+    ...fieldsBase
   }
 }
 

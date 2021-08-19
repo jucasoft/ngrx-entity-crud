@@ -77,10 +77,11 @@ export function makeStore(options: CrudStore): Rule {
     if (options.type === 'CRUD+GRAPHQL') {
       const graphqlSchema = tree.read('/graphql.schema.json');
       if (!graphqlSchema) {
-        throw new SchematicsException('Could not find Angular workspace configuration');
+        throw new SchematicsException('Could not find graphql.schema.json configuration');
       }
-      const graphqlSchemaString = workspaceConfig.toString();
+      const graphqlSchemaString = graphqlSchema.toString();
       const graphqlSchemaJson = JSON.parse(graphqlSchemaString);
+      // console.log('graphqlSchemaJson', graphqlSchemaJson);
       const types: any[] = graphqlSchemaJson.__schema.types;
       const itemType = types.find(value => value.kind === 'OBJECT' && value.name === options.clazz);
       const fields = (itemType.fields as any[]).map(value => value.name);
