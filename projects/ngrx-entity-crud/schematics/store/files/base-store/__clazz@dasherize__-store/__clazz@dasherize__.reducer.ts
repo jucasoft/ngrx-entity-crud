@@ -1,6 +1,6 @@
-import {initialState} from './state';
+import {initialState} from './<%= dasherize(clazz) %>.state';
 import {createReducer, on} from '@ngrx/store';
-import * as actions from './actions';
+import * as actions from './<%= dasherize(clazz) %>.actions';
 
 export const featureReducer = createReducer(initialState,
   on(actions.ChangeA, (state, {valueA}) => ({...state, ...{valueA}})),
