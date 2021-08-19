@@ -1,5 +1,5 @@
-import {adapter} from './state';
-import {Names} from './names';
+import {adapter} from './<%= dasherize(clazz) %>.state';
+import {Names} from './<%= dasherize(clazz) %>.names';
 
 export const actions = adapter.createCrudActions(Names.NAME);
 

@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {Actions, createEffect, ofType} from '@ngrx/effects';
 import {Observable} from 'rxjs';
 import {Action} from '@ngrx/store';
-import * as actions from './actions';
+import * as actions from './<%= dasherize(clazz) %>.actions';
 import {<%= clazz %>} from '@models/vo/<%= dasherize(clazz) %>';
 import {<%= clazz %>Service} from '@services/<%= dasherize(clazz) %>.service';
 import {
@@ -86,5 +86,5 @@ export class <%= clazz %>StoreEffects {
 
   constructor(private readonly actions$: Actions, private readonly service: <%= clazz %>Service) {
   }
-  
+
 }

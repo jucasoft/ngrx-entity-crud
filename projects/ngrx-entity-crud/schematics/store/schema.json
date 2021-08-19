@@ -26,6 +26,7 @@
       "default": "CRUD",
       "enum": [
         "CRUD",
+        "CRUD+GRAPHQL",
         "BASE"
       ],
       "x-prompt": "choose the store type, crud or base."

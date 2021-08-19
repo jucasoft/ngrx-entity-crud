@@ -74,6 +74,9 @@ export function makeStore(options: CrudStore): Rule {
       })
     ];
 
+    if (options.type === 'CRUD+GRAPHQL') {
+      return chain([...genericRules, ...crudRules, render(options, './files/crud-graphql', pathStore)]);
+    }
     if (options.type === 'CRUD') {
       return chain([...genericRules, ...crudRules]);
     }
