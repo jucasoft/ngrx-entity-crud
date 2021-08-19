@@ -1,5 +1,5 @@
-import {actions} from './actions';
-import {adapter, initialState} from './state';
+import {actions} from './<%= dasherize(clazz) %>.actions';
+import {adapter, initialState} from './<%= dasherize(clazz) %>.state';
 
 export const featureReducer = adapter.createCrudReducer(initialState, actions);
 

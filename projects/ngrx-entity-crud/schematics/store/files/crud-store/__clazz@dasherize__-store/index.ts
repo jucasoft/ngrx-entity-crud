@@ -1,6 +1,7 @@
-import * as <%= clazz %>StoreActions from './actions';
-import * as <%= clazz %>StoreSelectors from './selectors';
-import * as <%= clazz %>StoreState from './state';
+import * as <%= clazz %>StoreActions from './<%= dasherize(clazz) %>.actions';
+import * as <%= clazz %>StoreSelectors from './<%= dasherize(clazz) %>.selectors';
+import * as <%= clazz %>Criteria from './<%= dasherize(clazz) %>.criteria';
+import * as <%= clazz %>StoreState from './<%= dasherize(clazz) %>.state';
 
 export {
 	<%= clazz %>StoreModule
@@ -9,5 +10,6 @@ export {
 export {
 	<%= clazz %>StoreActions,
 	<%= clazz %>StoreSelectors,
+  <%= clazz %>Criteria,
 	<%= clazz %>StoreState
 };

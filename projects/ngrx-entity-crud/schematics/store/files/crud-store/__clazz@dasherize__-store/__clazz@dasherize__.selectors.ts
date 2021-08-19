@@ -1,7 +1,7 @@
 import {createFeatureSelector, MemoizedSelector} from '@ngrx/store';
 
-import {adapter, State} from './state';
-import {Names} from './names';
+import {adapter, State} from './<%= dasherize(clazz) %>.state';
+import {Names} from './<%= dasherize(clazz) %>.names';
 
 export const selectState: MemoizedSelector<object, State> = createFeatureSelector<State>(Names.NAME);
 export const {

@@ -74,6 +74,20 @@ export function makeStore(options: CrudStore): Rule {
       })
     ];
 
+    if (options.type === 'CRUD+GRAPHQL') {
+      const graphqlSchema = tree.read('/graphql.schema.json');
+      if (!graphqlSchema) {
+        throw new SchematicsException('Could not find Angular workspace configuration');
+      }
+      const graphqlSchemaString = workspaceConfig.toString();
+      const graphqlSchemaJson = JSON.parse(graphqlSchemaString);
+      const types: any[] = graphqlSchemaJson.__schema.types;
+      const itemType = types.find(value => value.kind === 'OBJECT' && value.name === options.clazz);
+      const fields = (itemType.fields as any[]).map(value => value.name);
+      console.log('fields', fields);
+      const optionsGQL = {...options, gqlSchema:{fields}}
+      return chain([...genericRules, ...crudRules, render(optionsGQL, './files/crud-graphql', pathStore)]);
+    }
     if (options.type === 'CRUD') {
       return chain([...genericRules, ...crudRules]);
     }
