@@ -1,5 +1,5 @@
 import {createFeatureSelector, createSelector, MemoizedSelector} from '@ngrx/store';
-import {Names} from './names';
+import {Names} from './<%= dasherize(clazz) %>.names';
 import {<%= clazz %>} from '@models/vo/<%= dasherize(clazz) %>';
 
 const getValueA = (state: <%= clazz %>): string => state.valueA;
