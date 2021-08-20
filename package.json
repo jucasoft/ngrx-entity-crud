@@ -11,7 +11,8 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "build:schematics": "tsc -p ./projects/ngrx-entity-crud/tsconfig.schematics.json"
+    "build:schematics": "tsc -p ./projects/ngrx-entity-crud/tsconfig.schematics.json",
+    "npmlink": "npm run build && cd libs/ngrx-entity-crud/ && npm link"
   },
   "dependencies": {
     "@angular/animations": "~12.1.4",
