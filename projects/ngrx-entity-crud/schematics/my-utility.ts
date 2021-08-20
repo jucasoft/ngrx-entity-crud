@@ -244,9 +244,6 @@ export function updateTsConfigSelector(): Rule {
       console.log('strContent', strContent);
     }
     const tsconfigJson = JSON.parse(strContent);
-    if (comment_delete) {
-      strContent = comment + strContent;
-    }
     console.log('strContent+', strContent);
     const compilerOptionsPaths = tsconfigJson.compilerOptions.paths || {};
     console.log('compilerOptionsPaths', compilerOptionsPaths);
@@ -273,8 +270,11 @@ export function updateTsConfigSelector(): Rule {
     console.log('compilerOptionsPathsB', compilerOptionsPathsB);
     tsconfigJson.compilerOptions.paths = {...compilerOptionsPaths, ...compilerOptionsPathsB};
     console.log('tsconfigJson', tsconfigJson);
-    const strContentB = JSON.stringify(tsconfigJson)
-    tree.overwrite('/tsconfig.json', strContentB);
+    let strContentB = JSON.stringify(tsconfigJson)
+    if (comment_delete) {
+      strContentB = comment.concat(strContentB);
+    }
+    tree.overwrite('/tsconfig.json',strContentB);
     return tree;
   };
 }
