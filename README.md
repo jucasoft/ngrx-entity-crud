@@ -47,3 +47,6 @@ if you don't see changes to the library under development:
 temporarily remove the library reference from the "package.json" file and rerun "npm link <library-name>". 
 
 
+## How test ng-add
+
+ng generate ngrx-entity-crud:ng-add

@@ -1,7 +1,7 @@
 import {apply, mergeWith, move, Rule, SchematicContext, SchematicsException, template, Tree, url} from '@angular-devkit/schematics';
 import {normalize, strings} from '@angular-devkit/core';
 import * as ts from 'typescript/lib/tsserverlibrary';
-import * as merge from 'deepmerge';
+// import * as merge from 'deepmerge';
 import {ModuleOptions} from '@schematics/angular/utility/find-module';
 import {InsertChange} from '@schematics/angular/utility/change';
 import {addImportToModule, addRouteDeclarationToModule} from '@schematics/angular/utility/ast-utils';
@@ -80,22 +80,22 @@ export function addRootSelector(options: { clazz: string }, file: string): Rule 
 /**
  * viene aggiornato un un file che contiene un json
  */
-export function updateJson(objToMerge: any, file: string): Rule {
-  return (tree: Tree) => {
-    const content: Buffer | null = tree.read(file);
-    let strContent: string = '';
-    if (content) {
-      strContent = content.toString();
-    }
-    const obj = JSON.parse(strContent);
-
-    const objB = merge(obj, objToMerge);
-
-    const result = JSON.stringify(objB);
-    tree.overwrite(file, result);
-    return tree;
-  };
-}
+// export function updateJson(objToMerge: any, file: string): Rule {
+//   return (tree: Tree) => {
+//     const content: Buffer | null = tree.read(file);
+//     let strContent: string = '';
+//     if (content) {
+//       strContent = content.toString();
+//     }
+//     const obj = JSON.parse(strContent);
+//
+//     const objB = merge(obj, objToMerge);
+//
+//     const result = JSON.stringify(objB);
+//     tree.overwrite(file, result);
+//     return tree;
+//   };
+// }
 
 /**
  * Aggiunge una linea all'interno di un file.
@@ -223,5 +223,58 @@ export function render(options: any, sourceTemplate: string, path: string): Rule
       move(_path)
     ]);
     return mergeWith(sourceTemplateParametrized);
+  };
+}
+
+export function updateTsConfigSelector(): Rule {
+  console.log('updateTsConfigSelector.updateTsConfigSelector()');
+  return (tree: Tree) => {
+    console.log('00');
+    const content: Buffer | null = tree.read('/tsconfig.json');
+    console.log('content', content);
+    let strContent: string = '';
+    if (content) {
+      strContent = content.toString();
+    }
+    const comment = '/* To learn more about this file see: https://angular.io/config/tsconfig. */';
+    let comment_delete = false;
+    if (strContent.substring(0, 76) === comment) {
+      strContent = strContent.replace(strContent.substring(0, 77), '');
+      comment_delete =  true;
+      console.log('strContent', strContent);
+    }
+    const tsconfigJson = JSON.parse(strContent);
+    console.log('strContent+', strContent);
+    const compilerOptionsPaths = tsconfigJson.compilerOptions.paths || {};
+    console.log('compilerOptionsPaths', compilerOptionsPaths);
+    const compilerOptionsPathsB = {
+      '@components/*': [
+        'src/app/main/components/*'
+      ],
+      '@services/*': [
+        'src/app/main/services/*'
+      ],
+      '@models/*': [
+        'src/app/main/models/*'
+      ],
+      '@views/*': [
+        'src/app/main/views/*'
+      ],
+      '@core/*': [
+        'src/app/core/*'
+      ],
+      '@root-store/*': [
+        'src/app/root-store/*'
+      ]
+    }
+    console.log('compilerOptionsPathsB', compilerOptionsPathsB);
+    tsconfigJson.compilerOptions.paths = {...compilerOptionsPaths, ...compilerOptionsPathsB};
+    console.log('tsconfigJson', tsconfigJson);
+    let strContentB = JSON.stringify(tsconfigJson)
+    if (comment_delete) {
+      strContentB = comment.concat(strContentB);
+    }
+    tree.overwrite('/tsconfig.json',strContentB);
+    return tree;
   };
 }
