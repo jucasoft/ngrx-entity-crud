@@ -236,10 +236,19 @@ export function updateTsConfigSelector(): Rule {
     if (content) {
       strContent = content.toString();
     }
-    console.log('strContent', strContent);
-
+    const comment = '/* To learn more about this file see: https://angular.io/config/tsconfig. */';
+    let comment_delete = false;
+    if (strContent.substring(0, 76) === comment) {
+      strContent = strContent.replace(strContent.substring(0, 77), '');
+      comment_delete =  true;
+      console.log('strContent', strContent);
+    }
     const tsconfigJson = JSON.parse(strContent);
-    const compilerOptionsPaths = tsconfigJson.compilerOptions.paths;
+    if (comment_delete) {
+      strContent = comment + strContent;
+    }
+    console.log('strContent+', strContent);
+    const compilerOptionsPaths = tsconfigJson.compilerOptions.paths || {};
     console.log('compilerOptionsPaths', compilerOptionsPaths);
     const compilerOptionsPathsB = {
       '@components/*': [
