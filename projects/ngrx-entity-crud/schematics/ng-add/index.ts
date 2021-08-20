@@ -67,7 +67,7 @@ export function ngAdd(options: any): Rule {
       render(options, './files', pathStore),
       addDeclarationToNgModule({
         module: `${pathApp}/app.module.ts`,
-        name: `RootStoreModule`,
+        name: `RootStore`,
         path: `./root-store/root-store`
       })
     ];
