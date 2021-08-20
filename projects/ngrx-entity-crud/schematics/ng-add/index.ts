@@ -1,12 +1,11 @@
 import {chain, Rule, SchematicContext, SchematicsException, Tree} from '@angular-devkit/schematics';
-import { NodePackageInstallTask } from '@angular-devkit/schematics/tasks';
-import {normalize, strings} from "@angular-devkit/core";
-import {addDeclarationToNgModule, addExport, addImport, addRootSelector, render, updateState} from "../my-utility";
+import {render} from '../my-utility';
 
 // Just return the tree
 export function ngAdd(options: any): Rule {
   return (tree: Tree, context: SchematicContext) => {
     console.log('makeStore(options: CrudStore): Rule');
+    console.log('context', context);
     const workspaceConfig = tree.read('/angular.json');
     if (!workspaceConfig) {
       throw new SchematicsException('Could not find Angular workspace configuration');
@@ -43,24 +42,24 @@ export function ngAdd(options: any): Rule {
     console.log('pathService', pathService);
     console.log('pathVo', pathVo);
 
-/*    const genericRules: Rule[] = [
-      addExport(options, normalize(`${pathStore}/index.ts`)),
-      addExport(options, normalize(`${pathStore}/index.d.ts`)),
-    ];*/
-/*    const crudRules: Rule[] = [
-      addImport(normalize(`${pathStore}/state.ts`), `import {${options.clazz}StoreState} from '@root-store/${strings.dasherize(options.clazz)}-store';`),
-      updateState(`${strings.underscore(options.name)}:${options.clazz}StoreState.State;`, normalize(`${pathStore}/state.ts`)),
-      addImport(normalize(`${pathStore}/selectors.ts`), `import {${options.clazz}StoreSelectors} from '@root-store/${strings.dasherize(options.clazz)}-store';`),
-      addRootSelector(options, normalize(`${pathStore}/selectors.ts`)),
-      render(options, './files/crud-store', pathStore),
-      render(options, './files/crud-service', pathService),
-      render(options, './files/crud-model', pathVo),
-      addDeclarationToNgModule({
-        module: `${pathStore}/root-store.module.ts`,
-        name: `${options.clazz}Store`,
-        path: `@root-store/${strings.dasherize(options.clazz)}-store`
-      })
-    ];*/
+    /*    const genericRules: Rule[] = [
+          addExport(options, normalize(`${pathStore}/index.ts`)),
+          addExport(options, normalize(`${pathStore}/index.d.ts`)),
+        ];*/
+    /*    const crudRules: Rule[] = [
+          addImport(normalize(`${pathStore}/state.ts`), `import {${options.clazz}StoreState} from '@root-store/${strings.dasherize(options.clazz)}-store';`),
+          updateState(`${strings.underscore(options.name)}:${options.clazz}StoreState.State;`, normalize(`${pathStore}/state.ts`)),
+          addImport(normalize(`${pathStore}/selectors.ts`), `import {${options.clazz}StoreSelectors} from '@root-store/${strings.dasherize(options.clazz)}-store';`),
+          addRootSelector(options, normalize(`${pathStore}/selectors.ts`)),
+          render(options, './files/crud-store', pathStore),
+          render(options, './files/crud-service', pathService),
+          render(options, './files/crud-model', pathVo),
+          addDeclarationToNgModule({
+            module: `${pathStore}/root-store.module.ts`,
+            name: `${options.clazz}Store`,
+            path: `@root-store/${strings.dasherize(options.clazz)}-store`
+          })
+        ];*/
 
     const baseRules: Rule[] = [
       // addImport(normalize(`${pathStore}/state.ts`), `import {${options.clazz}} from '@models/vo/${strings.dasherize(options.clazz)}';`),
@@ -73,7 +72,7 @@ export function ngAdd(options: any): Rule {
       // })
     ];
 
-      return chain(baseRules);
+    return chain(baseRules);
 
   };
 }

@@ -1,7 +1,7 @@
 import {apply, mergeWith, move, Rule, SchematicContext, SchematicsException, template, Tree, url} from '@angular-devkit/schematics';
 import {normalize, strings} from '@angular-devkit/core';
 import * as ts from 'typescript/lib/tsserverlibrary';
-import * as merge from 'deepmerge';
+// import * as merge from 'deepmerge';
 import {ModuleOptions} from '@schematics/angular/utility/find-module';
 import {InsertChange} from '@schematics/angular/utility/change';
 import {addImportToModule, addRouteDeclarationToModule} from '@schematics/angular/utility/ast-utils';
@@ -80,22 +80,22 @@ export function addRootSelector(options: { clazz: string }, file: string): Rule 
 /**
  * viene aggiornato un un file che contiene un json
  */
-export function updateJson(objToMerge: any, file: string): Rule {
-  return (tree: Tree) => {
-    const content: Buffer | null = tree.read(file);
-    let strContent: string = '';
-    if (content) {
-      strContent = content.toString();
-    }
-    const obj = JSON.parse(strContent);
-
-    const objB = merge(obj, objToMerge);
-
-    const result = JSON.stringify(objB);
-    tree.overwrite(file, result);
-    return tree;
-  };
-}
+// export function updateJson(objToMerge: any, file: string): Rule {
+//   return (tree: Tree) => {
+//     const content: Buffer | null = tree.read(file);
+//     let strContent: string = '';
+//     if (content) {
+//       strContent = content.toString();
+//     }
+//     const obj = JSON.parse(strContent);
+//
+//     const objB = merge(obj, objToMerge);
+//
+//     const result = JSON.stringify(objB);
+//     tree.overwrite(file, result);
+//     return tree;
+//   };
+// }
 
 /**
  * Aggiunge una linea all'interno di un file.
