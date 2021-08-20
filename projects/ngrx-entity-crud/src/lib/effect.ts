@@ -1,5 +1,5 @@
 import {ofType} from '@ngrx/effects';
-import {Actions, OptEffect, OptManyRequest, OptRequest, Response} from './models';
+import {Actions, OptEffect, OptRequest, Response} from './models';
 import {from, MonoTypeOperatorFunction} from 'rxjs';
 import {Action} from '@ngrx/store';
 import {catchError, concatMap, map, repeat, switchMap} from 'rxjs/operators';
@@ -115,7 +115,7 @@ export const deleteResponse = <T>(actions: Actions<T>, clazz: any, optEffect?: O
           if (!clazz.selectId) {
             throw Error('the selectId method is not present in the managed entity.');
           }
-          const id = clazz.selectId(payload.item);
+          const id = clazz.selectId(payload.mutationParams);
           result.push(actions.DeleteSuccess({id}));
           if (payload.onResult) {
             const onResults = (payload.onResult as Action[]).map(a => (a as any).newAction ? (a as any).newAction(response, payload) : a);
@@ -188,7 +188,7 @@ export const deleteRequestEffect = <T>(actions$, actions: Actions<T>, service: I
 
 export const deleteManyCall = <T>(service: IBaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
-    concatMap(payload => service.deleteMany((payload as OptManyRequest<T>)).pipe(
+    concatMap(payload => service.deleteMany((payload)).pipe(
       map((response: Response<string>) => ({response, payload}))
     )),
   );
@@ -207,7 +207,7 @@ export const deleteManyResponse = <T>(actions: Actions<T>, clazz: any, optEffect
           if (!clazz.selectId) {
             throw Error('the selectId method is not present in the managed entity.');
           }
-          const ids = (payload as OptManyRequest<T>).items.map(id => clazz.selectId(id));
+          const ids = (payload as OptRequest<T[]>).mutationParams.map(id => clazz.selectId(id));
           result.push(actions.DeleteManySuccess({ids}));
           if (payload.onResult) {
             const onResults = (payload.onResult as Action[]).map(a => (a as any).newAction ? (a as any).newAction(response, payload) : a);
@@ -345,7 +345,7 @@ export const createRequestEffect = <T>(actions$, actions: Actions<T>, service: I
 
 export const createManyCall = <T>(service: IBaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
-    concatMap(payload => service.createMany((payload as OptManyRequest<T>)).pipe(
+    concatMap(payload => service.createMany((payload as OptRequest<T[]>)).pipe(
       map((response: Response<T[]>) => ({response, payload}))
     ))
   );
@@ -501,7 +501,7 @@ export const editRequestEffect = <T>(actions$, actions: Actions<T>, service: IBa
 
 export const editManyCall = <T>(service: IBaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
-    concatMap(payload => service.updateMany((payload as OptManyRequest<T>)).pipe(
+    concatMap(payload => service.updateMany((payload as OptRequest<T[]>)).pipe(
       map((response: Response<T>) => ({response, payload}))
     )),
   );

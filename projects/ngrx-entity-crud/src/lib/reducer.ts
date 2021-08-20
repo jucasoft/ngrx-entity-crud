@@ -1,4 +1,4 @@
-import {Actions, EntityCrudState, ICriteria, OptManyRequest, OptRequest} from './models';
+import {Actions, EntityCrudState, ICriteria, OptRequest} from './models';
 import {EntityAdapter} from '@ngrx/entity';
 import {ActionCreator, createReducer, on, ReducerTypes} from '@ngrx/store';
 import {selectIdValue, toDictionary} from './utils';
@@ -56,7 +56,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
       {isLoading: true, error: initialState.error}
     );
   });
-  const deleteManyRequestOn = on(actions.DeleteManyRequest, (state: S, request: OptManyRequest<T>) => {
+  const deleteManyRequestOn = on(actions.DeleteManyRequest, (state: S, request: OptRequest<T>) => {
     return Object.assign(
       {},
       state,
@@ -70,7 +70,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
       {isLoading: true, error: initialState.error}
     );
   });
-  const editManyRequestOn = on(actions.EditManyRequest, (state: S, request: OptManyRequest<T>) => {
+  const editManyRequestOn = on(actions.EditManyRequest, (state: S, request: OptRequest<T>) => {
     return Object.assign(
       {},
       state,
@@ -84,7 +84,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
       {isLoading: true, error: initialState.error}
     );
   });
-  const createManyRequestOn = on(actions.CreateManyRequest, (state: S, request: OptManyRequest<T>) => {
+  const createManyRequestOn = on(actions.CreateManyRequest, (state: S, request: OptRequest<T>) => {
     return Object.assign(
       {},
       state,

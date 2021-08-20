@@ -109,11 +109,7 @@ export interface ICriteria<QP = any> extends OptRequestBase {
 }
 
 export interface OptRequest<T> extends OptRequestBase {
-  item: T;
-}
-
-export interface OptManyRequest<T> extends OptRequestBase {
-  items: T[];
+  mutationParams: T;
 }
 
 export interface OptResponse<T> {
@@ -335,7 +331,7 @@ export interface Actions<T> {
    * @param onResult?: Action[]
    * @param dispatchResponse?: boolean
    */
-  DeleteManyRequest: ActionCreator<string, (props: OptManyRequest<T>) => OptManyRequest<T> & TypedAction<string>>;
+  DeleteManyRequest: ActionCreator<string, (props: OptRequest<T>) => OptRequest<T> & TypedAction<string>>;
   DeleteManyFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
   DeleteManySuccess: ActionCreator<string, (props: { ids: string[]; }) => { ids: string[]; } & TypedAction<string>>;
 
@@ -361,7 +357,7 @@ export interface Actions<T> {
    * @param onResult?: Action[]
    * @param dispatchResponse?: boolean
    */
-  CreateManyRequest: ActionCreator<string, (props: OptManyRequest<T>) => OptManyRequest<T> & TypedAction<string>>;
+  CreateManyRequest: ActionCreator<string, (props: OptRequest<T>) => OptRequest<T> & TypedAction<string>>;
   CreateManyFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
   CreateManySuccess: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
 
@@ -400,7 +396,7 @@ export interface Actions<T> {
    * @param onResult?: Action[]
    * @param dispatchResponse?: boolean
    */
-  EditManyRequest: ActionCreator<string, (props: OptManyRequest<T>) => OptManyRequest<T> & TypedAction<string>>;
+  EditManyRequest: ActionCreator<string, (props: OptRequest<T>) => OptRequest<T> & TypedAction<string>>;
   EditManyFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
   EditManySuccess: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
 
