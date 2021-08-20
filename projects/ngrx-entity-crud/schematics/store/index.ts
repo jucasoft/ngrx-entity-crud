@@ -53,7 +53,6 @@ export function makeStore(options: CrudStore): Rule {
       addImport(normalize(`${pathStore}/selectors.ts`), `import {${options.clazz}StoreSelectors} from '@root-store/${strings.dasherize(options.clazz)}-store';`),
       addRootSelector(options, normalize(`${pathStore}/selectors.ts`)),
       render(options, './files/crud-store', pathStore),
-      render(options, './files/crud-service', pathService),
       render(options, './files/crud-model', pathVo),
       addDeclarationToNgModule({
         module: `${pathStore}/root-store.module.ts`,
@@ -81,16 +80,22 @@ export function makeStore(options: CrudStore): Rule {
       }
       const graphqlSchemaString = graphqlSchema.toString();
       const graphqlSchemaJson = JSON.parse(graphqlSchemaString);
-      // console.log('graphqlSchemaJson', graphqlSchemaJson);
+      console.log('graphqlSchemaJson', graphqlSchemaJson);
       const types: any[] = graphqlSchemaJson.__schema.types;
       const itemType = types.find(value => value.kind === 'OBJECT' && value.name === options.clazz);
+      if (!itemType) {
+        throw new SchematicsException("Could not find \"" + options.clazz + "\" in graphql.schema.json configuration, update shema")
+      }
       const fields = (itemType.fields as any[]).map(value => value.name);
-      console.log('fields', fields);
+      console.log('fieldsB', fields);
       const optionsGQL = {...options, gqlSchema:{fields}}
-      return chain([...genericRules, ...crudRules, render(optionsGQL, './files/crud-graphql', pathStore)]);
+      return chain([...genericRules, ...crudRules,
+        render(optionsGQL, './files/crud-graphql', pathStore),
+        render(options, './files/crud-service-graphql', pathService),
+      ]);
     }
     if (options.type === 'CRUD') {
-      return chain([...genericRules, ...crudRules]);
+      return chain([...genericRules, ...crudRules, render(options, './files/crud-service', pathService),]);
     }
     if (options.type === 'BASE') {
       return chain([...genericRules, ...baseRules]);

@@ -3,7 +3,7 @@ import {Actions, ICriteria, OptEffect, OptRequest, Response} from './models';
 import {from, MonoTypeOperatorFunction} from 'rxjs';
 import {Action} from '@ngrx/store';
 import {catchError, concatMap, map, repeat, switchMap} from 'rxjs/operators';
-import {IBaseCrudService} from './base-crud.service';
+import {IBaseCrudService} from './ibase-crud-service';
 
 export const searchCall = <T>(service: IBaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
