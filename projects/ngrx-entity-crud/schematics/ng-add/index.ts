@@ -1,5 +1,5 @@
 import {chain, Rule, SchematicContext, SchematicsException, Tree} from '@angular-devkit/schematics';
-import {render} from '../my-utility';
+import {addDeclarationToNgModule, render} from '../my-utility';
 
 // Just return the tree
 export function ngAdd(options: any): Rule {
@@ -65,11 +65,11 @@ export function ngAdd(options: any): Rule {
       // addImport(normalize(`${pathStore}/state.ts`), `import {${options.clazz}} from '@models/vo/${strings.dasherize(options.clazz)}';`),
       // updateState(`${strings.underscore(options.name)}:${options.clazz};`, normalize(`${pathStore}/state.ts`)),
       render(options, './files', pathStore),
-      // addDeclarationToNgModule({
-      //   module: `${pathStore}/root-store.module.ts`,
-      //   name: `${options.clazz}Store`,
-      //   path: `@root-store/${strings.dasherize(options.clazz)}-store`
-      // })
+      addDeclarationToNgModule({
+        module: `${pathApp}/app.module.ts`,
+        name: `RootStoreModule`,
+        path: `./root-store/root-store`
+      })
     ];
 
     return chain(baseRules);
