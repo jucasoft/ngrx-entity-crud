@@ -49,49 +49,49 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
         })
     );
   });
-  const deleteRequestOn = on(actions.DeleteRequest, (state: S, request: OptRequest<T>) => {
+  const deleteRequestOn = on(actions.DeleteRequest, (state: S, request: OptRequest) => {
     return Object.assign(
       {},
       state,
       {isLoading: true, error: initialState.error}
     );
   });
-  const deleteManyRequestOn = on(actions.DeleteManyRequest, (state: S, request: OptRequest<T>) => {
+  const deleteManyRequestOn = on(actions.DeleteManyRequest, (state: S, request: OptRequest) => {
     return Object.assign(
       {},
       state,
       {isLoading: true, error: initialState.error}
     );
   });
-  const editRequestOn = on(actions.EditRequest, (state: S, request: OptRequest<T>) => {
+  const editRequestOn = on(actions.EditRequest, (state: S, request: OptRequest) => {
     return Object.assign(
       {},
       state,
       {isLoading: true, error: initialState.error}
     );
   });
-  const editManyRequestOn = on(actions.EditManyRequest, (state: S, request: OptRequest<T>) => {
+  const editManyRequestOn = on(actions.EditManyRequest, (state: S, request: OptRequest) => {
     return Object.assign(
       {},
       state,
       {isLoading: true, error: initialState.error}
     );
   });
-  const createRequestOn = on(actions.CreateRequest, (state: S, request: OptRequest<T>) => {
+  const createRequestOn = on(actions.CreateRequest, (state: S, request: OptRequest) => {
     return Object.assign(
       {},
       state,
       {isLoading: true, error: initialState.error}
     );
   });
-  const createManyRequestOn = on(actions.CreateManyRequest, (state: S, request: OptRequest<T>) => {
+  const createManyRequestOn = on(actions.CreateManyRequest, (state: S, request: OptRequest) => {
     return Object.assign(
       {},
       state,
       {isLoading: true, error: initialState.error}
     );
   });
-  const selectRequestOn = on(actions.SelectRequest, (state: S, request: OptRequest<T>) => {
+  const selectRequestOn = on(actions.SelectRequest, (state: S, request: ICriteria) => {
     return Object.assign(
       {},
       state,

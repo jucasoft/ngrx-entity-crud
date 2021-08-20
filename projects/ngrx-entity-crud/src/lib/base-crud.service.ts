@@ -5,15 +5,6 @@ import {ICriteria, OptRequest, Response} from './models';
 import {Observable, of} from 'rxjs';
 
 export interface IBaseCrudService<T> {
-  service: string;
-  id: string;
-  debug: boolean;
-  http: HttpClient;
-  httpOptions: () => { headers: HttpHeaders };
-  searchMap: (res) => any;
-  getId: (value) => any;
-
-  debugMode(): void;
 
   create(opt: OptRequest<T>): Observable<Response<T>>;
 
@@ -21,7 +12,7 @@ export interface IBaseCrudService<T> {
 
   search(value?: ICriteria): Observable<Response<T[]>>;
 
-  select(opt: OptRequest<T>): Observable<Response<T>>;
+  select(opt: ICriteria): Observable<Response<T>>;
 
   update(opt: OptRequest<T>): Observable<Response<T>>;
 
@@ -31,7 +22,6 @@ export interface IBaseCrudService<T> {
 
   deleteMany(opt: OptRequest<T[] | T>): Observable<Response<string[]>>;
 
-  getUrl(path?: string[]): string;
 }
 
 @Injectable({
@@ -113,14 +103,13 @@ export class BaseCrudService<T> implements IBaseCrudService<T> {
 
   searchMap = res => res;
 
-  select(opt: OptRequest<T>): Observable<Response<T>> {
-    this.checkOptRequest(opt);
+  select(opt: ICriteria): Observable<Response<T>> {
     if (typeof (console) !== 'undefined' && this.debug) {
       console.log('%c BaseCrudService.select()', 'color: #777777');
       console.log('%c Extended from: ' + this.constructor.name, 'color: #777777');
     }
 
-    const id = this.getId(opt.mutationParams);
+    const id = this.getId(opt.queryParams);
     const path = !!opt && !!opt.path ? opt.path : null;
     return this
       .http

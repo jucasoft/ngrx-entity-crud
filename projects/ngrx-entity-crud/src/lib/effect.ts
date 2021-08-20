@@ -1,5 +1,5 @@
 import {ofType} from '@ngrx/effects';
-import {Actions, OptEffect, OptRequest, Response} from './models';
+import {Actions, ICriteria, OptEffect, OptRequest, Response} from './models';
 import {from, MonoTypeOperatorFunction} from 'rxjs';
 import {Action} from '@ngrx/store';
 import {catchError, concatMap, map, repeat, switchMap} from 'rxjs/operators';
@@ -568,7 +568,7 @@ export const editManyRequest = <T>(actions: Actions<T>, service: IBaseCrudServic
 
 export const selectCall = <T>(service: IBaseCrudService<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
-    concatMap(payload => service.select((payload as OptRequest<T>)).pipe(
+    concatMap(payload => service.select((payload as ICriteria)).pipe(
       // @ts-ignore
       map((response: Response<T>) => ({response, payload}))
     ))
