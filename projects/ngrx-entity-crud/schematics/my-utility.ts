@@ -225,3 +225,47 @@ export function render(options: any, sourceTemplate: string, path: string): Rule
     return mergeWith(sourceTemplateParametrized);
   };
 }
+
+export function updateTsConfigSelector(): Rule {
+  console.log('updateTsConfigSelector.updateTsConfigSelector()');
+  return (tree: Tree) => {
+    console.log('00');
+    const content: Buffer | null = tree.read('/tsconfig.json');
+    console.log('content', content);
+    let strContent: string = '';
+    if (content) {
+      strContent = content.toString();
+    }
+    console.log('strContent', strContent);
+
+    const tsconfigJson = JSON.parse(strContent);
+    const compilerOptionsPaths = tsconfigJson.compilerOptions.paths;
+    console.log('compilerOptionsPaths', compilerOptionsPaths);
+    const compilerOptionsPathsB = {
+      '@components/*': [
+        'src/app/main/components/*'
+      ],
+      '@services/*': [
+        'src/app/main/services/*'
+      ],
+      '@models/*': [
+        'src/app/main/models/*'
+      ],
+      '@views/*': [
+        'src/app/main/views/*'
+      ],
+      '@core/*': [
+        'src/app/core/*'
+      ],
+      '@root-store/*': [
+        'src/app/root-store/*'
+      ]
+    }
+    console.log('compilerOptionsPathsB', compilerOptionsPathsB);
+    tsconfigJson.compilerOptions.paths = {...compilerOptionsPaths, ...compilerOptionsPathsB};
+    console.log('tsconfigJson', tsconfigJson);
+    const strContentB = JSON.stringify(tsconfigJson)
+    tree.overwrite('/tsconfig.json', strContentB);
+    return tree;
+  };
+}

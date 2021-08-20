@@ -1,5 +1,5 @@
 import {chain, Rule, SchematicContext, SchematicsException, Tree} from '@angular-devkit/schematics';
-import {addDeclarationToNgModule, render} from '../my-utility';
+import {addDeclarationToNgModule, render, updateTsConfigSelector} from '../my-utility';
 
 // Just return the tree
 export function ngAdd(options: any): Rule {
@@ -15,11 +15,12 @@ export function ngAdd(options: any): Rule {
     const workspaceContent = workspaceConfig.toString();
 
     // parse workspace string into JSON object
+    console.log('1');
     const workspace = JSON.parse(workspaceContent);
     if (!options.project) {
       options.project = workspace.defaultProject;
     }
-
+console.log('2');
     let pathApp: string = 'src/app';
     let pathStore: string = 'src/app/root-store';
     let pathView: string = 'src/app/main/views';
@@ -28,6 +29,7 @@ export function ngAdd(options: any): Rule {
 
     const conf = tree.read('/ngrx-entity-crud.conf.json');
     if (conf) {
+      console.log('3');
       const confData = JSON.parse(conf.toString());
       pathView = confData.pathView;
       pathStore = confData.pathStore;
@@ -61,6 +63,7 @@ export function ngAdd(options: any): Rule {
           })
         ];*/
 
+    // updateTsConfigSelector()
     const baseRules: Rule[] = [
       // addImport(normalize(`${pathStore}/state.ts`), `import {${options.clazz}} from '@models/vo/${strings.dasherize(options.clazz)}';`),
       // updateState(`${strings.underscore(options.name)}:${options.clazz};`, normalize(`${pathStore}/state.ts`)),
@@ -78,41 +81,3 @@ export function ngAdd(options: any): Rule {
   };
 }
 
-export function updateTsConfigSelector(): Rule {
-  return (tree: Tree) => {
-    const content: Buffer | null = tree.read('/tsconfig.json');
-    let strContent: string = '';
-    if (content) {
-      strContent = content.toString();
-    }
-
-    const tsconfigJson = JSON.parse(strContent);
-    const compilerOptionsPaths = tsconfigJson.compilerOptions.paths;
-    const compilerOptionsPathsB = {
-      '@components/*': [
-        'src/app/main/components/*'
-      ],
-      '@services/*': [
-        'src/app/main/services/*'
-      ],
-      '@models/*': [
-        'src/app/main/models/*'
-      ],
-      '@views/*': [
-        'src/app/main/views/*'
-      ],
-      '@core/*': [
-        'src/app/core/*'
-      ],
-      '@root-store/*': [
-        'src/app/root-store/*'
-      ]
-    }
-
-    tsconfigJson.compilerOptions.paths = {...compilerOptionsPaths, ...compilerOptionsPathsB};
-
-    const strContentB = JSON.stringify(tsconfigJson)
-    tree.overwrite('/tsconfig.json', strContentB);
-    return tree;
-  };
-}
