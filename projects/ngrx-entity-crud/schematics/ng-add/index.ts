@@ -69,10 +69,50 @@ export function ngAdd(options: any): Rule {
         module: `${pathApp}/app.module.ts`,
         name: `RootStore`,
         path: `./root-store/root-store`
-      })
+      }),
+      updateTsConfigSelector()
     ];
 
     return chain(baseRules);
 
+  };
+}
+
+export function updateTsConfigSelector(): Rule {
+  return (tree: Tree) => {
+    const content: Buffer | null = tree.read('/tsconfig.json');
+    let strContent: string = '';
+    if (content) {
+      strContent = content.toString();
+    }
+
+    const tsconfigJson = JSON.parse(strContent);
+    const compilerOptionsPaths = tsconfigJson.compilerOptions.paths;
+    const compilerOptionsPathsB = {
+      '@components/*': [
+        'src/app/main/components/*'
+      ],
+      '@services/*': [
+        'src/app/main/services/*'
+      ],
+      '@models/*': [
+        'src/app/main/models/*'
+      ],
+      '@views/*': [
+        'src/app/main/views/*'
+      ],
+      '@core/*': [
+        'src/app/core/*'
+      ],
+      '@root-store/*': [
+        'src/app/root-store/*'
+      ]
+    }
+
+    tsconfigJson.compilerOptions.paths = {...compilerOptionsPaths, ...compilerOptionsPathsB};
+
+    const strContentB = JSON.stringify(tsconfigJson)
+    tree.overwrite('/tsconfig.json', strContentB);
+    return tree;
   };
 }
