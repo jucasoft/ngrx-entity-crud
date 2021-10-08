@@ -38,7 +38,7 @@ describe('Crud', () => {
 
 
     it('CreateRequest', () => {
-      const payload = {item: {id: 5, name: 'e'}};
+      const payload = {mutationParams: {id: 5, name: 'e'}};
       const expectState: State = ({
         ...state,
         isLoading: true
@@ -48,7 +48,7 @@ describe('Crud', () => {
     });
 
     it('CreateManyRequest', () => {
-      const payload = {items: [{id: 5, name: 'e'}, {id: 6, name: 'f'}]};
+      const payload = {mutationParams: [{id: 5, name: 'e'}, {id: 6, name: 'f'}]};
       const expectState: State = ({
         ...state,
         isLoading: true
@@ -58,7 +58,7 @@ describe('Crud', () => {
     });
 
     it('DeleteRequest', () => {
-      const payload = {item: {id: 0, name: 'a'}};
+      const payload = {mutationParams: {id: 0, name: 'a'}};
       const expectState: State = ({
         ...state,
         isLoading: true
@@ -68,7 +68,7 @@ describe('Crud', () => {
     });
 
     it('DeleteManyRequest', () => {
-      const payload = {items: [{id: 0, name: 'a'}, {id: 1, name: 'b'}]};
+      const payload = {mutationParams: [{id: 0, name: 'a'}, {id: 1, name: 'b'}]};
       const expectState: State = ({
         ...state,
         isLoading: true
@@ -78,7 +78,7 @@ describe('Crud', () => {
     });
 
     it('EditRequest', () => {
-      const payload = {item: {id: 0, name: 'aa'}};
+      const payload = {mutationParams: {id: 0, name: 'aa'}};
       const expectState: State = ({
         ...state,
         isLoading: true
@@ -88,7 +88,7 @@ describe('Crud', () => {
     });
 
     it('EditRequest many elements', () => {
-      const payload = {items: [{id: 0, name: 'aa'}, {id: 1, name: 'bb'}]};
+      const payload = {mutationParams: [{id: 0, name: 'aa'}, {id: 1, name: 'bb'}]};
       const expectState: State = ({
         ...state,
         isLoading: true
@@ -473,7 +473,7 @@ describe('Crud', () => {
   describe('Actions', () => {
 
     it('CreateRequest', () => {
-      const payload = {item: {id: 5, name: 'e'}};
+      const payload = {mutationParams: {id: 5, name: 'e'}};
       const expectedAction = actions.CreateRequest(payload);
       const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
       store.dispatch(actions.CreateRequest(payload));
@@ -481,7 +481,7 @@ describe('Crud', () => {
     });
 
     it('CreateMAnyRequest', () => {
-      const payload = {items: [{id: 5, name: 'e'}, {id: 6, name: 'e'}]};
+      const payload = {mutationParams: [{id: 5, name: 'e'}, {id: 6, name: 'e'}]};
       const expectedAction = actions.CreateManyRequest(payload);
       const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
       store.dispatch(actions.CreateManyRequest(payload));
@@ -489,7 +489,7 @@ describe('Crud', () => {
     });
 
     it('DeleteRequest', () => {
-      const payload = {item: {id: 0, name: 'a'}};
+      const payload = {mutationParams: {id: 0, name: 'a'}};
       const expectedAction = actions.DeleteRequest(payload);
       const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
       store.dispatch(actions.DeleteRequest(payload));
@@ -497,7 +497,7 @@ describe('Crud', () => {
     });
 
     it('DeleteRequest', () => {
-      const payload = {items: [{id: 0, name: 'a'}, {id: 1, name: 'b'}]};
+      const payload = {mutationParams: [{id: 0, name: 'a'}, {id: 1, name: 'b'}]};
       const expectedAction = actions.DeleteManyRequest(payload);
       const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
       store.dispatch(actions.DeleteManyRequest(payload));
@@ -505,7 +505,7 @@ describe('Crud', () => {
     });
 
     it('EditRequest', () => {
-      const payload = {item: {id: 0, name: 'aa'}};
+      const payload = {mutationParams: {id: 0, name: 'aa'}};
       const expectedAction = actions.EditRequest(payload);
       const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
       store.dispatch(actions.EditRequest(payload));
@@ -513,7 +513,7 @@ describe('Crud', () => {
     });
 
     it('EditManyRequest', () => {
-      const payload = {items: [{id: 0, name: 'a'}, {id: 1, name: 'b'}]};
+      const payload = {mutationParams: [{id: 0, name: 'a'}, {id: 1, name: 'b'}]};
       const expectedAction = actions.EditManyRequest(payload);
       const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
       store.dispatch(actions.EditManyRequest(payload));
@@ -680,8 +680,8 @@ describe('Crud', () => {
     });
 
     it('SelectRequest', () => {
-      const payload = {item: {id: 0, name: 'a'}};
-      const expectedAction = actions.SelectRequest(payload);
+      const payload = {queryParams:{item: {id: 0, name: 'a'}}};
+      const expectedAction = actions.SelectRequest({queryParams:payload});
       const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
       store.dispatch(actions.SelectRequest(payload));
       expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
