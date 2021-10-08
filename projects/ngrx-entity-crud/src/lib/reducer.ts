@@ -1,4 +1,4 @@
-import {Actions, EntityCrudState, ICriteria, OptRequest} from './models';
+import {Actions, EntityCrudState, EntitySingleCrudState, ICriteria, OptRequest} from './models';
 import {EntityAdapter} from '@ngrx/entity';
 import {ActionCreator, createReducer, on, ReducerTypes} from '@ngrx/store';
 import {selectIdValue, toDictionary} from './utils';
@@ -487,82 +487,10 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
 
 export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
   function createCrudReducer<S extends EntityCrudState<T>>(initialState: S, actions: Actions<T>, ...ons: ReducerTypes<S, ActionCreator[]>[]) {
-    const {
-      responseOn,
-      resetResponsesOn,
-      searchRequestOn,
-      deleteRequestOn,
-      deleteManyRequestOn,
-      editRequestOn,
-      editManyRequestOn,
-      createRequestOn,
-      createManyRequestOn,
-      selectRequestOn,
-      searchSuccessOn,
-      deleteSuccessOn,
-      deleteManySuccessOn,
-      createSuccessOn,
-      createManySuccessOn,
-      selectSuccessOn,
-      editSuccessOn,
-      editManySuccessOn,
-      searchFailureOn,
-      deleteFailureOn,
-      deleteManyFailureOn,
-      createFailureOn,
-      createManyFailureOn,
-      selectFailureOn,
-      editFailureOn,
-      editManyFailureOn,
-      resetOn,
-      filtersOn,
-      selectItemsOn,
-      removeAllSelectedOn,
-      addManySelectedOn,
-      removeManySelectedOn,
-      selectItemOn,
-      editOn,
-      createOn,
-      deleteOn
-    } = createCrudOns(adapter, initialState, actions);
+    const {...crudOns} = createCrudOns(adapter, initialState, actions);
     const totalOns: ReducerTypes<S, ActionCreator[]>[] = [
       ...ons,
-      responseOn,
-      resetResponsesOn,
-      searchRequestOn,
-      deleteRequestOn,
-      deleteManyRequestOn,
-      editRequestOn,
-      editManyRequestOn,
-      createRequestOn,
-      createManyRequestOn,
-      selectRequestOn,
-      searchSuccessOn,
-      deleteSuccessOn,
-      deleteManySuccessOn,
-      createSuccessOn,
-      createManySuccessOn,
-      selectSuccessOn,
-      editSuccessOn,
-      editManySuccessOn,
-      searchFailureOn,
-      deleteFailureOn,
-      deleteManyFailureOn,
-      createFailureOn,
-      createManyFailureOn,
-      selectFailureOn,
-      editFailureOn,
-      editManyFailureOn,
-      resetOn,
-      filtersOn,
-      selectItemsOn,
-      removeAllSelectedOn,
-      addManySelectedOn,
-      removeManySelectedOn,
-      selectItemOn,
-      editOn,
-      createOn,
-      deleteOn
+      ...Object.values(crudOns)
     ];
     return createReducer<S>(initialState,
       ...totalOns
@@ -572,4 +500,139 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
   return {
     createCrudReducer
   };
+}
+
+
+export function createSingleCrudOns<T, S extends EntitySingleCrudState<T>>(initialState: S, actions: Actions<T>): { [key: string]: any } {
+
+  const selectRequestOn = on(actions.SelectRequest, (state: S, {type}) => (
+    {
+      ...state,
+      isLoading: true,
+      error: null
+    }
+  ));
+
+  const selectSuccessOn = on(actions.SelectSuccess, (state: S, {type, item}) => (
+    {
+      ...state,
+      item,
+      isLoaded: true,
+      isLoading: false,
+      error: null
+    }
+  ));
+
+  const selectFailureOn = on(actions.SelectFailure, (state: S, {type, error}) => ({
+    ...state,
+    isLoaded: false,
+    isLoading: false,
+    error
+  }));
+
+  const createRequestOn = on(actions.CreateRequest, (state: S) => (
+    {
+      ...state,
+      isLoading: true,
+      error: null
+    }
+  ));
+
+  const createSuccessOn = on(actions.CreateSuccess, (state: S, {type, item}) => (
+    {
+      ...state,
+      item,
+      isLoaded: true,
+      isLoading: false,
+      error: null
+    }
+  ));
+
+  const createOn = on(actions.Create, (state: S, {type, item}) => (
+    {
+      ...state,
+      item,
+      isLoaded: true,
+      isLoading: false,
+      error: null
+    }
+  ));
+
+  const editRequestOn = on(actions.EditRequest, (state: S) => (
+    {
+      ...state,
+      isLoading: true,
+      error: null
+    }
+  ));
+
+  const editSuccessOn = on(actions.EditSuccess, (state: S, {item, type}) => (
+    {
+      ...state,
+      item,
+      isLoaded: true,
+      isLoading: false,
+      error: null
+    }
+  ));
+
+  const editOn = on(actions.Edit, (state: S, {item, type}) => (
+    {
+      ...state,
+      item,
+      isLoaded: true,
+      isLoading: false,
+      error: null
+    }
+  ));
+
+
+  const createFailureOn = on(actions.CreateFailure, (state: S, {type, error}) => ({
+    ...state,
+    isLoaded: false,
+    isLoading: false,
+    error
+  }));
+
+
+  const editFailureOn = on(actions.EditFailure, (state: S, {type, error}) => ({
+    ...state,
+    isLoaded: false,
+    isLoading: false,
+    error
+  }));
+
+  const responseOn = on(actions.Response, (state: S, response) => {
+    const responses = [...state.responses, response];
+    return {...{}, ...state, ...{responses}};
+  });
+
+  const resetResponsesOn = on(actions.ResetResponses, (state: S) => {
+      const responses = [];
+      return {...state, ...{responses}};
+    }
+  );
+
+  const resetOn = on(actions.Reset, (state: S) => ({...state, ...initialState}));
+  return {
+    responseOn,
+    resetResponsesOn,
+
+    selectRequestOn,
+    selectSuccessOn,
+    selectFailureOn,
+
+    createRequestOn,
+    createSuccessOn,
+    createFailureOn,
+
+    editRequestOn,
+    editSuccessOn,
+    editFailureOn,
+
+    resetOn,
+    editOn,
+    createOn
+  };
+
 }

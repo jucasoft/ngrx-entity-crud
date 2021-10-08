@@ -1,4 +1,4 @@
-import {EntityCrudState} from './models';
+import {EntityCrudState, EntitySingleCrudState} from './models';
 
 export function getInitialEntityCrudState<V>(): EntityCrudState<V> {
   return {
@@ -13,6 +13,17 @@ export function getInitialEntityCrudState<V>(): EntityCrudState<V> {
     idsSelected: [],
     itemSelected: null,
     idSelected: null,
+    responses: []
+  };
+}
+
+export function getInitialSingleCrudState<V>(): EntitySingleCrudState<V> {
+  return {
+    item:null,
+    isLoading: false,
+    isLoaded: false,
+    error: null,
+    lastCriteria: null,
     responses: []
   };
 }

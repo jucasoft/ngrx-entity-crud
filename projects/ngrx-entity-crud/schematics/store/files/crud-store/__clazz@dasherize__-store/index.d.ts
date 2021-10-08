@@ -1,6 +1,6 @@
 import * as <%= clazz %>StoreActions from './<%= dasherize(clazz) %>.actions';
 import * as <%= clazz %>StoreSelectors from './<%= dasherize(clazz) %>.selectors';
-import * as <%= clazz %>Criteria from './<%= dasherize(clazz) %>.criteria';
+<% if(type === 'CRUD+GRAPHQL') {%>import * as <%= clazz %>Criteria from './<%= dasherize(clazz) %>.criteria';<% } %>
 import * as <%= clazz %>StoreState from './<%= dasherize(clazz) %>.state';
 
 export {
@@ -10,6 +10,6 @@ export {
 export {
 <%= clazz %>StoreActions,
   <%= clazz %>StoreSelectors,
-  <%= clazz %>Criteria,
-  <%= clazz %>StoreState
+<% if(type === 'CRUD+GRAPHQL') {%>	<%= clazz %>Criteria,<% } %>
+<%= clazz %>StoreState
 };

@@ -138,22 +138,62 @@ export interface FilterMetadata {
   renderFunction?: (value: any) => string;
 }
 
-export interface CrudState<T> extends EntityState<T> {
+export interface CrudBaseState<T> {
   error: string;
   isLoading: boolean;
   isLoaded: boolean;
-  filters: { [s: string]: FilterMetadata; };
   lastCriteria: ICriteria;
-  idsSelected: string[] | number[];
-  itemSelected: T;
-  idSelected: string | number;
-  // itemsSelected: T[];
-  entitiesSelected: Dictionary<T>;
-  // ogni entità registra l'azione scatenata e la risposta dal server.
   responses: OptResponse<T>[];
 }
 
-export interface EntityCrudSelectors<T, V> extends EntitySelectors<T, V> {
+export interface SingleCrudState<T> extends CrudBaseState<T>{
+  item: T
+}
+
+
+export interface CrudState<T> extends CrudBaseState<T>, EntityState<T> {
+  filters: { [s: string]: FilterMetadata; };
+  idsSelected: string[] | number[];
+  itemSelected: T;
+  idSelected: string | number;
+  entitiesSelected: Dictionary<T>;
+}
+
+export interface EntityCrudBaseSelectors<T, V> {
+
+  /**
+   * - used to select last criteria
+   * @param (state: V) => ICriteria
+   */
+  selectLastCriteria: (state: V) => ICriteria;
+  /**
+   * - used to select an error
+   * @param (state: V) => string
+   */
+  selectError: (state: V) => string;
+  /**
+   * - returns true if there are calls in progress
+   * @@param (state: V) => boolean
+   */
+  selectIsLoading: (state: V) => boolean;
+  /**
+   * - returns true if all calls are completed
+   * @@param (state: V) => boolean
+   */
+  selectIsLoaded: (state: V) => boolean;
+  /**
+   * - used to select response variable contained in the formula
+   * @param (state: V) => OptResponse<T>[]
+   */
+  selectResponses: (state: V) => OptResponse<T>[];
+
+}
+
+export interface EntitySingleCrudSelectors<T, V> extends EntityCrudBaseSelectors<T, V> {
+  selectItem: (state: V) => T;
+}
+
+export interface EntityCrudSelectors<T, V> extends EntityCrudBaseSelectors<T, V>, EntitySelectors<T, V> {
   /**
    *
    *
@@ -208,26 +248,6 @@ export interface EntityCrudSelectors<T, V> extends EntitySelectors<T, V> {
    */
   selectItemsSelectedOrigin: (state: V) => T[];
   /**
-   * - used to select last criteria
-   * @param (state: V) => ICriteria
-   */
-  selectLastCriteria: (state: V) => ICriteria;
-  /**
-   * - used to select an error
-   * @param (state: V) => string
-   */
-  selectError: (state: V) => string;
-  /**
-   * - returns true if there are calls in progress
-   * @@param (state: V) => boolean
-   */
-  selectIsLoading: (state: V) => boolean;
-  /**
-   * - returns true if all calls are completed
-   * @@param (state: V) => boolean
-   */
-  selectIsLoaded: (state: V) => boolean;
-  /**
    * - used to select filters
    * @param (state: V) => {[s: string]: FilterMetadata;}
    */
@@ -237,19 +257,25 @@ export interface EntityCrudSelectors<T, V> extends EntitySelectors<T, V> {
    * @param MemoizedSelector<V, T[]>
    */
   selectFilteredItems: MemoizedSelector<V, T[]>;
-  /**
-   * - used to select response variable contained in the formula
-   * @param (state: V) => OptResponse<T>[]
-   */
-  selectResponses: (state: V) => OptResponse<T>[];
+
 }
 
-export interface EntityCrudState<T> extends EntityState<T> {
+
+export interface EntityCrudBaseState<T> {
   error: string;
   isLoading: boolean;
   isLoaded: boolean;
-  filters: { [s: string]: FilterMetadata; };
   lastCriteria: ICriteria;
+  // ogni entità registra l'azione scatenata e la risposta dal server.
+  responses: OptResponse<T>[];
+}
+
+export interface EntitySingleCrudState<T> extends EntityCrudBaseState<T> {
+  item: T
+}
+
+export interface EntityCrudState<T> extends EntityCrudBaseState<T>, EntityState<T> {
+  filters: { [s: string]: FilterMetadata; };
   itemSelected: T;
   idSelected: string | number;
   // /**
@@ -261,8 +287,6 @@ export interface EntityCrudState<T> extends EntityState<T> {
   entitiesSelected: Dictionary<T>;
 
   idsSelected: string[] | number[];
-  // ogni entità registra l'azione scatenata e la risposta dal server.
-  responses: OptResponse<T>[];
 }
 
 export interface EntityCrudAdapter<T> extends EntityAdapter<T> {
@@ -288,8 +312,8 @@ export interface Actions<T> {
   // azione dispacciata dall'effect se:
   // OptRequestBase.dispatchResponse === true
   // OptEffect.dispatchResponse === true
-  Response: ActionCreator<string, (props: OptResponse<T | T[]>) => OptResponse<T | T[]> & TypedAction<string>>;
-  ResetResponses: ActionCreator<string, () => { type: string; }>;
+  Response?: ActionCreator<string, (props: OptResponse<T | T[]>) => OptResponse<T | T[]> & TypedAction<string>>;
+  ResetResponses?: ActionCreator<string, () => { type: string; }>;
 
   /**
    * - action used to execute asynchronous researches
@@ -305,9 +329,9 @@ export interface Actions<T> {
    * @param type: string
    *
    */
-  SearchRequest: ActionCreator<string, (props: ICriteria) => ICriteria & TypedAction<string>>;
-  SearchFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  SearchSuccess: ActionCreator<string, (props: { items: T[], request: ICriteria }) => { items: T[], request: ICriteria } & TypedAction<string>>;
+  SearchRequest?: ActionCreator<string, (props: ICriteria) => ICriteria & TypedAction<string>>;
+  SearchFailure?: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
+  SearchSuccess?: ActionCreator<string, (props: { items: T[], request: ICriteria }) => { items: T[], request: ICriteria } & TypedAction<string>>;
 
   /**
    * - action used to execute a request to remove an item
@@ -318,9 +342,9 @@ export interface Actions<T> {
    * @param onResult?: Action[]
    * @param dispatchResponse?: boolean
    */
-  DeleteRequest: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
-  DeleteFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  DeleteSuccess: ActionCreator<string, (props: { id: string; }) => { id: string; } & TypedAction<string>>;
+  DeleteRequest?: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
+  DeleteFailure?: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
+  DeleteSuccess?: ActionCreator<string, (props: { id: string; }) => { id: string; } & TypedAction<string>>;
 
   /**
    * - action used to execute a request to remove more items
@@ -331,9 +355,9 @@ export interface Actions<T> {
    * @param onResult?: Action[]
    * @param dispatchResponse?: boolean
    */
-  DeleteManyRequest: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
-  DeleteManyFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  DeleteManySuccess: ActionCreator<string, (props: { ids: string[]; }) => { ids: string[]; } & TypedAction<string>>;
+  DeleteManyRequest?: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
+  DeleteManyFailure?: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
+  DeleteManySuccess?: ActionCreator<string, (props: { ids: string[]; }) => { ids: string[]; } & TypedAction<string>>;
 
   /**
    * - action used to execute a request to create a new item
@@ -344,9 +368,9 @@ export interface Actions<T> {
    * @param onResult?: Action[]
    * @param dispatchResponse?: boolean
    */
-  CreateRequest: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
-  CreateFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  CreateSuccess: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+  CreateRequest?: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
+  CreateFailure?: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
+  CreateSuccess?: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 
   /**
    * - action used to execute a request to create more new items
@@ -357,9 +381,9 @@ export interface Actions<T> {
    * @param onResult?: Action[]
    * @param dispatchResponse?: boolean
    */
-  CreateManyRequest: ActionCreator<string, (props: OptRequest<T[] | T>) => OptRequest<T[] | T> & TypedAction<string>>;
-  CreateManyFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  CreateManySuccess: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
+  CreateManyRequest?: ActionCreator<string, (props: OptRequest<T[] | T>) => OptRequest<T[] | T> & TypedAction<string>>;
+  CreateManyFailure?: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
+  CreateManySuccess?: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
 
   /**
    *  - action used to execute a request to select an item
@@ -370,9 +394,9 @@ export interface Actions<T> {
    * @param onResult?: Action[]
    * @param dispatchResponse?: boolean
    */
-  SelectRequest: ActionCreator<string, (props: ICriteria) => ICriteria & TypedAction<string>>;
-  SelectFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  SelectSuccess: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+  SelectRequest?: ActionCreator<string, (props: ICriteria) => ICriteria & TypedAction<string>>;
+  SelectFailure?: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
+  SelectSuccess?: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 
   /**
    *  - action used to execute a request to modify an item
@@ -383,9 +407,9 @@ export interface Actions<T> {
    * @param onResult?: Action[]
    * @param dispatchResponse?: boolean
    */
-  EditRequest: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
-  EditFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  EditSuccess: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+  EditRequest?: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
+  EditFailure?: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
+  EditSuccess?: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 
   /**
    *  - action used to execute a request to modify more items
@@ -396,23 +420,23 @@ export interface Actions<T> {
    * @param onResult?: Action[]
    * @param dispatchResponse?: boolean
    */
-  EditManyRequest: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
-  EditManyFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  EditManySuccess: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
+  EditManyRequest?: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
+  EditManyFailure?: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
+  EditManySuccess?: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
 
   /**
    * - action used to execute a store reset
    * @example store.dispatch(actions.Reset());
    * @param type: string
    */
-  Reset: ActionCreator<string, () => { type: string; }>;
+  Reset?: ActionCreator<string, () => { type: string; }>;
 
   /**
    * - action used to apply some filters on data
    * @example store.dispatch(actions.Filters(payload));
    * @param filters: { [s: string]: FilterMetadata;}
    */
-  Filters: ActionCreator<string, (props: { filters: { [s: string]: FilterMetadata; }; }) => { filters: { [s: string]: FilterMetadata; }; } & TypedAction<string>>;
+  Filters?: ActionCreator<string, (props: { filters: { [s: string]: FilterMetadata; }; }) => { filters: { [s: string]: FilterMetadata; }; } & TypedAction<string>>;
 
   // selezione locale di + elementi
   /**
@@ -420,39 +444,39 @@ export interface Actions<T> {
    * @example store.dispatch(actions.SelectItems(payload));
    * @param items: T[]
    */
-  SelectItems: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
+  SelectItems?: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
   // TODO: doc
-  AddManySelected: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
+  AddManySelected?: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
   // TODO: doc
-  RemoveManySelected: ActionCreator<string, (props: { ids: string[]; }) => { ids: string[]; } & TypedAction<string>>;
+  RemoveManySelected?: ActionCreator<string, (props: { ids: string[]; }) => { ids: string[]; } & TypedAction<string>>;
   // TODO: doc
-  RemoveAllSelected: ActionCreator<string>;
+  RemoveAllSelected?: ActionCreator<string>;
   /**
    * - action used to identify a single item to select
    * @example store.dispatch(actions.SelectItem(payload));
    * @param item: T
    */
-  SelectItem: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+  SelectItem?: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 
   /**
    * - action used to modify an item on the store
    * @example store.dispatch(actions.Edit(payload));
    * @param item: T
    */
-  Edit: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+  Edit?: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 
   /**
    * - action used to create an item on the store
    * @example store.dispatch(actions.Create(payload));
    * @param item: T
    */
-  Create: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+  Create?: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 
   /**
    * - action used to remove an item on the store
    * @example const toState: State = featureReducer(expectState, actions.Delete(payload));
    * @param id: string
    */
-  Delete: ActionCreator<string, (props: { id: string; }) => { id: string; } & TypedAction<string>>;
+  Delete?: ActionCreator<string, (props: { id: string; }) => { id: string; } & TypedAction<string>>;
 
 }

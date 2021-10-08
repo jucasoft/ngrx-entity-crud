@@ -1,36 +1,68 @@
-import {CrudState, Dictionary, EntityCrudSelectors, EntityCrudState, FilterMetadata, ICriteria, OptResponse} from './models';
+import {CrudBaseState, CrudState, Dictionary, EntityCrudBaseSelectors, EntityCrudBaseState, EntityCrudSelectors, EntityCrudState, EntitySingleCrudSelectors, EntitySingleCrudState, FilterMetadata, ICriteria, OptResponse, SingleCrudState} from './models';
 import {createSelector, MemoizedSelector} from '@ngrx/store';
 import {jNgrxFilter} from './j-ngrx-filter';
 
-export function createCrudSelectorsFactory<T>(adapter) {
+const getError = <T>(state: CrudBaseState<T>): any => state.error;
+const getIsLoading = <T>(state: CrudBaseState<T>): boolean => state.isLoading;
+const getIsLoaded = <T>(state: CrudBaseState<T>): boolean => state.isLoaded;
+const getFilters = <T>(state: CrudState<T>): { [s: string]: FilterMetadata; } => state.filters;
+const getLastCriteria = <T>(state: CrudBaseState<T>): ICriteria => state.lastCriteria;
+const getItemSelected = <T>(state: CrudState<T>): T => state.itemSelected;
+const getIdSelected = <T>(state: CrudState<T>): string | number => state.idSelected;
+const getEntitiesSelected = <T>(state: CrudState<T>): Dictionary<T> => state.entitiesSelected;
+const getIdsSelected = <T>(state: CrudState<T>): string[] | number[] => state.idsSelected;
+const getRespones = <T>(state: CrudBaseState<T>): OptResponse<T>[] => state.responses;
+const getItem = <T>(state: SingleCrudState<T>): T => state.item;
 
-  function getCrudSelectors<V>(
-    selectState: (state: V) => EntityCrudState<T>
-  ): EntityCrudSelectors<T, V>;
+export function getCrudBaseSelectors<T, V>(
+  selectState: (state: V) => EntityCrudBaseState<T>
+): EntityCrudBaseSelectors<T, V> {
+  const selectError: MemoizedSelector<V, any> = createSelector(selectState, getError);
+  const selectIsLoading: MemoizedSelector<V, boolean> = createSelector(selectState, getIsLoading);
+  const selectIsLoaded: MemoizedSelector<V, boolean> = createSelector(selectState, getIsLoaded);
+  const selectLastCriteria: MemoizedSelector<V, ICriteria> = createSelector(selectState, getLastCriteria);
+  const selectResponses: MemoizedSelector<V, OptResponse<T>[]> = createSelector(selectState, getRespones);
+
+  return {
+    selectError,
+    selectIsLoading,
+    selectIsLoaded,
+    selectLastCriteria,
+    selectResponses,
+  };
+}
+
+export function getSingeCrudSelectors<T, V>(
+  selectState: (state: V) => EntitySingleCrudState<T>
+): EntitySingleCrudSelectors<T, V> {
+  const {
+    selectError,
+    selectIsLoading,
+    selectIsLoaded,
+    selectLastCriteria,
+    selectResponses
+  } = getCrudBaseSelectors(selectState);
+
+  const selectItem: MemoizedSelector<V, T> = createSelector(selectState, getItem);
+  return {
+    selectItem,
+    selectError,
+    selectIsLoading,
+    selectIsLoaded,
+    selectLastCriteria,
+    selectResponses
+  };
+}
+
+export function createCrudSelectorsFactory<T>(adapter) {
   function getCrudSelectors<V>(
     selectState: (state: V) => EntityCrudState<T>
   ): EntityCrudSelectors<T, V> {
 
-    const getError = (state: CrudState<T>): any => state.error;
-    const getIsLoading = (state: CrudState<T>): boolean => state.isLoading;
-    const getIsLoaded = (state: CrudState<T>): boolean => state.isLoaded;
-    const getFilters = (state: CrudState<T>): { [s: string]: FilterMetadata; } => state.filters;
-    const getLastCriteria = (state: CrudState<T>): ICriteria => state.lastCriteria;
-    const getItemSelected = (state: CrudState<T>): T => state.itemSelected;
-    const getIdSelected = (state: CrudState<T>): string | number => state.idSelected;
-    // const getItemsSelected = (state: CrudState<T>): T[] => state.itemsSelected;
-    const getEntitiesSelected = (state: CrudState<T>): Dictionary<T> => state.entitiesSelected;
-    const getIdsSelected = (state: CrudState<T>): string[] | number[] => state.idsSelected;
-    const getRespones = (state: CrudState<T>): OptResponse<T>[] => state.responses;
-
-    const selectError: MemoizedSelector<V, any> = createSelector(selectState, getError);
-    const selectIsLoading: MemoizedSelector<V, boolean> = createSelector(selectState, getIsLoading);
-    const selectIsLoaded: MemoizedSelector<V, boolean> = createSelector(selectState, getIsLoaded);
     const selectFilters: MemoizedSelector<V, { [s: string]: FilterMetadata; }> = createSelector(
       selectState,
       getFilters
     );
-    const selectLastCriteria: MemoizedSelector<V, ICriteria> = createSelector(selectState, getLastCriteria);
 
     const selectItemSelected: MemoizedSelector<V, T> = createSelector(selectState, getItemSelected);
     const selectEntitiesSelected: MemoizedSelector<V, Dictionary<T>> = createSelector(selectState, getEntitiesSelected);
@@ -39,7 +71,13 @@ export function createCrudSelectorsFactory<T>(adapter) {
     const selectIdSelected: MemoizedSelector<V, string | number> = createSelector(selectState, getIdSelected);
     const selectIdsSelected: MemoizedSelector<V, string[] | number[]> = createSelector(selectState, getIdsSelected);
 
-    const selectResponses: MemoizedSelector<V, OptResponse<T>[]> = createSelector(selectState, getRespones);
+    const {
+      selectError,
+      selectIsLoading,
+      selectIsLoaded,
+      selectLastCriteria,
+      selectResponses
+    } = getCrudBaseSelectors(selectState);
 
     const {
       selectAll,

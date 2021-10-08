@@ -611,7 +611,7 @@ export const selectCatchError = <T>(actions: Actions<T>): MonoTypeOperatorFuncti
   return input$ => input$.pipe(
     catchError((error, caught) => {
         const response = [];
-        response.push(actions.EditFailure({error}));
+        response.push(actions.SelectFailure({error}));
         response.push(actions.Response({
           actionType: 'Failure',
           request: null,
