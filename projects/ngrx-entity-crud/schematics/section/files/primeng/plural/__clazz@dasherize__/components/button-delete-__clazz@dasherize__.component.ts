@@ -28,8 +28,8 @@ export class ButtonDelete<%= clazz %>Component implements OnInit {
     );
   }
 
-  onDelete(items: <%= clazz %>[]): void {
-    this.store$.dispatch(<%= clazz %>StoreActions.DeleteManyRequest({items}));
+  onDelete(mutationParams: <%= clazz %>[]): void {
+    this.store$.dispatch(<%= clazz %>StoreActions.DeleteManyRequest({mutationParams}));
   }
 
 }

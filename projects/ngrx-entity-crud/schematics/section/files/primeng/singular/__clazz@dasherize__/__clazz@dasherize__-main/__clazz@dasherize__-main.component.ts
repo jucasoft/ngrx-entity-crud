@@ -26,7 +26,6 @@ export class <%= clazz %>MainComponent implements OnInit {
   }
 
   setItem(value: <%= clazz %>): void {
-    debugger
     console.log('<%= clazz %>MainComponent.setItem()');
     console.log('value', value);
     const group = this.fb.group({});

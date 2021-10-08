@@ -81,12 +81,12 @@ export class <%= clazz %>ListComponent implements OnInit {
 
   }
 
-  onDelete(item): void {
+  onDelete(mutationParams): void {
 
     this.confirmationService.confirm({
       message: 'Are you sure that you want to perform this action?',
       accept: () => {
-        this.store$.dispatch(<%= clazz %>StoreActions.DeleteRequest({item}));
+        this.store$.dispatch(<%= clazz %>StoreActions.DeleteRequest({mutationParams}));
       }
     });
 

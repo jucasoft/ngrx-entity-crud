@@ -22,10 +22,10 @@ export class <%= clazz %>EditComponent extends PopUpBaseComponent<<%= clazz %>> 
     this.form = group;
   }
 
-  acceptPerform(item: <%= clazz %>): void {
-    if (item.id) {
+  acceptPerform(mutationParams: <%= clazz %>): void {
+    if (mutationParams.id) {
       this.store$.dispatch(<%= clazz %>StoreActions.EditRequest({
-        item, onResult: [
+        mutationParams, onResult: [
           // azione che verrà invocata al result della chiamata all'interno dell'effect.
           // chiude la popUP.
           // closePopUpAction: metodo per la creazione dell'azione di chiusura della popUP
@@ -34,7 +34,7 @@ export class <%= clazz %>EditComponent extends PopUpBaseComponent<<%= clazz %>> 
       }));
     } else {
       this.store$.dispatch(<%= clazz %>StoreActions.CreateRequest({
-        item, onResult: [
+        mutationParams, onResult: [
           // azione che verrà invocata al result della chiamata all'interno dell'effect.
           // chiude la popUP.
           // closePopUpAction: metodo per la creazione dell'azione di chiusura della popUP

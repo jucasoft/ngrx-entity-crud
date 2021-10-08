@@ -29,7 +29,7 @@ export class ButtonCreateManyTest<%= clazz %>Component implements OnInit {
   }
 
   onCreateMany(values: <%= clazz %>[]): void {
-    const items = values.map(value => {
+    const mutationParams = values.map(value => {
       const keys = Object.keys(value);
       const result = {...value};
       keys.forEach(key => {
@@ -40,7 +40,7 @@ export class ButtonCreateManyTest<%= clazz %>Component implements OnInit {
       });
       return result;
     });
-    this.store$.dispatch(<%= clazz %>StoreActions.CreateManyRequest({items}));
+    this.store$.dispatch(<%= clazz %>StoreActions.CreateManyRequest({mutationParams}));
   }
 
 }
