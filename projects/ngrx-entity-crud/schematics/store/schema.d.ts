@@ -22,5 +22,5 @@ declare interface CrudStore {
   /**
    * The name of the project.
    */
-  type: 'CRUD' | 'CRUD+GRAPHQL' | 'BASE';
+  type: 'CRUD-PLURAL' | 'CRUD-SINGULAR' | 'CRUD+GRAPHQL' | 'BASE';
 }

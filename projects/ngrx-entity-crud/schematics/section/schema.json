@@ -19,7 +19,8 @@
       "description": "choose the library.",
       "type": "string",
       "enum": [
-        "primeng",
+        "primeng/singular",
+        "primeng/plural",
         "no-libs"
       ],
       "x-prompt": "choose the library."

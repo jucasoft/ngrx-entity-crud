@@ -1,0 +1,23 @@
+<div class="grid">
+  <div class="col">
+    <form
+      [formGroup]="form"
+      class="dynamic-form">
+      <div *ngFor="let key of keys" class="grid">
+        <div class="col">
+          <label for="{{key}}"><strong>{{key}}</strong></label><br>
+          <input [formControlName]="key" class="form-control" id="{{key}}" name="{{key}}" pInputText type="text"/>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="col">
+      <pre>
+{{form | jsonForm | json}}
+</pre>
+  </div>
+</div>
+
+
+<button (click)="submit(form.getRawValue())" class="p-button-success mr-1" label="save" pButton></button>
+

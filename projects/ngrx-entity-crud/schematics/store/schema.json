@@ -25,7 +25,8 @@
       "type": "string",
       "default": "CRUD",
       "enum": [
-        "CRUD",
+        "CRUD-PLURAL",
+        "CRUD-SINGULAR",
         "CRUD+GRAPHQL",
         "BASE"
       ],

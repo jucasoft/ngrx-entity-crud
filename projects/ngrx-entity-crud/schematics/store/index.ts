@@ -47,12 +47,13 @@ export function makeStore(options: CrudStore): Rule {
       addExport(options, normalize(`${pathStore}/index.ts`)),
       addExport(options, normalize(`${pathStore}/index.d.ts`)),
     ];
+
     const crudRules: Rule[] = [
       addImport(normalize(`${pathStore}/state.ts`), `import {${options.clazz}StoreState} from '@root-store/${strings.dasherize(options.clazz)}-store';`),
       updateState(`${strings.underscore(options.name)}:${options.clazz}StoreState.State;`, normalize(`${pathStore}/state.ts`)),
       addImport(normalize(`${pathStore}/selectors.ts`), `import {${options.clazz}StoreSelectors} from '@root-store/${strings.dasherize(options.clazz)}-store';`),
       addRootSelector(options, normalize(`${pathStore}/selectors.ts`)),
-      render(options, './files/crud-store', pathStore),
+      // render(options, './files/crud-store/plural', pathStore),
       render(options, './files/crud-model', pathVo),
       addDeclarationToNgModule({
         module: `${pathStore}/root-store.module.ts`,
@@ -94,11 +95,27 @@ export function makeStore(options: CrudStore): Rule {
         render(options, './files/crud-service-graphql', pathService),
       ]);
     }
-    if (options.type === 'CRUD') {
-      return chain([...genericRules, ...crudRules, render(options, './files/crud-service', pathService),]);
+    if (options.type === 'CRUD-PLURAL') {
+      return chain([
+        ...genericRules,
+        ...crudRules,
+        render(options, './files/crud-store/plural', pathStore),
+        render(options, './files/crud-service', pathService)
+      ]);
+    }
+    if (options.type === 'CRUD-SINGULAR') {
+      return chain([
+        ...genericRules,
+        ...crudRules,
+        render(options, './files/crud-store/singular', pathStore),
+        render(options, './files/crud-service', pathService)
+      ]);
     }
     if (options.type === 'BASE') {
-      return chain([...genericRules, ...baseRules]);
+      return chain([
+        ...genericRules,
+        ...baseRules
+      ]);
     }
 
   };
