@@ -92,7 +92,7 @@ export function makeStore(options: CrudStore): Rule {
       const optionsGQL = {...options, gqlSchema:{fields}}
       return chain([...genericRules, ...crudRules,
         render(optionsGQL, './files/crud-graphql', pathStore),
-        render(options, './files/crud-service-graphql', pathService),
+        render(options, './files/crud-service/graphql', pathService),
       ]);
     }
     if (options.type === 'CRUD-PLURAL') {
@@ -100,7 +100,7 @@ export function makeStore(options: CrudStore): Rule {
         ...genericRules,
         ...crudRules,
         render(options, './files/crud-store/plural', pathStore),
-        render(options, './files/crud-service', pathService)
+        render(options, './files/crud-service/plural', pathService)
       ]);
     }
     if (options.type === 'CRUD-SINGULAR') {
@@ -108,7 +108,7 @@ export function makeStore(options: CrudStore): Rule {
         ...genericRules,
         ...crudRules,
         render(options, './files/crud-store/singular', pathStore),
-        render(options, './files/crud-service', pathService)
+        render(options, './files/crud-service/singular', pathService)
       ]);
     }
     if (options.type === 'BASE') {
