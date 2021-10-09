@@ -13,7 +13,7 @@
     "e2e": "ng e2e",
     "build:schematics": "tsc -p ./projects/ngrx-entity-crud/tsconfig.schematics.json",
     "npm:build:link": "npm run build && cd libs/ngrx-entity-crud/ && npm link",
-    "npm:build:publish": "npm run build && cd libs/ngrx-entity-crud/ && npm publish --tag beta",
+    "npm:build:publish": "npm run build && cd libs/ngrx-entity-crud/ && npm publish",
     "npm:build:publish:beta": "npm run build && cd libs/ngrx-entity-crud/ && npm publish --tag beta"
   },
   "dependencies": {
