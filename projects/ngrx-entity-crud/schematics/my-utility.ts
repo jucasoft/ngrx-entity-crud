@@ -270,9 +270,9 @@ export function updateTsConfigSelector(): Rule {
     console.log('compilerOptionsPathsB', compilerOptionsPathsB);
     tsconfigJson.compilerOptions.paths = {...compilerOptionsPaths, ...compilerOptionsPathsB};
     console.log('tsconfigJson', tsconfigJson);
-    let strContentB = JSON.stringify(tsconfigJson)
+    let strContentB = JSON.stringify(tsconfigJson, null, "\t")
     if (comment_delete) {
-      strContentB = comment.concat(strContentB);
+      strContentB = comment.concat("\n" + strContentB);
     }
     tree.overwrite('/tsconfig.json',strContentB);
     return tree;
