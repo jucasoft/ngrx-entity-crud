@@ -31,7 +31,6 @@
     "@ngrx/router-store": "^12.3.0",
     "@ngrx/store": "^12.3.0",
     "@ngrx/store-devtools": "^12.3.0",
-    "deepmerge": "^4.2.2",
     "rxjs": "~6.6.0",
     "zone.js": "~0.11.4"
   },
