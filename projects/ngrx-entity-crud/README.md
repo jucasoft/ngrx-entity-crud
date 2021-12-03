@@ -38,48 +38,105 @@ Name of the class that will be managed
   - Default: `false`
 
 Store type:
-  - CRUD: generate action, effect and reducer for the crud management of the entity.
+  - CRUD-PLURAL: generate action, effect and reducer for the crud management of the entity.
+  - CRUD-SINGULAR: generate action, effect and reducer for the crud management of the entity.
+  - CRUD+GRAPHQL: generate action, effect and reducer for the crud management of the entity.
   - BASE: generate an empty boilerplate
   
+
 - `--type`
   - Type: `string`
-  - Enum: `"CRUD" or "BASE"`
+  - Enum: `"CRUD-PLURAL", "CRUD-SINGULAR", "CRUD+GRAPHQL", "BASE"`
   - Default: `false`
 
 #### Examples
 
 ```sh
-ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=CRUD
+ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=CRUD-PLURAL
 ```
+<details><summary>Show files generated/changed</summary>
 
-or
+```shell
+CREATE src/app/main/models/vo/coin.ts (221 bytes)
+CREATE src/app/root-store/coin-store/coin-store.module.ts (807 bytes)
+CREATE src/app/root-store/coin-store/coin.actions.ts (779 bytes)
+CREATE src/app/root-store/coin-store/coin.effects.ts (3184 bytes)
+CREATE src/app/root-store/coin-store/coin.names.ts (46 bytes)
+CREATE src/app/root-store/coin-store/coin.reducer.ts (2045 bytes)
+CREATE src/app/root-store/coin-store/coin.selectors.ts (673 bytes)
+CREATE src/app/root-store/coin-store/coin.state.ts (385 bytes)
+CREATE src/app/root-store/coin-store/index.d.ts (282 bytes)
+CREATE src/app/root-store/coin-store/index.ts (284 bytes)
+CREATE src/app/main/services/coin.service.ts (344 bytes)
+
+UPDATE src/app/root-store/index.ts (309 bytes)
+UPDATE src/app/root-store/index.d.ts (309 bytes)
+UPDATE src/app/root-store/state.ts (217 bytes)
+UPDATE src/app/root-store/selectors.ts (665 bytes)
+UPDATE src/app/root-store/root-store.module.ts (1051 bytes)
+
+```
+</details>
+
+```sh
+ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=CRUD-SINGULAR
+```
+<details><summary>Show files generated/changed</summary>
+
+```shell
+CREATE src/app/main/models/vo/coin.ts (221 bytes)
+CREATE src/app/root-store/coin-store/coin-store.module.ts (827 bytes)
+CREATE src/app/root-store/coin-store/coin.actions.ts (524 bytes)
+CREATE src/app/root-store/coin-store/coin.effects.ts (1470 bytes)
+CREATE src/app/root-store/coin-store/coin.names.ts (46 bytes)
+CREATE src/app/root-store/coin-store/coin.reducer.ts (1015 bytes)
+CREATE src/app/root-store/coin-store/coin.selectors.ts (516 bytes)
+CREATE src/app/root-store/coin-store/coin.state.ts (257 bytes)
+CREATE src/app/root-store/coin-store/index.d.ts (282 bytes)
+CREATE src/app/root-store/coin-store/index.ts (282 bytes)
+CREATE src/app/main/services/coin.service.ts (360 bytes)
+
+UPDATE src/app/root-store/index.ts (309 bytes)
+UPDATE src/app/root-store/index.d.ts (309 bytes)
+UPDATE src/app/root-store/state.ts (217 bytes)
+UPDATE src/app/root-store/selectors.ts (665 bytes)
+UPDATE src/app/root-store/root-store.module.ts (1051 bytes)
+
+```
+</details>
+
+```sh
+ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=CRUD+GRAPHQL
+```
+<details><summary>Show files generated/changed</summary>
+
+</details>
 
 ```sh
 ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=BASE
 ```
+<details><summary>Show files generated/changed</summary>
 
-#### Files generated/changed by the “:store” command
+```shell
+CREATE src/app/root-store/coin-store/coin-store.module.ts (807 bytes)
+CREATE src/app/root-store/coin-store/coin.actions.ts (319 bytes)
+CREATE src/app/root-store/coin-store/coin.effects.ts (190 bytes)
+CREATE src/app/root-store/coin-store/coin.names.ts (46 bytes)
+CREATE src/app/root-store/coin-store/coin.reducer.ts (337 bytes)
+CREATE src/app/root-store/coin-store/coin.selectors.ts (593 bytes)
+CREATE src/app/root-store/coin-store/coin.state.ts (116 bytes)
+CREATE src/app/root-store/coin-store/index.d.ts (282 bytes)
+CREATE src/app/root-store/coin-store/index.ts (282 bytes)
+CREATE src/app/main/models/vo/coin.ts (137 bytes)
 
-```sh
-CREATE src/app/root-store/coin-store/coin-store.module.ts (787 bytes)
-CREATE src/app/root-store/coin-store/__clazz@dasherize__.actions.ts (462 bytes)
-CREATE src/app/root-store/coin-store/__clazz@dasherize__.effects.ts (1186 bytes)
-CREATE src/app/root-store/coin-store/index.d.ts (265 bytes)
-CREATE src/app/root-store/coin-store/index.ts (267 bytes)
-CREATE src/app/root-store/coin-store/__clazz@dasherize__.names.ts (46 bytes)
-CREATE src/app/root-store/coin-store/__clazz@dasherize__.reducer.ts (162 bytes)
-CREATE src/app/root-store/coin-store/__clazz@dasherize__.selectors.ts (543 bytes)
-CREATE src/app/root-store/coin-store/__clazz@dasherize__.state.ts (385 bytes)
-CREATE src/app/main/services/coin.service.ts (347 bytes)
-CREATE src/app/main/models/vo/coin.ts (221 bytes)
-
-UPDATE src/app/root-store/index.ts (309 bytes) 
+UPDATE src/app/root-store/index.ts (309 bytes)
 UPDATE src/app/root-store/index.d.ts (309 bytes)
-UPDATE src/app/root-store/__clazz@dasherize__.state.ts (217 bytes)
-UPDATE src/app/root-store/__clazz@dasherize__.selectors.ts (665 bytes)
+UPDATE src/app/root-store/state.ts (184 bytes)
 UPDATE src/app/root-store/root-store.module.ts (1051 bytes)
 ```
+</details>
 
+#### Files generated/changed by the “:store” command
 
 ## section
 
