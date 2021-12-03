@@ -1,6 +1,6 @@
 {
   "name": "ngrx-entity-crud",
-  "version": "12.8.7",
+  "version": "12.9.0",
   "repository": "https://github.com/jucasoft/ngrx-entity-crud",
   "license": "MIT",
   "schematics": "./schematics/collection.json",
@@ -24,6 +24,8 @@
     "@ngrx/store": "^12.3.0",
     "@ngrx/entity": "^12.3.0",
     "@ngrx/effects": "^12.3.0",
+    "@ngrx/store-devtools": "^12.3.0",
+    "@ngrx/router-store": "^12.3.0",
     "rxjs": "~6.6.0"
   },
   "keywords": [

@@ -2,9 +2,9 @@ import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
 import {Store} from '@ngrx/store';
 import {RouterStoreActions, RouterStoreSelectors} from '@root-store/router-store/index';
 import {take} from 'rxjs/operators';
-import {evalData} from '@core/utils/j-utils';
+import {evalData} from 'ngrx-entity-crud';
 import {Subscription} from 'rxjs';
-import {ConfirmationService} from 'primeng/api';
+// import {ConfirmationService} from 'primeng/api';
 import {State} from '@root-store/state';
 import {FormBuilder} from '@angular/forms';
 
@@ -23,7 +23,7 @@ export class PopUpBaseComponent<T> implements OnInit, OnDestroy {
 
   constructor(protected store$: Store<State>,
               protected ref: ChangeDetectorRef,
-              protected confirmationService: ConfirmationService,
+              // protected confirmationService: ConfirmationService,
               protected fb: FormBuilder,
   ) {
     ref.detach();
@@ -53,13 +53,14 @@ export class PopUpBaseComponent<T> implements OnInit, OnDestroy {
     this.ref.markForCheck();
   }
 
-  submit(value): void {
-    this.confirmationService.confirm({
-      message: this.confirmMessage,
-      accept: () => {
-        this.acceptPerform(value);
-      }
-    });
+  submit(value: any): void {
+
+    // this.confirmationService.confirm({
+    //   message: this.confirmMessage,
+    //   accept: () => {
+    //     this.acceptPerform(value);
+    //   }
+    // });
   }
 
   setItemPerform(value: T): void {

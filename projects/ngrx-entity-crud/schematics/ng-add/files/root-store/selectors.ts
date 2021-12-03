@@ -1,6 +1,6 @@
 import {createSelectorFactory, defaultMemoize} from '@ngrx/store';
 
-const customMemoizer = (aFn) => defaultMemoize(aFn, (a: any, b: any) => a === b);
+const customMemoizer = (aFn: any) => defaultMemoize(aFn, (a: any, b: any) => a === b);
 
 export const selectError =
   createSelectorFactory(customMemoizer)(

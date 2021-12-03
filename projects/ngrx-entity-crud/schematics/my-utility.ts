@@ -269,6 +269,7 @@ export function updateTsConfigSelector(): Rule {
     }
     console.log('compilerOptionsPathsB', compilerOptionsPathsB);
     tsconfigJson.compilerOptions.paths = {...compilerOptionsPaths, ...compilerOptionsPathsB};
+    tsconfigJson.angularCompilerOptions.strictPropertyInitialization = false;
     console.log('tsconfigJson', tsconfigJson);
     let strContentB = JSON.stringify(tsconfigJson, null, "\t")
     if (comment_delete) {
