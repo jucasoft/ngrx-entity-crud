@@ -2,7 +2,7 @@ import {createFeatureSelector, createSelector, MemoizedSelector} from '@ngrx/sto
 import * as fromRouter from '@ngrx/router-store';
 import {Data, NavigationExtras, Params} from '@angular/router';
 import {State} from './state';
-import {evalData} from '@core/utils/j-utils';
+import {evalData} from 'ngrx-entity-crud';
 
 export const selectRouterState: MemoizedSelector<object, State> = createFeatureSelector<State>('router');
 const getOptions = (state: State): any => state.state.root.firstChild.params.options;

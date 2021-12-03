@@ -1,6 +1,6 @@
 {
   "name": "ngrx-entity-crud",
-  "version": "12.8.6",
+  "version": "12.8.7",
   "repository": "https://github.com/jucasoft/ngrx-entity-crud",
   "license": "MIT",
   "schematics": "./schematics/collection.json",
@@ -38,5 +38,8 @@
   "author": "Giuseppe Luca Lo Re <juca@jucasoft.com>",
   "private": false,
   "dependencies": {
+  },
+  "ng-add": {
+    "save": true
   }
 }
