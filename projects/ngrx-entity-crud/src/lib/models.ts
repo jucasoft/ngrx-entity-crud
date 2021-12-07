@@ -312,8 +312,8 @@ export interface Actions<T> {
   // azione dispacciata dall'effect se:
   // OptRequestBase.dispatchResponse === true
   // OptEffect.dispatchResponse === true
-  Response?: ActionCreator<string, (props: OptResponse<T | T[]>) => OptResponse<T | T[]> & TypedAction<string>>;
-  ResetResponses?: ActionCreator<string, () => { type: string; }>;
+  Response: ActionCreator<string, (props: OptResponse<T | T[]>) => OptResponse<T | T[]> & TypedAction<string>>;
+  ResetResponses: ActionCreator<string, () => { type: string; }>;
 
   /**
    * - action used to execute asynchronous researches
@@ -329,9 +329,9 @@ export interface Actions<T> {
    * @param type: string
    *
    */
-  SearchRequest?: ActionCreator<string, (props: ICriteria) => ICriteria & TypedAction<string>>;
-  SearchFailure?: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  SearchSuccess?: ActionCreator<string, (props: { items: T[], request: ICriteria }) => { items: T[], request: ICriteria } & TypedAction<string>>;
+  SearchRequest: ActionCreator<string, (props: ICriteria) => ICriteria & TypedAction<string>>;
+  SearchFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
+  SearchSuccess: ActionCreator<string, (props: { items: T[], request: ICriteria }) => { items: T[], request: ICriteria } & TypedAction<string>>;
 
   /**
    * - action used to execute a request to remove an item
@@ -342,9 +342,9 @@ export interface Actions<T> {
    * @param onResult?: Action[]
    * @param dispatchResponse?: boolean
    */
-  DeleteRequest?: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
-  DeleteFailure?: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  DeleteSuccess?: ActionCreator<string, (props: { id: string; }) => { id: string; } & TypedAction<string>>;
+  DeleteRequest: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
+  DeleteFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
+  DeleteSuccess: ActionCreator<string, (props: { id: string; }) => { id: string; } & TypedAction<string>>;
 
   /**
    * - action used to execute a request to remove more items
@@ -355,9 +355,9 @@ export interface Actions<T> {
    * @param onResult?: Action[]
    * @param dispatchResponse?: boolean
    */
-  DeleteManyRequest?: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
-  DeleteManyFailure?: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  DeleteManySuccess?: ActionCreator<string, (props: { ids: string[]; }) => { ids: string[]; } & TypedAction<string>>;
+  DeleteManyRequest: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
+  DeleteManyFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
+  DeleteManySuccess: ActionCreator<string, (props: { ids: string[]; }) => { ids: string[]; } & TypedAction<string>>;
 
   /**
    * - action used to execute a request to create a new item
@@ -368,9 +368,9 @@ export interface Actions<T> {
    * @param onResult?: Action[]
    * @param dispatchResponse?: boolean
    */
-  CreateRequest?: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
-  CreateFailure?: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  CreateSuccess?: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+  CreateRequest: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
+  CreateFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
+  CreateSuccess: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 
   /**
    * - action used to execute a request to create more new items
@@ -381,9 +381,9 @@ export interface Actions<T> {
    * @param onResult?: Action[]
    * @param dispatchResponse?: boolean
    */
-  CreateManyRequest?: ActionCreator<string, (props: OptRequest<T[] | T>) => OptRequest<T[] | T> & TypedAction<string>>;
-  CreateManyFailure?: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  CreateManySuccess?: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
+  CreateManyRequest: ActionCreator<string, (props: OptRequest<T[] | T>) => OptRequest<T[] | T> & TypedAction<string>>;
+  CreateManyFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
+  CreateManySuccess: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
 
   /**
    *  - action used to execute a request to select an item
@@ -394,9 +394,9 @@ export interface Actions<T> {
    * @param onResult?: Action[]
    * @param dispatchResponse?: boolean
    */
-  SelectRequest?: ActionCreator<string, (props: ICriteria) => ICriteria & TypedAction<string>>;
-  SelectFailure?: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  SelectSuccess?: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+  SelectRequest: ActionCreator<string, (props: ICriteria) => ICriteria & TypedAction<string>>;
+  SelectFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
+  SelectSuccess: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 
   /**
    *  - action used to execute a request to modify an item
@@ -407,9 +407,9 @@ export interface Actions<T> {
    * @param onResult?: Action[]
    * @param dispatchResponse?: boolean
    */
-  EditRequest?: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
-  EditFailure?: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  EditSuccess?: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+  EditRequest: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
+  EditFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
+  EditSuccess: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 
   /**
    *  - action used to execute a request to modify more items
@@ -420,23 +420,23 @@ export interface Actions<T> {
    * @param onResult?: Action[]
    * @param dispatchResponse?: boolean
    */
-  EditManyRequest?: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
-  EditManyFailure?: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  EditManySuccess?: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
+  EditManyRequest: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
+  EditManyFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
+  EditManySuccess: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
 
   /**
    * - action used to execute a store reset
    * @example store.dispatch(actions.Reset());
    * @param type: string
    */
-  Reset?: ActionCreator<string, () => { type: string; }>;
+  Reset: ActionCreator<string, () => { type: string; }>;
 
   /**
    * - action used to apply some filters on data
    * @example store.dispatch(actions.Filters(payload));
    * @param filters: { [s: string]: FilterMetadata;}
    */
-  Filters?: ActionCreator<string, (props: { filters: { [s: string]: FilterMetadata; }; }) => { filters: { [s: string]: FilterMetadata; }; } & TypedAction<string>>;
+  Filters: ActionCreator<string, (props: { filters: { [s: string]: FilterMetadata; }; }) => { filters: { [s: string]: FilterMetadata; }; } & TypedAction<string>>;
 
   // selezione locale di + elementi
   /**
@@ -444,39 +444,39 @@ export interface Actions<T> {
    * @example store.dispatch(actions.SelectItems(payload));
    * @param items: T[]
    */
-  SelectItems?: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
+  SelectItems: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
   // TODO: doc
-  AddManySelected?: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
+  AddManySelected: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
   // TODO: doc
-  RemoveManySelected?: ActionCreator<string, (props: { ids: string[]; }) => { ids: string[]; } & TypedAction<string>>;
+  RemoveManySelected: ActionCreator<string, (props: { ids: string[]; }) => { ids: string[]; } & TypedAction<string>>;
   // TODO: doc
-  RemoveAllSelected?: ActionCreator<string>;
+  RemoveAllSelected: ActionCreator<string>;
   /**
    * - action used to identify a single item to select
    * @example store.dispatch(actions.SelectItem(payload));
    * @param item: T
    */
-  SelectItem?: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+  SelectItem: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 
   /**
    * - action used to modify an item on the store
    * @example store.dispatch(actions.Edit(payload));
    * @param item: T
    */
-  Edit?: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+  Edit: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 
   /**
    * - action used to create an item on the store
    * @example store.dispatch(actions.Create(payload));
    * @param item: T
    */
-  Create?: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+  Create: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 
   /**
    * - action used to remove an item on the store
    * @example const toState: State = featureReducer(expectState, actions.Delete(payload));
    * @param id: string
    */
-  Delete?: ActionCreator<string, (props: { id: string; }) => { id: string; } & TypedAction<string>>;
+  Delete: ActionCreator<string, (props: { id: string; }) => { id: string; } & TypedAction<string>>;
 
 }
