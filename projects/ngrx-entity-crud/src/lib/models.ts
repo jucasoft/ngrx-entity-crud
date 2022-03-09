@@ -88,8 +88,9 @@ export interface OptRequestBase {
   onResult?: Action[];
 
   /**
-   * per ogni stringa presente nell'attributo, verrà spedita una notifica Response.
-   * in questo modo, chi invia la notifica potrà poi filtrare i fati in base alla chiave inviata.
+   * se true, al completamento della chiamata asincrona, verrà inviata un'azione di tipo Response,
+   * contenente le informazioni sulla chiamata e la risposta.
+   * In questo modo sarà possibile analizzare l'andamento
    */
   dispatchResponse?: boolean;
 }
@@ -121,7 +122,7 @@ export interface OptResponse<T> {
 export interface OptEffect {
   /**
    * per ogni stringa presente nell'attributo, verrà spedita una notifica Response.
-   * in questo modo, chi invia la notifica potrà poi filtrare i fati in base alla chiave inviata.
+   * in questo modo, chi invia la notifica potrà poi filtrare i dati in base alla chiave inviata.
    */
   dispatchResponse?: boolean;
 }
@@ -149,7 +150,6 @@ export interface CrudBaseState<T> {
 export interface SingleCrudState<T> extends CrudBaseState<T>{
   item: T
 }
-
 
 export interface CrudState<T> extends CrudBaseState<T>, EntityState<T> {
   filters: { [s: string]: FilterMetadata; };
@@ -195,8 +195,6 @@ export interface EntitySingleCrudSelectors<T, V> extends EntityCrudBaseSelectors
 
 export interface EntityCrudSelectors<T, V> extends EntityCrudBaseSelectors<T, V>, EntitySelectors<T, V> {
   /**
-   *
-   *
    * - used to select selected id
    * - populated with action "...SelectedItem({item})",
    * @param (state: V) => string | number

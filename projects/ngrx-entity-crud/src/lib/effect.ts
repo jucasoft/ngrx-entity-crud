@@ -24,7 +24,7 @@ export const searchResponse = <T>(actions: Actions<T>, optEffect?: OptEffect): M
           }
         } else {
           result.push(actions.SearchSuccess({items: response.data, request: payload}));
-          result.push(actions.Filters({filters: {}}));
+          // result.push(actions.Filters({filters: {}}));
           if (payload.onResult) {
             const onResults = (payload.onResult as Action[]).map(a => (a as any).newAction ? (a as any).newAction(response, payload) : a);
             result.push(...onResults);
