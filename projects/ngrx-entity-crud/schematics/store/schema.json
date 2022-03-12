@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/schema",
-  "id": "CrudStore",
+  "$id": "CrudStore",
   "title": "Crud store schematics",
   "type": "object",
   "properties": {
