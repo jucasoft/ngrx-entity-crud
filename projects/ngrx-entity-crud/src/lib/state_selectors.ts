@@ -43,7 +43,7 @@ export function getSingeCrudSelectors<T, V>(
     selectResponses
   } = getCrudBaseSelectors(selectState);
 
-  const selectItem: MemoizedSelector<V, T> = createSelector(selectState, getItem);
+  const selectItem: MemoizedSelector<V, T> = createSelector(selectState, getItem) as MemoizedSelector<V, T>
   return {
     selectItem,
     selectError,
@@ -64,9 +64,9 @@ export function createCrudSelectorsFactory<T>(adapter) {
       getFilters
     );
 
-    const selectItemSelected: MemoizedSelector<V, T> = createSelector(selectState, getItemSelected);
-    const selectEntitiesSelected: MemoizedSelector<V, Dictionary<T>> = createSelector(selectState, getEntitiesSelected);
-    const selectItemsSelected: MemoizedSelector<V, T[]> = createSelector(selectEntitiesSelected, (entities: Dictionary<T>) => Object.values(entities));
+    const selectItemSelected: MemoizedSelector<V, T> = createSelector(selectState, getItemSelected) as MemoizedSelector<V, T>;
+    const selectEntitiesSelected: MemoizedSelector<V, Dictionary<T>> = createSelector(selectState, getEntitiesSelected) as MemoizedSelector<V, Dictionary<T>>
+    const selectItemsSelected: MemoizedSelector<V, T[]> = createSelector(selectEntitiesSelected, (entities: Dictionary<T>) => Object.values(entities)) as MemoizedSelector<V, T[]>
 
     const selectIdSelected: MemoizedSelector<V, string | number> = createSelector(selectState, getIdSelected);
     const selectIdsSelected: MemoizedSelector<V, string[] | number[]> = createSelector(selectState, getIdsSelected);

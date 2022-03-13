@@ -2,12 +2,11 @@
   "$schema": "../../node_modules/ng-packagr/ng-package.schema.json",
   "dest": "../../libs/ngrx-entity-crud",
   "lib": {
-    "entryFile": "src/public-api.ts",
-    "umdModuleIds": {
-      "@ngrx/effects": "effects",
-      "@ngrx/entity": "entity",
-      "@ngrx/store": "store",
-      "ts-action": "tsAction"
-  }
-}
+    "entryFile": "src/public-api.ts"
+  },
+  "assets": [
+    "./schematics/*/schema.json",
+    "./schematics/*/files/**",
+    "./schematics/collection.json"
+  ]
 }
