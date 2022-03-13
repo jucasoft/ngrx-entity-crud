@@ -305,13 +305,56 @@ interface PropsSearchSuccess<T> {
   request: ICriteria;
 }
 
-export interface Actions<T> {
-
+export interface SingularActions<T> {
   // azione dispacciata dall'effect se:
   // OptRequestBase.dispatchResponse === true
   // OptEffect.dispatchResponse === true
   Response: ActionCreator<string, (props: OptResponse<T | T[]>) => OptResponse<T | T[]> & TypedAction<string>>;
   ResetResponses: ActionCreator<string, () => { type: string; }>;
+
+  /**
+   *  - action used to execute a request to select an item
+   * @example store.dispatch(actions.SelectRequest(payload));
+   * @param item: T
+   * @param path?: any[]
+   * @param onFault?: Action[]
+   * @param onResult?: Action[]
+   * @param dispatchResponse?: boolean
+   */
+  SelectRequest: ActionCreator<string, (props: ICriteria) => ICriteria & TypedAction<string>>;
+  SelectFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
+  SelectSuccess: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+
+
+  /**
+   *  - action used to execute a request to modify an item
+   * @example store.dispatch(actions.EditRequest(payload));
+   * @param item: T
+   * @param path?: any[]
+   * @param onFault?: Action[]
+   * @param onResult?: Action[]
+   * @param dispatchResponse?: boolean
+   */
+  EditRequest: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
+  EditFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
+  EditSuccess: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+
+  /**
+   * - action used to execute a store reset
+   * @example store.dispatch(actions.Reset());
+   * @param type: string
+   */
+  Reset: ActionCreator<string, () => { type: string; }>;
+
+  /**
+   * - action used to modify an item on the store
+   * @example store.dispatch(actions.Edit(payload));
+   * @param item: T
+   */
+  Edit: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+}
+
+export interface Actions<T> extends SingularActions<T>{
 
   /**
    * - action used to execute asynchronous researches
@@ -384,32 +427,6 @@ export interface Actions<T> {
   CreateManySuccess: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
 
   /**
-   *  - action used to execute a request to select an item
-   * @example store.dispatch(actions.SelectRequest(payload));
-   * @param item: T
-   * @param path?: any[]
-   * @param onFault?: Action[]
-   * @param onResult?: Action[]
-   * @param dispatchResponse?: boolean
-   */
-  SelectRequest: ActionCreator<string, (props: ICriteria) => ICriteria & TypedAction<string>>;
-  SelectFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  SelectSuccess: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
-
-  /**
-   *  - action used to execute a request to modify an item
-   * @example store.dispatch(actions.EditRequest(payload));
-   * @param item: T
-   * @param path?: any[]
-   * @param onFault?: Action[]
-   * @param onResult?: Action[]
-   * @param dispatchResponse?: boolean
-   */
-  EditRequest: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
-  EditFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  EditSuccess: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
-
-  /**
    *  - action used to execute a request to modify more items
    * @example store.dispatch(actions.EditManyRequest(payload));
    * @param items: T[]
@@ -421,13 +438,6 @@ export interface Actions<T> {
   EditManyRequest: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
   EditManyFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
   EditManySuccess: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
-
-  /**
-   * - action used to execute a store reset
-   * @example store.dispatch(actions.Reset());
-   * @param type: string
-   */
-  Reset: ActionCreator<string, () => { type: string; }>;
 
   /**
    * - action used to apply some filters on data
@@ -455,13 +465,6 @@ export interface Actions<T> {
    * @param item: T
    */
   SelectItem: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
-
-  /**
-   * - action used to modify an item on the store
-   * @example store.dispatch(actions.Edit(payload));
-   * @param item: T
-   */
-  Edit: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 
   /**
    * - action used to create an item on the store

@@ -1,7 +1,7 @@
 import {actions} from './<%= dasherize(clazz) %>.actions';
 import {initialState, State} from './<%= dasherize(clazz) %>.state';
 import {createReducer} from '@ngrx/store';
-import {createSingleCrudOns} from 'ngrx-entity-crud';
+import {createSingularCrudOns} from 'ngrx-entity-crud';
 import {<%= clazz %>} from '@models/vo/<%= dasherize(clazz) %>';
 
 // export const featureReducer = adapter.createCrudReducer(initialState, actions);
@@ -33,5 +33,5 @@ const customSearchSuccessOn = on(actions.SearchSuccess, (state: State, {type, it
 */
 
 // example code
-const {...ons} = createSingleCrudOns<<%= clazz %>, State>(initialState as any, actions);
+const {...ons} = createSingularCrudOns<<%= clazz %>, State>(initialState as any, actions);
 export const featureReducer = createReducer<State>(initialState, ...Object.values(ons));

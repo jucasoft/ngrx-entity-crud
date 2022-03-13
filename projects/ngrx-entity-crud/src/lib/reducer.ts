@@ -1,4 +1,4 @@
-import {Actions, EntityCrudState, EntitySingleCrudState, ICriteria, OptRequest} from './models';
+import {Actions, EntityCrudState, EntitySingleCrudState, ICriteria, OptRequest, SingularActions} from './models';
 import {EntityAdapter} from '@ngrx/entity';
 import {ActionCreator, createReducer, on, ReducerTypes} from '@ngrx/store';
 import {selectIdValue, toDictionary} from './utils';
@@ -503,7 +503,7 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
 }
 
 
-export function createSingleCrudOns<T, S extends EntitySingleCrudState<T>>(initialState: S, actions: Actions<T>): { [key: string]: any } {
+export function createSingularCrudOns<T, S extends EntitySingleCrudState<T>>(initialState: S, actions: SingularActions<T>): { [key: string]: any } {
 
   const selectRequestOn = on(actions.SelectRequest, (state: S, {type}) => (
     {
@@ -529,34 +529,6 @@ export function createSingleCrudOns<T, S extends EntitySingleCrudState<T>>(initi
     isLoading: false,
     error
   }));
-
-  const createRequestOn = on(actions.CreateRequest, (state: S) => (
-    {
-      ...state,
-      isLoading: true,
-      error: null
-    }
-  ));
-
-  const createSuccessOn = on(actions.CreateSuccess, (state: S, {type, item}) => (
-    {
-      ...state,
-      item,
-      isLoaded: true,
-      isLoading: false,
-      error: null
-    }
-  ));
-
-  const createOn = on(actions.Create, (state: S, {type, item}) => (
-    {
-      ...state,
-      item,
-      isLoaded: true,
-      isLoading: false,
-      error: null
-    }
-  ));
 
   const editRequestOn = on(actions.EditRequest, (state: S) => (
     {
@@ -586,15 +558,6 @@ export function createSingleCrudOns<T, S extends EntitySingleCrudState<T>>(initi
     }
   ));
 
-
-  const createFailureOn = on(actions.CreateFailure, (state: S, {type, error}) => ({
-    ...state,
-    isLoaded: false,
-    isLoading: false,
-    error
-  }));
-
-
   const editFailureOn = on(actions.EditFailure, (state: S, {type, error}) => ({
     ...state,
     isLoaded: false,
@@ -622,17 +585,12 @@ export function createSingleCrudOns<T, S extends EntitySingleCrudState<T>>(initi
     selectSuccessOn,
     selectFailureOn,
 
-    createRequestOn,
-    createSuccessOn,
-    createFailureOn,
-
     editRequestOn,
     editSuccessOn,
     editFailureOn,
 
     resetOn,
     editOn,
-    createOn
   };
 
 }

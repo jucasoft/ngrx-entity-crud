@@ -1,5 +1,5 @@
 import {ofType} from '@ngrx/effects';
-import {Actions, ICriteria, OptEffect, OptRequest, Response} from './models';
+import {Actions, ICriteria, OptEffect, OptRequest, Response, SingularActions} from './models';
 import {from, MonoTypeOperatorFunction} from 'rxjs';
 import {Action} from '@ngrx/store';
 import {catchError, concatMap, map, repeat, switchMap} from 'rxjs/operators';
@@ -418,7 +418,7 @@ export const editCall = <T>(service: IBaseCrudService<T>): MonoTypeOperatorFunct
   );
 };
 
-export const editResponse = <T>(actions: Actions<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+export const editResponse = <T>(actions: SingularActions<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     concatMap(({response, payload}) => {
         const result = [];
@@ -450,7 +450,7 @@ export const editResponse = <T>(actions: Actions<T>, optEffect?: OptEffect): Mon
   );
 };
 
-export const editCatchError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+export const editCatchError = <T>(actions: SingularActions<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     catchError((error, caught) => {
         const response = [];
@@ -575,7 +575,7 @@ export const selectCall = <T>(service: IBaseCrudService<T>): MonoTypeOperatorFun
   );
 };
 
-export const selectResponse = <T>(actions: Actions<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+export const selectResponse = <T>(actions: SingularActions<T>, optEffect?: OptEffect): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     concatMap(({response, payload}) => {
         const result = [];
@@ -607,7 +607,7 @@ export const selectResponse = <T>(actions: Actions<T>, optEffect?: OptEffect): M
   );
 };
 
-export const selectCatchError = <T>(actions: Actions<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
+export const selectCatchError = <T>(actions: SingularActions<T>): MonoTypeOperatorFunction<any> => {// TODO: tipizzare any
   return input$ => input$.pipe(
     catchError((error, caught) => {
         const response = [];
