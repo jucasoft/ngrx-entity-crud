@@ -19,14 +19,6 @@ export class <%= clazz %>StoreEffects {
     repeat()
   ));
 
-  createRequestEffect$: Observable<Action>  = createEffect(() => this.actions$.pipe(
-    ofType(actions.CreateRequest),
-    createCall<<%= clazz %>>(this.service),
-    createResponse<<%= clazz %>>(actions, {dispatchResponse: false}),
-    createCatchError<<%= clazz %>>(actions),
-    repeat()
-  ));
-
   editRequestEffect$: Observable<Action>  = createEffect(() => this.actions$.pipe(
     ofType(actions.EditRequest),
     editCall<<%= clazz %>>(this.service),

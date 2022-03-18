@@ -5,7 +5,7 @@ import {State} from './state';
 import {evalData} from 'ngrx-entity-crud';
 
 export const selectRouterState: MemoizedSelector<object, State> = createFeatureSelector<State>('router');
-const getOptions = (state: State): any => state?.state?.root?.firstChild?.params?.options;
+const getOptions = (state: State): any => state?.state?.root?.firstChild?.params["options"];
 const getHasPopUp = (state: State): any => evalData<string>(() => state.state.url, '').indexOf('//popUp') !== -1;
 const getPrimary = (state: State): any => evalData(() => state.primary, null);
 const getPopUp = (state: State): any => evalData(() => state.popUp, null);

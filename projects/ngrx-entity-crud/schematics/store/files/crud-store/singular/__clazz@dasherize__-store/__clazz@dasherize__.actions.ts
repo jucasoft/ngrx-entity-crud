@@ -12,14 +12,6 @@ export const {
   SelectFailure,
   SelectSuccess,
 
-  SearchRequest,
-  SearchFailure,
-  SearchSuccess,
-
-  CreateRequest,
-  CreateFailure,
-  CreateSuccess,
-
   EditRequest,
   EditFailure,
   EditSuccess,
@@ -27,8 +19,6 @@ export const {
   Reset,
 
   Edit,
-  Create,
-  Delete,
 } = actions;
 
 
