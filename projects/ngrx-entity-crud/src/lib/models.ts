@@ -276,12 +276,7 @@ export interface EntityCrudState<T> extends EntityCrudBaseState<T>, EntityState<
   filters: { [s: string]: FilterMetadata; };
   itemSelected: T;
   idSelected: string | number;
-  // /**
-  //  * TODO: questo attributo andra sostituiro da una lista di id, d
-  //  *  a utilizzare come riferimenti agli elementi selezionati.
-  //  * @deprecated utilizzare entitySelected/idSelected
-  //  */
-  // itemsSelected: T[];
+
   entitiesSelected: Dictionary<T>;
 
   idsSelected: string[] | number[];

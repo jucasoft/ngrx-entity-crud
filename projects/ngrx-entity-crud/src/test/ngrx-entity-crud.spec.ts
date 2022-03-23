@@ -681,7 +681,7 @@ describe('Crud', () => {
 
     it('SelectRequest', () => {
       const payload = {queryParams:{item: {id: 0, name: 'a'}}};
-      const expectedAction = actions.SelectRequest({queryParams:payload});
+      const expectedAction = actions.SelectRequest(payload);
       const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
       store.dispatch(actions.SelectRequest(payload));
       expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
