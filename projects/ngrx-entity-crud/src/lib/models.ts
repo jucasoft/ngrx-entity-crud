@@ -111,6 +111,10 @@ export interface ICriteria<QP = any> extends OptRequestBase {
 
 export interface OptRequest<T = any> extends OptRequestBase {
   mutationParams: T;
+  /**
+   * options optional
+   */
+  options?: any;
 }
 
 export interface OptResponse<T> {
@@ -147,7 +151,7 @@ export interface CrudBaseState<T> {
   responses: OptResponse<T>[];
 }
 
-export interface SingleCrudState<T> extends CrudBaseState<T>{
+export interface SingleCrudState<T> extends CrudBaseState<T> {
   item: T
 }
 
@@ -349,7 +353,7 @@ export interface SingularActions<T> {
   Edit: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 }
 
-export interface Actions<T> extends SingularActions<T>{
+export interface Actions<T> extends SingularActions<T> {
 
   /**
    * - action used to execute asynchronous researches
@@ -380,7 +384,7 @@ export interface Actions<T> extends SingularActions<T>{
    */
   DeleteRequest: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
   DeleteFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  DeleteSuccess: ActionCreator<string, (props: { id: string, request: OptRequest}) => { id: string, request: OptRequest} & TypedAction<string>>;
+  DeleteSuccess: ActionCreator<string, (props: { id: string, request: OptRequest }) => { id: string, request: OptRequest } & TypedAction<string>>;
 
   /**
    * - action used to execute a request to remove more items
