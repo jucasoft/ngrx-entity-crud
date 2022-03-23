@@ -1,4 +1,4 @@
-import {Actions, CrudState, EntityCrudAdapter, EntityCrudSelectors, EntityCrudState, ICriteria} from '../lib/models';
+import {Actions, CrudState, EntityCrudAdapter, EntityCrudSelectors, EntityCrudState, ICriteria, OptRequest} from '../lib/models';
 import {createCrudEntityAdapter} from '../lib/create_adapter';
 import {createFeatureSelector, MemoizedSelector, Store} from '@ngrx/store';
 import {toDictionary} from '../lib/utils';
@@ -192,7 +192,7 @@ describe('Crud', () => {
     });
 
     it('DeleteSuccess', () => {
-      const payload = {id: '0'};
+      const payload = {id: '0', request: null};
 
       const expectState: State = adapter.removeOne(payload.id, {
         ...state,
@@ -207,7 +207,7 @@ describe('Crud', () => {
     });
 
     it('DeleteSuccess many elements', () => {
-      const payload = {ids: ['0', '1']};
+      const payload = {ids: ['0', '1'], request: null};
 
       const expectState: State = adapter.removeMany(payload.ids, {
         ...state,
@@ -222,7 +222,7 @@ describe('Crud', () => {
     });
 
     it('CreateSuccess', () => {
-      const payload = {item: {id: 5, name: 'create'}};
+      const payload = {item: {id: 5, name: 'create'}, request: null};
 
       const expectState: State = adapter.addOne(payload.item, {
         ...state,
@@ -237,7 +237,7 @@ describe('Crud', () => {
     });
 
     it('EditSuccess', () => {
-      const payload = {item: {id: 5, name: 'edit'}};
+      const payload = {item: {id: 5, name: 'edit'}, request: null};
 
       const expectState: State = adapter.upsertOne(payload.item, {
         ...state,
@@ -252,7 +252,7 @@ describe('Crud', () => {
     });
 
     it('EditManySuccess', () => {
-      const payload = {items: [{id: 5, name: 'edit'}, {id: 6, name: 'edit'}]};
+      const payload = {items: [{id: 5, name: 'edit'}, {id: 6, name: 'edit'}], request: null};
 
       const expectState: State = adapter.upsertMany(payload.items, {
         ...state,
@@ -327,7 +327,7 @@ describe('Crud', () => {
     });
 
     it('SelectSuccess', () => {
-      const payload = {item: {id: 0, name: 'a'}};
+      const payload = {item: {id: 0, name: 'a'}, request: null};
 
       const expectState: State = ({
         ...state,
@@ -481,7 +481,7 @@ describe('Crud', () => {
     });
 
     it('CreateMAnyRequest', () => {
-      const payload = {mutationParams: [{id: 5, name: 'e'}, {id: 6, name: 'e'}]};
+      const payload = {mutationParams: [{id: 5, name: 'e'}, {id: 6, name: 'e'}], request: null};
       const expectedAction = actions.CreateManyRequest(payload);
       const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
       store.dispatch(actions.CreateManyRequest(payload));
@@ -545,7 +545,7 @@ describe('Crud', () => {
     });
 
     it('DeleteSuccess', () => {
-      const payload = {id: '0'};
+      const payload = {id: '0', request: null};
       const expectedAction = actions.DeleteSuccess(payload);
       const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
       store.dispatch(actions.DeleteSuccess(payload));
@@ -553,7 +553,7 @@ describe('Crud', () => {
     });
 
     it('DeleteManySuccess', () => {
-      const payload = {ids: ['0', '1']};
+      const payload = {ids: ['0', '1'], request: null};
       const expectedAction = actions.DeleteManySuccess(payload);
       const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
       store.dispatch(actions.DeleteManySuccess(payload));
@@ -561,7 +561,7 @@ describe('Crud', () => {
     });
 
     it('CreateSuccess', () => {
-      const payload = {item: {id: 5, name: 'create'}};
+      const payload = {item: {id: 5, name: 'create'}, request: null};
       const expectedAction = actions.CreateSuccess(payload);
       const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
       store.dispatch(actions.CreateSuccess(payload));
@@ -569,7 +569,7 @@ describe('Crud', () => {
     });
 
     it('CreateManySuccess', () => {
-      const payload = {items: [{id: 5, name: 'create'}, {id: 6, name: 'create'}]};
+      const payload = {items: [{id: 5, name: 'create'}, {id: 6, name: 'create'}], request: null};
       const expectedAction = actions.CreateManySuccess(payload);
       const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
       store.dispatch(actions.CreateManySuccess(payload));
@@ -577,7 +577,7 @@ describe('Crud', () => {
     });
 
     it('EditSuccess', () => {
-      const payload = {item: {id: 5, name: 'create'}};
+      const payload = {item: {id: 5, name: 'create'}, request: null};
       const expectedAction = actions.EditSuccess(payload);
       const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
       store.dispatch(actions.EditSuccess(payload));
@@ -585,7 +585,7 @@ describe('Crud', () => {
     });
 
     it('EditManySuccess', () => {
-      const payload = {items: [{id: 5, name: 'edit'}, {id: 6, name: 'edit'}]};
+      const payload = {items: [{id: 5, name: 'edit'}, {id: 6, name: 'edit'}], request: null};
       const expectedAction = actions.EditManySuccess(payload);
       const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
       store.dispatch(actions.EditManySuccess(payload));
@@ -609,7 +609,7 @@ describe('Crud', () => {
     });
 
     it('SelectSuccess', () => {
-      const payload = {item: {id: 0, name: 'a'}};
+      const payload = {item: {id: 0, name: 'a'}, request: null};
       const expectedAction = actions.SelectSuccess(payload);
       const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
       store.dispatch(actions.SelectSuccess(payload));
@@ -680,7 +680,7 @@ describe('Crud', () => {
     });
 
     it('SelectRequest', () => {
-      const payload = {queryParams:{item: {id: 0, name: 'a'}}};
+      const payload = {queryParams: {item: {id: 0, name: 'a'}}};
       const expectedAction = actions.SelectRequest(payload);
       const store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
       store.dispatch(actions.SelectRequest(payload));

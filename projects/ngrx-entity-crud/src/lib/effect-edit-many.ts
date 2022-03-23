@@ -1,8 +1,8 @@
 import {ofType} from '@ngrx/effects';
-import {Actions, ICriteria, OptEffect, OptRequest, Response, SingularActions} from './models';
+import {Actions, OptEffect, OptRequest, Response} from './models';
 import {from, MonoTypeOperatorFunction, pipe} from 'rxjs';
 import {Action} from '@ngrx/store';
-import {catchError, concatMap, map, repeat, switchMap} from 'rxjs/operators';
+import {catchError, concatMap, map, repeat} from 'rxjs/operators';
 import {IBaseCrudService} from './ibase-crud-service';
 
 export const editManyCall = <T>(service: IBaseCrudService<T>): MonoTypeOperatorFunction<any> => pipe(
@@ -21,7 +21,7 @@ export const editManyResponse = <T>(actions: Actions<T>, optEffect?: OptEffect):
         }
       } else {
         const items = response.data;
-        result.push(actions.EditManySuccess({items}));
+        result.push(actions.EditManySuccess({items, request: payload}));
         if (payload.onResult) {
           const onResults = (payload.onResult as Action[]).map(a => (a as any).newAction ? (a as any).newAction(response, payload) : a);
           result.push(...onResults);

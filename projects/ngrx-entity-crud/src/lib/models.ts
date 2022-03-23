@@ -318,7 +318,7 @@ export interface SingularActions<T> {
    */
   SelectRequest: ActionCreator<string, (props: ICriteria) => ICriteria & TypedAction<string>>;
   SelectFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  SelectSuccess: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+  SelectSuccess: ActionCreator<string, (props: { item: T, request: OptRequest }) => { item: T, request: OptRequest } & TypedAction<string>>;
 
 
   /**
@@ -332,7 +332,7 @@ export interface SingularActions<T> {
    */
   EditRequest: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
   EditFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  EditSuccess: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+  EditSuccess: ActionCreator<string, (props: { item: T, request: OptRequest }) => { item: T, request: OptRequest } & TypedAction<string>>;
 
   /**
    * - action used to execute a store reset
@@ -380,7 +380,7 @@ export interface Actions<T> extends SingularActions<T>{
    */
   DeleteRequest: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
   DeleteFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  DeleteSuccess: ActionCreator<string, (props: { id: string; }) => { id: string; } & TypedAction<string>>;
+  DeleteSuccess: ActionCreator<string, (props: { id: string, request: OptRequest}) => { id: string, request: OptRequest} & TypedAction<string>>;
 
   /**
    * - action used to execute a request to remove more items
@@ -393,7 +393,7 @@ export interface Actions<T> extends SingularActions<T>{
    */
   DeleteManyRequest: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
   DeleteManyFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  DeleteManySuccess: ActionCreator<string, (props: { ids: string[]; }) => { ids: string[]; } & TypedAction<string>>;
+  DeleteManySuccess: ActionCreator<string, (props: { ids: string[], request: OptRequest }) => { ids: string[], request: OptRequest } & TypedAction<string>>;
 
   /**
    * - action used to execute a request to create a new item
@@ -406,7 +406,7 @@ export interface Actions<T> extends SingularActions<T>{
    */
   CreateRequest: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
   CreateFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  CreateSuccess: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+  CreateSuccess: ActionCreator<string, (props: { item: T, request: OptRequest }) => { item: T, request: OptRequest } & TypedAction<string>>;
 
   /**
    * - action used to execute a request to create more new items
@@ -419,7 +419,7 @@ export interface Actions<T> extends SingularActions<T>{
    */
   CreateManyRequest: ActionCreator<string, (props: OptRequest<T[] | T>) => OptRequest<T[] | T> & TypedAction<string>>;
   CreateManyFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  CreateManySuccess: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
+  CreateManySuccess: ActionCreator<string, (props: { items: T[], request: OptRequest }) => { items: T[], request: OptRequest } & TypedAction<string>>;
 
   /**
    *  - action used to execute a request to modify more items
@@ -432,7 +432,7 @@ export interface Actions<T> extends SingularActions<T>{
    */
   EditManyRequest: ActionCreator<string, (props: OptRequest) => OptRequest & TypedAction<string>>;
   EditManyFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
-  EditManySuccess: ActionCreator<string, (props: { items: T[]; }) => { items: T[]; } & TypedAction<string>>;
+  EditManySuccess: ActionCreator<string, (props: { items: T[], request: OptRequest }) => { items: T[], request: OptRequest } & TypedAction<string>>;
 
   /**
    * - action used to apply some filters on data

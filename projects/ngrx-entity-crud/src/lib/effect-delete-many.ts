@@ -25,7 +25,7 @@ export const deleteManyResponse = <T>(actions: Actions<T>, clazz: any, optEffect
           throw Error('the selectId method is not present in the managed entity.');
         }
         const ids = (payload as OptRequest<T[]>).mutationParams.map(id => clazz.selectId(id));
-        result.push(actions.DeleteManySuccess({ids}));
+        result.push(actions.DeleteManySuccess({ids, request: payload}));
         if (payload.onResult) {
           const onResults = (payload.onResult as Action[]).map(a => (a as any).newAction ? (a as any).newAction(response, payload) : a);
           result.push(...onResults);
