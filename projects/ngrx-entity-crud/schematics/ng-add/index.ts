@@ -45,7 +45,7 @@ export function ngAdd(options: any): Rule {
     const baseRules: Rule[] = [
       // addImport(normalize(`${pathStore}/state.ts`), `import {${options.clazz}} from '@models/vo/${strings.dasherize(options.clazz)}';`),
       // updateState(`${strings.underscore(options.name)}:${options.clazz};`, normalize(`${pathStore}/state.ts`)),
-      render(options, './files/root-store', pathStore),
+      render(options, './files', pathApp),
       addDeclarationToNgModule({
         module: `${pathApp}/app.module.ts`,
         name: `RootStore`,
