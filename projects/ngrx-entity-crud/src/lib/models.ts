@@ -104,7 +104,7 @@ export interface ICriteria<QP = any> extends OptRequestBase {
    * "REFRESH" the store will be deleted before making the remote call, all the elements will be added to the call result.
    *
    */
-  mode?: 'REFRESH' | 'upsertMany' | 'addAll';
+  mode?: 'REFRESH' | 'upsertMany' | 'upsertMany-updateMany-selected' | 'addAll';
 
   queryParams?: QP;
 }
