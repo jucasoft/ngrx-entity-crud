@@ -17,37 +17,30 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
       throw new Error('It is not possible a search without payload, use :\'{criteria:{}}\'');
     }
 
-    const {itemSelected, idSelected, entitiesSelected, idsSelected} = initialState;
-
-    if (criteria.mode === 'REFRESH' || criteria.mode === 'upsertMany') {
-      return Object.assign(
-        {},
-        state,
-        {
-          isLoading: true,
-          error: initialState.error,
-          lastCriteria: criteria,
-          itemSelected,
-          idSelected,
-          entitiesSelected,
-          idsSelected
-        }
-      );
+    const mode = criteria.mode || '';
+    let selectedStatePartial = {};
+    // se nella stringa della modalit'
+    if (mode.indexOf('updateMany-selected') !== -1) {
+      const {itemSelected, idSelected, entitiesSelected, idsSelected} = state;
+      selectedStatePartial = {itemSelected, idSelected, entitiesSelected, idsSelected};
+    } else {
+      const {itemSelected, idSelected, entitiesSelected, idsSelected} = initialState;
+      selectedStatePartial = {itemSelected, idSelected, entitiesSelected, idsSelected};
     }
-    return adapter.removeAll(
-      Object.assign(
-        {},
-        state,
-        {
-          isLoading: true,
-          error: initialState.error,
-          lastCriteria: criteria,
-          itemSelected,
-          idSelected,
-          entitiesSelected,
-          idsSelected
-        })
-    );
+
+    const result = {
+      ...state,
+      isLoading: true,
+      error: initialState.error,
+      lastCriteria: criteria,
+      ...selectedStatePartial
+    }
+
+    if (mode.indexOf('REFRESH') !== -1 || mode.indexOf('upsertMany') !== -1) {
+      return result
+    }
+
+    return adapter.removeAll(result);
   });
   const deleteRequestOn = on(actions.DeleteRequest, (state: S, request: OptRequest) => {
     return Object.assign(
@@ -102,39 +95,42 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
   const searchSuccessOn = on(actions.SearchSuccess, (state: S, {type, items, request}) => {
     const mode = evalData(() => request.mode, null) || 'setAll';
     let method;
-    switch (mode) {
-      case  'REFRESH' : {
-        // console.log('REFRESH');
-        method = adapter.setAll;
-        break;
-      }
-      case 'upsertMany': {
-        // console.log('upsertMany');
-        method = adapter.upsertMany;
-        break;
-      }
-      case 'setAll': {
-        // console.log('setAll');
-        method = adapter.setAll;
-        break;
-      }
 
-      default: {
-        // console.log('default');
-        method = adapter.setAll;
-        break;
-      }
+    if (mode.indexOf('REFRESH') !== -1) {
+      method = adapter.setAll;
+    } else if (mode.indexOf('upsertMany') !== -1) {
+      method = adapter.upsertMany;
+    } else if (mode.indexOf('setAll') !== -1) {
+      method = adapter.setAll;
+    } else {
+      method = adapter.setAll;
     }
 
-    return method(items, Object.assign(
-      {},
-      state,
+    const selectedStatePartial = {entitiesSelected: state.entitiesSelected, idsSelected: state.idsSelected};
+    if (mode.indexOf('updateMany-selected') !== -1) {
+      // creo uno state temporaneo con i dati degli elementi selezionati
+      const selectedState = {
+        entities: state.entitiesSelected,
+        ids: state.idsSelected
+      }
+      // preparo gli item ritornati dalla ricerca per aggiornare
+      const itemsB: any = items.map((item) => (Object.assign({}, {id: adapter.selectId(item), changes: item})));
+      // utilizzo il metodo adapter.updateMany per aggiornare gli elementi selezionati
+      const newSelectedState = adapter.updateOne(itemsB, {...selectedState as any});
+
+      selectedStatePartial.entitiesSelected = newSelectedState.entities;
+      selectedStatePartial.idsSelected = newSelectedState.ids;
+    }
+
+    return method(items,
       {
+        ...state,
+        ...selectedStatePartial,
         isLoaded: true,
         isLoading: false,
         error: null
       }
-    ));
+    );
   });
   const deleteSuccessOn = on(actions.DeleteSuccess, (state: S, {type, id}) => {
 
