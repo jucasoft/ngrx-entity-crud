@@ -116,7 +116,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
       // preparo gli item ritornati dalla ricerca per aggiornare
       const itemsB: any = items.map((item) => (Object.assign({}, {id: adapter.selectId(item), changes: item})));
       // utilizzo il metodo adapter.updateMany per aggiornare gli elementi selezionati
-      const newSelectedState = adapter.updateOne(itemsB, {...selectedState as any});
+      const newSelectedState = adapter.updateMany(itemsB, {...selectedState as any});
 
       selectedStatePartial.entitiesSelected = newSelectedState.entities;
       selectedStatePartial.idsSelected = newSelectedState.ids;
