@@ -222,16 +222,13 @@ export function render(options: any, sourceTemplate: string, path: string): Rule
       }),
       move(_path)
     ]);
-    return mergeWith(sourceTemplateParametrized);
+    return mergeWith(sourceTemplateParametrized, 14);
   };
 }
 
 export function updateTsConfigSelector(): Rule {
-  console.log('updateTsConfigSelector.updateTsConfigSelector()');
   return (tree: Tree) => {
-    console.log('00');
     const content: Buffer | null = tree.read('/tsconfig.json');
-    console.log('content', content);
     let strContent: string = '';
     if (content) {
       strContent = content.toString();
@@ -241,7 +238,6 @@ export function updateTsConfigSelector(): Rule {
     if (strContent.substring(0, 76) === comment) {
       strContent = strContent.replace(strContent.substring(0, 77), '');
       comment_delete =  true;
-      console.log('strContent', strContent);
     }
     const tsconfigJson = JSON.parse(strContent);
     console.log('strContent+', strContent);
@@ -269,7 +265,9 @@ export function updateTsConfigSelector(): Rule {
     }
     console.log('compilerOptionsPathsB', compilerOptionsPathsB);
     tsconfigJson.compilerOptions.paths = {...compilerOptionsPaths, ...compilerOptionsPathsB};
+    tsconfigJson.compilerOptions.strict = false;
     tsconfigJson.angularCompilerOptions.strictPropertyInitialization = false;
+
     console.log('tsconfigJson', tsconfigJson);
     let strContentB = JSON.stringify(tsconfigJson, null, "\t")
     if (comment_delete) {

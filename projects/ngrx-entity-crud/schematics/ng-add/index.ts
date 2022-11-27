@@ -45,7 +45,17 @@ export function ngAdd(options: any): Rule {
     const baseRules: Rule[] = [
       // addImport(normalize(`${pathStore}/state.ts`), `import {${options.clazz}} from '@models/vo/${strings.dasherize(options.clazz)}';`),
       // updateState(`${strings.underscore(options.name)}:${options.clazz};`, normalize(`${pathStore}/state.ts`)),
-      render(options, './files', pathApp),
+      render(options, './files', ''),
+    addDeclarationToNgModule({
+        module: `${pathApp}/app.module.ts`,
+        name: `ThemeJng`,
+        path: `./core/theme/theme-jng.module`
+      }),
+      addDeclarationToNgModule({
+        module: `${pathApp}/app.module.ts`,
+        name: `BrowserAnimations`,
+        path: `@angular/platform-browser/animations`
+      }),
       addDeclarationToNgModule({
         module: `${pathApp}/app.module.ts`,
         name: `RootStore`,

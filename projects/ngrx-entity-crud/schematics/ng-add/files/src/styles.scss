@@ -1,0 +1,24 @@
+@import "app/core/theme/css/_variables";
+@import "primeflex/primeflex";
+@import "primeicons/primeicons.css";
+@import "primeng/resources/themes/lara-light-blue/theme.css";
+@import "primeng/resources/primeng.min.css";
+
+body {
+  word-wrap: break-word;
+  font-size: 12px;
+  font-family: 'Open Sans', 'Helvetica Neue', sans-serif;
+  margin: 0 !important;
+}
+
+.icon-button:hover {
+  opacity: 0.5;
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+
+.icon-button {
+  transition: transform 0.2s;
+  font-size: 1.25rem;
+  margin: 0 0.5em;
+}

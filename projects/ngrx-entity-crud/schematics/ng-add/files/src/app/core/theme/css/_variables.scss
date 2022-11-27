@@ -1,0 +1,18 @@
+:root {
+  --topbar-height: 5rem;
+  --topbar-bg-color:var(--primary-color);
+  --menu-width:20rem;
+  --menu-transition:0.3s;
+  --menu-close-margin-left:-(var(--menu-width));
+  --menu-close-width:5rem; // if not active menu pro, set to ZERO
+  --menu-border-right:var(--primary-100);
+
+  --menu-item-bg-color:var(--primary-900);
+
+  --sidebar-bg-color:var(--primary-900);
+  --footer-height:2rem;
+  --footer-bg-color:var(--surface-b);
+  --footer-border-color:var(--primary-100);
+  --loader-height:0.4rem;
+  --loader-bg-color:var(primary-500);
+}
