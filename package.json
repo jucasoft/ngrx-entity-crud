@@ -37,7 +37,7 @@
   "devDependencies": {
     "@angular-devkit/build-angular": "~13.2.6",
     "@angular-devkit/schematics": "^13.2.6",
-    "@angular-devkit/schematics-cli": "^13.2.6",
+    "@angular-devkit/schematics-cli": "^13.3.10",
     "@angular-devkit/core": "^13.2.6",
     "@angular/cli": "~13.2.6",
     "@angular/compiler-cli": "~13.2.6",
