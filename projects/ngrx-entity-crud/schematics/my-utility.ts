@@ -240,7 +240,7 @@ export function updateTsConfigSelector(): Rule {
       comment_delete =  true;
     }
     const tsconfigJson = JSON.parse(strContent);
-    console.log('strContent+', strContent);
+
     const compilerOptionsPaths = tsconfigJson.compilerOptions.paths || {};
     console.log('compilerOptionsPaths', compilerOptionsPaths);
     const compilerOptionsPathsB = {
