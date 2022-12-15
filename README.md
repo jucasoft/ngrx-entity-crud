@@ -1,5 +1,4 @@
 # ngrx-entity-crud library
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 8.3.22.
 
 # How to use it?
 To use the library, read this [guide](https://www.npmjs.com/package/ngrx-entity-crud).
