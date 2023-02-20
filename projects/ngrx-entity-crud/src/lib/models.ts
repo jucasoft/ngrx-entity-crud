@@ -93,6 +93,11 @@ export interface OptRequestBase {
    * In questo modo sarà possibile analizzare l'andamento
    */
   dispatchResponse?: boolean;
+  
+  /**
+  * used to override the root of the service 
+  */
+  basePath?: string;
 }
 
 /**
