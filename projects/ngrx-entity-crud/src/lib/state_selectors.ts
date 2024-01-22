@@ -23,12 +23,15 @@ export function getCrudBaseSelectors<T, V>(
   const selectLastCriteria: MemoizedSelector<V, ICriteria> = createSelector(selectState, getLastCriteria);
   const selectResponses: MemoizedSelector<V, OptResponse<T>[]> = createSelector(selectState, getRespones);
 
+  const selectItemSelected: MemoizedSelector<V, T> = createSelector(selectState, getItemSelected) as MemoizedSelector<V, T>;
+
   return {
     selectError,
     selectIsLoading,
     selectIsLoaded,
     selectLastCriteria,
     selectResponses,
+    selectItemSelected
   };
 }
 
@@ -40,7 +43,8 @@ export function getSingeCrudSelectors<T, V>(
     selectIsLoading,
     selectIsLoaded,
     selectLastCriteria,
-    selectResponses
+    selectResponses,
+    selectItemSelected
   } = getCrudBaseSelectors(selectState);
 
   const selectItem: MemoizedSelector<V, T> = createSelector(selectState, getItem) as MemoizedSelector<V, T>
@@ -50,7 +54,8 @@ export function getSingeCrudSelectors<T, V>(
     selectIsLoading,
     selectIsLoaded,
     selectLastCriteria,
-    selectResponses
+    selectResponses,
+    selectItemSelected
   };
 }
 
@@ -64,7 +69,6 @@ export function createCrudSelectorsFactory<T>(adapter) {
       getFilters
     );
 
-    const selectItemSelected: MemoizedSelector<V, T> = createSelector(selectState, getItemSelected) as MemoizedSelector<V, T>;
     const selectEntitiesSelected: MemoizedSelector<V, Dictionary<T>> = createSelector(selectState, getEntitiesSelected) as MemoizedSelector<V, Dictionary<T>>
     const selectItemsSelected: MemoizedSelector<V, T[]> = createSelector(selectEntitiesSelected, (entities: Dictionary<T>) => Object.values(entities)) as MemoizedSelector<V, T[]>
 
@@ -76,7 +80,8 @@ export function createCrudSelectorsFactory<T>(adapter) {
       selectIsLoading,
       selectIsLoaded,
       selectLastCriteria,
-      selectResponses
+      selectResponses,
+      selectItemSelected
     } = getCrudBaseSelectors(selectState);
 
     const {
