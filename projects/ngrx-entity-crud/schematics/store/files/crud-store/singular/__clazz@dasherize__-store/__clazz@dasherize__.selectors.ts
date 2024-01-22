@@ -14,5 +14,6 @@ export const {
   selectIsLoading,
   selectIsLoaded,
   selectResponses,
+  selectItemSelected,
 } = getSingeCrudSelectors<<%= clazz %>, object>(selectState)
 
