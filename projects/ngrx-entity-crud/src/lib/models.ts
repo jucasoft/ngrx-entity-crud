@@ -93,9 +93,9 @@ export interface OptRequestBase {
    * In questo modo sarà possibile analizzare l'andamento
    */
   dispatchResponse?: boolean;
-  
+
   /**
-  * used to override the root of the service 
+  * used to override the root of the service
   */
   basePath?: string;
 }
@@ -196,6 +196,13 @@ export interface EntityCrudBaseSelectors<T, V> {
    */
   selectResponses: (state: V) => OptResponse<T>[];
 
+  /**
+   * - used to select selectedItem
+   * - populated with action "...SelectedItems({item})",
+   * - local clone, does not match the instance in the store
+   * @param (state: V) => T
+   */
+  selectItemSelected: (state: V) => T;
 }
 
 export interface EntitySingleCrudSelectors<T, V> extends EntityCrudBaseSelectors<T, V> {
@@ -215,13 +222,6 @@ export interface EntityCrudSelectors<T, V> extends EntityCrudBaseSelectors<T, V>
    * @param (state: V) => string[] | number[]
    */
   selectIdsSelected: (state: V) => string[] | number[];
-  /**
-   * - used to select selectedItem
-   * - populated with action "...SelectedItems({item})",
-   * - local clone, does not match the instance in the store
-   * @param (state: V) => T
-   */
-  selectItemSelected: (state: V) => T;
   /**
    * - used to select selected item
    * - populated with action "...SelectedItems({item:{id:string ...}})",
@@ -278,7 +278,8 @@ export interface EntityCrudBaseState<T> {
 }
 
 export interface EntitySingleCrudState<T> extends EntityCrudBaseState<T> {
-  item: T
+  item: T;
+  itemSelected: T;
 }
 
 export interface EntityCrudState<T> extends EntityCrudBaseState<T>, EntityState<T> {
@@ -356,6 +357,14 @@ export interface SingularActions<T> {
    * @param item: T
    */
   Edit: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+
+  /**
+   * - action used to identify a single item to select
+   * @example store.dispatch(actions.SelectItem(payload));
+   * @param item: T
+   */
+  SelectItem: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
+
 }
 
 export interface Actions<T> extends SingularActions<T> {
@@ -463,12 +472,6 @@ export interface Actions<T> extends SingularActions<T> {
   RemoveManySelected: ActionCreator<string, (props: { ids: string[]; }) => { ids: string[]; } & TypedAction<string>>;
   // TODO: doc
   RemoveAllSelected: ActionCreator<string>;
-  /**
-   * - action used to identify a single item to select
-   * @example store.dispatch(actions.SelectItem(payload));
-   * @param item: T
-   */
-  SelectItem: ActionCreator<string, (props: { item: T; }) => { item: T; } & TypedAction<string>>;
 
   /**
    * - action used to create an item on the store
