@@ -20,6 +20,7 @@ export function getInitialEntityCrudState<V>(): EntityCrudState<V> {
 export function getInitialSingleCrudState<V>(): EntitySingleCrudState<V> {
   return {
     item:null,
+    itemSelected:null,
     isLoading: false,
     isLoaded: false,
     error: null,
