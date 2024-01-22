@@ -498,14 +498,13 @@ export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
   };
 }
 
-
 export function createSingularCrudOns<T, S extends EntitySingleCrudState<T>>(initialState: S, actions: SingularActions<T>): { [key: string]: any } {
 
   const selectRequestOn = on(actions.SelectRequest, (state: S, {type}) => (
     {
       ...state,
       isLoading: true,
-      error: null
+      error: initialState.error
     }
   ));
 
@@ -573,6 +572,16 @@ export function createSingularCrudOns<T, S extends EntitySingleCrudState<T>>(ini
   );
 
   const resetOn = on(actions.Reset, (state: S) => ({...state, ...initialState}));
+
+  const selectItemOn = on(actions.SelectItem, (state: S, {type, item}) => {
+    const result = {
+      ...state,
+      itemSelected: item
+    };
+
+    return result;
+  });
+
   return {
     responseOn,
     resetResponsesOn,
@@ -584,6 +593,8 @@ export function createSingularCrudOns<T, S extends EntitySingleCrudState<T>>(ini
     editRequestOn,
     editSuccessOn,
     editFailureOn,
+
+    selectItemOn,
 
     resetOn,
     editOn,
