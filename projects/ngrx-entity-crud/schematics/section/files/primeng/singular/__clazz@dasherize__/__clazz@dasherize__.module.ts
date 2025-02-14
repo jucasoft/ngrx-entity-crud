@@ -6,6 +6,7 @@ import {<%= clazz %>RoutingModule} from './<%= dasherize(clazz) %>-routing.modul
 import {ButtonModule} from 'primeng/button';
 import {InputTextModule} from 'primeng/inputtext';
 import {PipesModule} from '@core/pipe/pipes.module';
+import {HttpClientModule} from "@angular/common/http";
 
 @NgModule({
   declarations: [
@@ -13,6 +14,7 @@ import {PipesModule} from '@core/pipe/pipes.module';
   ],
   imports: [
     CommonModule,
+    HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
     ButtonModule,

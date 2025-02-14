@@ -6,10 +6,12 @@ import {metaReducers, reducers} from '@root-store/root-reducer';
 import {RouterStoreModule} from './router-store';
 import {environment} from '../../environments/environment';
 import {StoreDevtoolsModule} from '@ngrx/store-devtools';
+import {HttpClientModule} from "@angular/common/http";
 
 @NgModule({
   imports: [
     CommonModule,
+    HttpClientModule,
     RouterStoreModule,
     StoreModule.forRoot(reducers, {
       metaReducers,
