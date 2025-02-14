@@ -20,7 +20,7 @@ import {<%= clazz %>RoutingModule} from './<%= dasherize(clazz) %>-routing.modul
     <%= clazz %>RoutingModule
   ],
   providers: [],
-  entryComponents: []
+
 })
 export class <%= clazz %>Module {
 }

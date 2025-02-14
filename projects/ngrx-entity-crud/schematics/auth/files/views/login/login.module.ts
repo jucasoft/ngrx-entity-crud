@@ -24,7 +24,6 @@ import {InputTextModule} from 'primeng/inputtext';
     InputTextModule
   ],
   providers: [],
-  entryComponents: []
 })
 export class LoginModule {
 }

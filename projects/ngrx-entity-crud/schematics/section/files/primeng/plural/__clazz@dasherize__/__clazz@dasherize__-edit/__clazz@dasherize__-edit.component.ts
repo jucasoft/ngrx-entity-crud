@@ -15,14 +15,14 @@ export class <%= clazz %>EditComponent extends PopUpBaseComponent<<%= clazz %>> 
   form: FormGroup;
   keys: string[];
 
-  setItemPerform(value: <%= clazz %>): void {
+  override setItemPerform(value: <%= clazz %>): void {
     const group = this.fb.group({});
     this.keys = Object.keys(value);
     this.keys.forEach(key => group.addControl(key, this.fb.control({value: value[key], disabled: key === 'id'})));
     this.form = group;
   }
 
-  acceptPerform(mutationParams: <%= clazz %>): void {
+  override acceptPerform(mutationParams: <%= clazz %>): void {
     if (mutationParams.id) {
       this.store$.dispatch(<%= clazz %>StoreActions.EditRequest({
         mutationParams, onResult: [

@@ -16,14 +16,14 @@ export class <%= clazz %>EditComponent extends EditBaseComponent<<%= clazz %>> {
   form: FormGroup;
   keys: string[];
 
-  setItemPerform(value: <%= clazz %>): void {
+  override setItemPerform(value: <%= clazz %>): void {
     const group = this.fb.group({});
     this.keys = Object.keys(value);
     this.keys.forEach(key => group.addControl(key, this.fb.control({value: value[key], disabled: key === 'id'})));
     this.form = group;
   }
 
-  onSavePerform(item: <%= clazz %>): void {
+  override onSavePerform(item: <%= clazz %>): void {
     this.store$.dispatch(<%= clazz %>StoreActions.EditRequest({
       item, onResult: [
         // azione che verrà invocata al result della chiamata all'interno dell'effect.

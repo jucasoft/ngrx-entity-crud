@@ -22,7 +22,7 @@ import {PipesModule} from '@core/pipe/pipes.module';
 
   ],
   providers: [],
-  entryComponents: []
+
 })
 export class <%= clazz %>Module {
 }
