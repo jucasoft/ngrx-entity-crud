@@ -18,6 +18,7 @@ import {ButtonCreateManyTest<%= clazz %>Component} from './components/button-cre
 import {NgLetModule} from '@core/directive/ng-let.directive';
 import {ToolbarModule} from 'primeng/toolbar';
 import {HttpClientModule} from "@angular/common/http";
+import {ConfirmationService} from "primeng/api";
 
 @NgModule({
   declarations: [
@@ -44,7 +45,7 @@ import {HttpClientModule} from "@angular/common/http";
     NgLetModule,
     ToolbarModule
   ],
-  providers: [],
+  providers: [ConfirmationService],
 
 })
 export class <%= clazz %>Module {
