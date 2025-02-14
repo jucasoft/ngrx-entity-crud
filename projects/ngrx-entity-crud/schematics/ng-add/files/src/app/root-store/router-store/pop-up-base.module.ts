@@ -17,7 +17,6 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
     ReactiveFormsModule,
   ],
   providers: [],
-  entryComponents: [],
   exports: [PopUpBaseComponent]
 })
 export class PopUpBaseModule {

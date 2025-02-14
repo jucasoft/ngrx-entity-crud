@@ -27,7 +27,7 @@ import {PipesModule} from '@core/pipe/pipes.module';
     EditBaseModule
   ],
   providers: [],
-  entryComponents: []
+
 })
 export class <%= clazz %>Module {
 }

@@ -43,7 +43,6 @@ export class LogoutButtonComponent implements OnInit {
     ButtonModule
   ],
   providers: [],
-  entryComponents: []
 })
 export class LogoutButtonModule {
 }
