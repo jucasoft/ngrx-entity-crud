@@ -17,6 +17,7 @@ import {ButtonEditManyTest<%= clazz %>Component} from './components/button-edit-
 import {ButtonCreateManyTest<%= clazz %>Component} from './components/button-create-many-test-<%= dasherize(clazz) %>.component';
 import {NgLetModule} from '@core/directive/ng-let.directive';
 import {ToolbarModule} from 'primeng/toolbar';
+import {HttpClientModule} from "@angular/common/http";
 
 @NgModule({
   declarations: [
@@ -30,6 +31,7 @@ import {ToolbarModule} from 'primeng/toolbar';
   ],
   imports: [
     CommonModule,
+    HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
     <%= clazz %>RoutingModule,

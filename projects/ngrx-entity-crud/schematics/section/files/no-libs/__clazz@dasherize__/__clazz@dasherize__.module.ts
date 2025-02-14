@@ -6,6 +6,7 @@ import {<%= clazz %>EditComponent} from './<%= dasherize(clazz) %>-edit/<%= dash
 import {<%= clazz %>MainComponent} from './<%= dasherize(clazz) %>-main/<%= dasherize(clazz) %>-main.component';
 import {<%= clazz %>ListComponent} from './<%= dasherize(clazz) %>-list/<%= dasherize(clazz) %>-list.component';
 import {<%= clazz %>RoutingModule} from './<%= dasherize(clazz) %>-routing.module';
+import {HttpClientModule} from "@angular/common/http";
 
 @NgModule({
   declarations: [
@@ -15,6 +16,7 @@ import {<%= clazz %>RoutingModule} from './<%= dasherize(clazz) %>-routing.modul
   ],
   imports: [
     CommonModule,
+    HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
     <%= clazz %>RoutingModule

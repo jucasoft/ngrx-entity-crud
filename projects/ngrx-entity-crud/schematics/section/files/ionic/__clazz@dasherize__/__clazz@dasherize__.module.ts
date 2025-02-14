@@ -9,6 +9,7 @@ import {SearchModule} from '@components/search/search.module';
 import {IonicModule} from '@ionic/angular';
 import {EditBaseModule} from '@components/edit-base/edit-base.module';
 import {PipesModule} from '@core/pipe/pipes.module';
+import {HttpClientModule} from "@angular/common/http";
 
 @NgModule({
   declarations: [
@@ -18,6 +19,7 @@ import {PipesModule} from '@core/pipe/pipes.module';
   ],
   imports: [
     CommonModule,
+    HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
     <%= clazz %>RoutingModule,
