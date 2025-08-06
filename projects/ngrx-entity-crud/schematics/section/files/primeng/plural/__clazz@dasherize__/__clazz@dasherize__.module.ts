@@ -19,6 +19,7 @@ import {NgLetModule} from '@core/directive/ng-let.directive';
 import {ToolbarModule} from 'primeng/toolbar';
 import {HttpClientModule} from "@angular/common/http";
 import {ConfirmationService} from "primeng/api";
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 
 @NgModule({
   declarations: [
@@ -43,7 +44,8 @@ import {ConfirmationService} from "primeng/api";
     PipesModule,
     SearchModule,
     NgLetModule,
-    ToolbarModule
+    ToolbarModule,
+    ConfirmDialogModule
   ],
   providers: [ConfirmationService],
 

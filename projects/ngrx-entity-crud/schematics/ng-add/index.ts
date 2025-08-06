@@ -61,6 +61,11 @@ export function ngAdd(options: any): Rule {
         name: `RootStore`,
         path: `./root-store`
       }),
+      addDeclarationToNgModule({
+        module: `${pathApp}/app.module.ts`,
+        name: `HttpClientModule`,
+        path: `@angular/common/http`
+      }),
       updateTsConfigSelector()
     ];
 
