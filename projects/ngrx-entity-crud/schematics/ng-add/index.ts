@@ -63,7 +63,7 @@ export function ngAdd(options: any): Rule {
       }),
       addDeclarationToNgModule({
         module: `${pathApp}/app.module.ts`,
-        name: `HttpClientModule`,
+        name: `HttpClient`,
         path: `@angular/common/http`
       }),
       updateTsConfigSelector()
