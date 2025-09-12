@@ -1,7 +1,7 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./",
+    "baseUrl": ".",
     "outDir": "./dist/out-tsc",
     "sourceMap": true,
     "declaration": false,
@@ -12,25 +12,18 @@
     "emitDecoratorMetadata": true,
     "importHelpers": true,
     "target": "es2015",
-    "typeRoots": [
-      "node_modules/@types"
-    ],
-    "lib": [
-      "es2018",
-      "dom"
-    ],
+    "typeRoots": ["node_modules/@types"],
+    "lib": ["es2018", "dom"],
     "paths": {
-      "ngrx-entity-crud": [
-        "dist/ngrx-entity-crud"
-      ],
-      "ngrx-entity-crud/*": [
-        "dist/ngrx-entity-crud/*"
-      ]
+      "ngrx-entity-crud": ["dist/ngrx-entity-crud"],
+      "ngrx-entity-crud/*": ["dist/ngrx-entity-crud/*"]
     },
-    "allowJs": true
+    "allowJs": true,
+    "rootDir": "."
   },
   "angularCompilerOptions": {
     "fullTemplateTypeCheck": true,
     "strictInjectionParameters": true
-  }
+  },
+  "exclude": ["node_modules", "tmp"]
 }

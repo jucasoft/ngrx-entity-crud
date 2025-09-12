@@ -1,0 +1,41 @@
+{
+  "name": "ngrx-entity-crud",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "library",
+  "sourceRoot": "libs/ngrx-entity-crud/src",
+  "prefix": "lib",
+  "targets": {
+    "build": {
+      "executor": "@nx/angular:package",
+      "options": {
+        "tsConfig": "libs/ngrx-entity-crud/tsconfig.lib.json",
+        "project": "libs/ngrx-entity-crud/ng-package.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "libs/ngrx-entity-crud/tsconfig.lib.prod.json"
+        }
+      }
+    },
+    "test": {
+      "executor": "@angular-devkit/build-angular:karma",
+      "options": {
+        "main": "libs/ngrx-entity-crud/src/test.ts",
+        "tsConfig": "libs/ngrx-entity-crud/tsconfig.spec.json",
+        "karmaConfig": "libs/ngrx-entity-crud/karma.conf.js"
+      }
+    },
+    "lint": {
+      "executor": "@angular-devkit/build-angular:tslint",
+      "options": {
+        "tsConfig": [
+          "projects/ngrx-entity-crud/tsconfig.lib.json",
+          "projects/ngrx-entity-crud/tsconfig.spec.json"
+        ],
+        "exclude": [
+          "**/node_modules/**"
+        ]
+      }
+    }
+  }
+}
