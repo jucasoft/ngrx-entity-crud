@@ -11,13 +11,17 @@
     "test": "nx test",
     "lint": "nx lint",
     "e2e": "nx e2e",
-    "build:schematics": "tsc -p ./projects/ngrx-entity-crud/tsconfig.schematics.json",
-    "npm:build:link": "npm run build && cd libs/ngrx-entity-crud/ && npm link",
-    "build:schematics:watch": "tsc -p ./projects/ngrx-entity-crud/tsconfig.schematics.json --watch",
+    "build:schematics": "nx run ngrx-entity-crud:build-schematics",
+    "build:schematics:watch": "nx run ngrx-entity-crud:build-schematics:watch",
+    "link": "nx run ngrx-entity-crud:link",
+    "dev": "nx build ngrx-entity-crud --watch",
+    "publish": "nx run ngrx-entity-crud:publish",
+    "publish:beta": "nx run ngrx-entity-crud:publish-beta",
     "npm:build:watch": "nx build ngrx-entity-crud --watch",
-    "npm:publish": "cd libs/ngrx-entity-crud/ && npm publish",
-    "npm:build:publish": "npm run build && npm run npm:publish",
-    "npm:build:publish:beta": "npm run build && cd libs/ngrx-entity-crud/ && npm publish --tag beta"
+    "npm:build:link": "nx run ngrx-entity-crud:link",
+    "npm:publish": "nx run ngrx-entity-crud:publish",
+    "npm:build:publish": "nx run ngrx-entity-crud:publish",
+    "npm:build:publish:beta": "nx run ngrx-entity-crud:publish-beta"
   },
   "dependencies": {
     "@angular/cdk": "^19.2.19",
