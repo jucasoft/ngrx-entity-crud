@@ -15,7 +15,7 @@
     "noUnusedParameters": true,
     "noUnusedLocals": true,
     "rootDir": "schematics",
-    "outDir": "../../libs/ngrx-entity-crud/schematics",
+    "outDir": "../../dist/ngrx-entity-crud/schematics",
     "skipDefaultLibCheck": true,
     "skipLibCheck": true,
     "sourceMap": true,
