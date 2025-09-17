@@ -38,37 +38,44 @@
       }
     },
     "build-schematics": {
-      "executor": "@nx/js:tsc",
+      "executor": "nx:run-commands",
       "options": {
-        "main": "libs/ngrx-entity-crud/schematics/collection.json",
-        "tsConfig": "libs/ngrx-entity-crud/tsconfig.schematics.json",
-        "outputPath": "dist/ngrx-entity-crud/schematics"
+        "command": "tsc -p dist/ngrx-entity-crud/tsconfig.schematics.json"
       },
       "configurations": {
         "watch": {
-          "watch": true
+          "command": "tsc -p dist/ngrx-entity-crud/tsconfig.schematics.json --watch"
         }
       }
     },
     "link": {
-      "executor": "@nx/workspace:run-commands",
-      "dependsOn": ["build", "build-schematics"],
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        "build",
+        "build-schematics"
+      ],
       "options": {
         "command": "cd dist/ngrx-entity-crud && npm link",
         "cwd": "{workspaceRoot}"
       }
     },
     "publish": {
-      "executor": "@nx/workspace:run-commands",
-      "dependsOn": ["build", "build-schematics"],
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        "build",
+        "build-schematics"
+      ],
       "options": {
         "command": "cd dist/ngrx-entity-crud && npm publish",
         "cwd": "{workspaceRoot}"
       }
     },
     "publish-beta": {
-      "executor": "@nx/workspace:run-commands",
-      "dependsOn": ["build", "build-schematics"],
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        "build",
+        "build-schematics"
+      ],
       "options": {
         "command": "cd dist/ngrx-entity-crud && npm publish --tag beta",
         "cwd": "{workspaceRoot}"

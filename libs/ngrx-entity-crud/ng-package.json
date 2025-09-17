@@ -5,8 +5,7 @@
     "entryFile": "src/public-api.ts"
   },
   "assets": [
-    "./schematics/*/schema.json",
-    "./schematics/*/files/**",
-    "./schematics/collection.json"
+    "./schematics/**",
+    "tsconfig.schematics.json"
   ]
 }
