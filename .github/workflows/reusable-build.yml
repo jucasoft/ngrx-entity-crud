@@ -38,3 +38,10 @@ jobs:
 
       - name: Test
         run: npm run testLibs
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: library-package
+          path: dist/ngrx-entity-crud # Carica solo la directory del pacchetto
+          retention-days: 1
