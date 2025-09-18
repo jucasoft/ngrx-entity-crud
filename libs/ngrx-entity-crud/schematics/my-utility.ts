@@ -1,10 +1,23 @@
-import {apply, mergeWith, move, Rule, SchematicContext, SchematicsException, template, Tree, url} from '@angular-devkit/schematics';
-import {normalize, strings} from '@angular-devkit/core';
+import {
+  apply,
+  mergeWith,
+  move,
+  Rule,
+  SchematicContext,
+  SchematicsException,
+  template,
+  Tree,
+  url,
+} from '@angular-devkit/schematics';
+import { normalize, strings } from '@angular-devkit/core';
 import * as ts from 'typescript/lib/tsserverlibrary';
 // import * as merge from 'deepmerge';
-import {ModuleOptions} from '@schematics/angular/utility/find-module';
-import {InsertChange} from '@schematics/angular/utility/change';
-import {addImportToModule, addRouteDeclarationToModule} from '@schematics/angular/utility/ast-utils';
+import { ModuleOptions } from '@schematics/angular/utility/find-module';
+import { Change, InsertChange } from '@schematics/angular/utility/change';
+import {
+  addImportToModule,
+  addRouteDeclarationToModule,
+} from '@schematics/angular/utility/ast-utils';
 
 /**
  * Aggiunge l'export nell'index.ts e index.d.ts
@@ -19,7 +32,9 @@ export function addExport(options: { clazz: string }, file: string): Rule {
 
     const dirName = `${strings.dasherize(options.clazz)}-store`;
 
-    const updatedContent = strContent.concat('\nexport * from \'./' + dirName + '\';');
+    const updatedContent = strContent.concat(
+      '\nexport * from \'./' + dirName + '\';'
+    );
     tree.overwrite(file, updatedContent);
     return tree;
   };
@@ -37,7 +52,11 @@ export function updateState(newLine: string, file: string): Rule {
     }
     const startIndex = strContent.indexOf('export');
     const endIndex = strContent.indexOf('{', startIndex);
-    strContent = strContent.slice(0, endIndex + 1) + '\n' + newLine + strContent.slice(endIndex + 1);
+    strContent =
+      strContent.slice(0, endIndex + 1) +
+      '\n' +
+      newLine +
+      strContent.slice(endIndex + 1);
     tree.overwrite(file, strContent);
     return tree;
   };
@@ -62,15 +81,26 @@ export function addImport(file: string, importString: string): Rule {
 /**
  * Aggiunge al selettore principale RootSelector, i riferimenti allo store appena creato.
  */
-export function addRootSelector(options: { clazz: string }, file: string): Rule {
+export function addRootSelector(
+  options: { clazz: string },
+  file: string
+): Rule {
   return (tree: Tree) => {
     const content: Buffer | null = tree.read(file);
     let strContent: string = '';
     if (content) {
       strContent = content.toString();
     }
-    strContent = addLine(strContent, ['selectError', 'createSelectorFactory', 'customMemoizer', '('], `${options.clazz}StoreSelectors.selectError,`);
-    strContent = addLine(strContent, ['selectIsLoading', 'createSelectorFactory', 'customMemoizer', '('], `${options.clazz}StoreSelectors.selectIsLoading,`);
+    strContent = addLine(
+      strContent,
+      ['selectError', 'createSelectorFactory', 'customMemoizer', '('],
+      `${options.clazz}StoreSelectors.selectError,`
+    );
+    strContent = addLine(
+      strContent,
+      ['selectIsLoading', 'createSelectorFactory', 'customMemoizer', '('],
+      `${options.clazz}StoreSelectors.selectIsLoading,`
+    );
 
     tree.overwrite(file, strContent);
     return tree;
@@ -106,10 +136,13 @@ export function addRootSelector(options: { clazz: string }, file: string): Rule 
  * @param patterns sequenza di chiavi che servono a identificare il punto dove aggiungere la linea, come per i css
  * @param newLine linea da aggiungere
  */
-export function addLine(content: string, patterns: string[], newLine: string): string {
-
+export function addLine(
+  content: string,
+  patterns: string[],
+  newLine: string
+): string {
   let index = 0;
-  patterns.forEach(value => {
+  patterns.forEach((value) => {
     index = content.indexOf(value, index) + value.length;
   });
 
@@ -132,14 +165,20 @@ export function addDeclarationToNgModule(options: ModuleOptions): Rule {
       throw new SchematicsException(`File ${modulePath} does not exist.`);
     }
     const sourceText = text.toString();
-    const source = ts.createSourceFile(modulePath, sourceText, ts.ScriptTarget.Latest, true);
+    const source = ts.createSourceFile(
+      modulePath,
+      sourceText,
+      ts.ScriptTarget.Latest,
+      true
+    );
 
     // const relativePath = buildRelativeModulePath(options, modulePath);
-    // @ts-ignore
-    const changes = addImportToModule(source,
+    const changes: Change[] = addImportToModule(
+      source,
       modulePath,
       strings.classify(`${options.name}Module`),
-      options.path as string);
+      options.path as string
+    );
 
     const recorder = host.beginUpdate(modulePath);
     for (const change of changes) {
@@ -156,7 +195,10 @@ export function addDeclarationToNgModule(options: ModuleOptions): Rule {
 /**
  * Aggiunge il modulo del nuovo store creato, come dipendenza del modulo Root
  */
-export function addRouteDeclarationToNgModule(options: { module: string, routeLiteral: string }): Rule {
+export function addRouteDeclarationToNgModule(options: {
+  module: string;
+  routeLiteral: string;
+}): Rule {
   return (host: Tree) => {
     if (!options.module) {
       return host;
@@ -168,12 +210,18 @@ export function addRouteDeclarationToNgModule(options: { module: string, routeLi
       throw new SchematicsException(`File ${modulePath} does not exist.`);
     }
     const sourceText = text.toString();
-    const source = ts.createSourceFile(modulePath, sourceText, ts.ScriptTarget.Latest, true);
-
-    // @ts-ignore
-    const change = addRouteDeclarationToModule(source,
+    const source = ts.createSourceFile(
       modulePath,
-      options.routeLiteral);
+      sourceText,
+      ts.ScriptTarget.Latest,
+      true
+    );
+
+    const change: Change = addRouteDeclarationToModule(
+      source,
+      modulePath,
+      options.routeLiteral
+    );
 
     const recorder = host.beginUpdate(modulePath);
     if (change instanceof InsertChange) {
@@ -211,16 +259,20 @@ export function addRouteDeclarationToNgModule(options: { module: string, routeLi
 /**
  *
  */
-export function render(options: any, sourceTemplate: string, path: string): Rule {
+export function render(
+  options: any,
+  sourceTemplate: string,
+  path: string
+): Rule {
   return (_tree: Tree, _context: SchematicContext) => {
     const _sourceTemplate = url(sourceTemplate as string);
     const _path: string = normalize(path);
     const sourceTemplateParametrized = apply(_sourceTemplate, [
       template({
         ...options,
-        ...strings
+        ...strings,
       }),
-      move(_path)
+      move(_path),
     ]);
     return mergeWith(sourceTemplateParametrized, 14);
   };
@@ -233,47 +285,39 @@ export function updateTsConfigSelector(): Rule {
     if (content) {
       strContent = content.toString();
     }
-    const comment = '/* To learn more about this file see: https://angular.io/config/tsconfig. */';
-    let comment_delete = false;
+    const comment =
+      '/* To learn more about this file see: https://angular.io/config/tsconfig. */';
+    let isCommentRemoved = false;
     if (strContent.substring(0, 76) === comment) {
       strContent = strContent.replace(strContent.substring(0, 77), '');
-      comment_delete =  true;
+      isCommentRemoved = true;
     }
     const tsconfigJson = JSON.parse(strContent);
 
     const compilerOptionsPaths = tsconfigJson.compilerOptions.paths || {};
     console.log('compilerOptionsPaths', compilerOptionsPaths);
     const compilerOptionsPathsB = {
-      '@components/*': [
-        'src/app/main/components/*'
-      ],
-      '@services/*': [
-        'src/app/main/services/*'
-      ],
-      '@models/*': [
-        'src/app/main/models/*'
-      ],
-      '@views/*': [
-        'src/app/main/views/*'
-      ],
-      '@core/*': [
-        'src/app/core/*'
-      ],
-      '@root-store/*': [
-        'src/app/root-store/*'
-      ]
+      '@components/*': ['src/app/main/components/*'],
+      '@services/*': ['src/app/main/services/*'],
+      '@models/*': ['src/app/main/models/*'],
+      '@views/*': ['src/app/main/views/*'],
+      '@core/*': ['src/app/core/*'],
+      '@root-store/*': ['src/app/root-store/*'],
     };
     console.log('compilerOptionsPathsB', compilerOptionsPathsB);
-    tsconfigJson.compilerOptions.paths = {...compilerOptionsPaths, ...compilerOptionsPathsB};
+    tsconfigJson.compilerOptions.paths = {
+      ...compilerOptionsPaths,
+      ...compilerOptionsPathsB,
+    };
     tsconfigJson.compilerOptions.strict = false;
     tsconfigJson.angularCompilerOptions.strictPropertyInitialization = false;
 
     console.log('tsconfigJson', tsconfigJson);
     let strContentB = JSON.stringify(tsconfigJson, null, '\t');
-    if (comment_delete) {
+    if (isCommentRemoved) {
       strContentB = comment.concat('\n' + strContentB);
     }
-    tree.overwrite('/tsconfig.json',strContentB);
+    tree.overwrite('/tsconfig.json', strContentB);
     return tree;
   };
 }

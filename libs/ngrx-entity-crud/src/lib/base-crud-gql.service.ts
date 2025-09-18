@@ -1,11 +1,11 @@
-import {Injectable} from '@angular/core';
-import {ICriteria, OptRequest, Response} from './models';
-import {Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
-import {IBaseCrudService} from './ibase-crud-service';
+import { Injectable } from '@angular/core';
+import { ICriteria, OptRequest, Response } from './models';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { IBaseCrudService } from './ibase-crud-service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class BaseCrudGqlService<T> implements IBaseCrudService<T> {
   public service;
@@ -48,12 +48,11 @@ export class BaseCrudGqlService<T> implements IBaseCrudService<T> {
   mutateMany(opt: OptRequest): Observable<Response<string[]>> {
     return this.apollo.mutate(opt.mutationParams).pipe(
       map((response: any) => {
-        debugger;
-        return ({
+        return {
           message: '',
           hasError: false,
-          data: (response.data as any).allCoins
-        });
+          data: (response.data as any).allCoins,
+        };
       })
     );
   }
@@ -62,12 +61,11 @@ export class BaseCrudGqlService<T> implements IBaseCrudService<T> {
   mutate(opt: OptRequest): Observable<Response<string[]>> {
     return this.apollo.mutate(opt.mutationParams).pipe(
       map((response: any) => {
-        debugger;
-        return ({
+        return {
           message: '',
           hasError: false,
-          data: (response.data as any).allCoins
-        });
+          data: (response.data as any).allCoins,
+        };
       })
     );
   }
@@ -75,16 +73,14 @@ export class BaseCrudGqlService<T> implements IBaseCrudService<T> {
   //todo tolgo tipizzazione QueryOptions query(value?: ICriteria<QueryOptions>): Observable<Response<T[]>> {
   query(value?: ICriteria): Observable<Response<T[]>> {
     console.log('CoinService.search()');
-    return this.apollo
-      .query(value.queryParams).pipe(
-        map((response: any) => {
-          debugger;
-          return ({
-            message: '',
-            hasError: false,
-            data: (response.data as any).allCoins
-          });
-        })
-      );
+    return this.apollo.query(value.queryParams).pipe(
+      map((response: any) => {
+        return {
+          message: '',
+          hasError: false,
+          data: (response.data as any).allCoins,
+        };
+      })
+    );
   }
 }

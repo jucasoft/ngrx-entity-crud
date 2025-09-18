@@ -1,15 +1,14 @@
-import {Injectable} from '@angular/core';
-import {HttpClient, HttpHeaders} from '@angular/common/http';
-import {map, mergeMap} from 'rxjs/operators';
-import {ICriteria, OptRequest, Response} from './models';
-import {Observable, of} from 'rxjs';
-import {IBaseCrudService} from './ibase-crud-service';
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { map, mergeMap } from 'rxjs/operators';
+import { ICriteria, OptRequest, Response } from './models';
+import { Observable, of } from 'rxjs';
+import { IBaseCrudService } from './ibase-crud-service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class BaseCrudService<T> implements IBaseCrudService<T> {
-
   service = '';
   id = 'id';
   debug = false;
@@ -18,35 +17,39 @@ export class BaseCrudService<T> implements IBaseCrudService<T> {
     this.debug = true;
   }
 
-  constructor(public http: HttpClient) {
-  }
+  constructor(public http: HttpClient) {}
 
   httpOptions = () => {
     return {
-      headers: new HttpHeaders({'Content-Type': 'application/json'})
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
     };
   };
 
   create(opt: OptRequest<T>): Observable<Response<T>> {
-    if (typeof (console) !== 'undefined' && this.debug) {
+    if (typeof console !== 'undefined' && this.debug) {
       console.log('%c BaseCrudService.create()', 'color: #777777');
-      console.log('%c Extended from: ' + this.constructor.name, 'color: #777777');
+      console.log(
+        '%c Extended from: ' + this.constructor.name,
+        'color: #777777'
+      );
     }
     const path = !!opt && !!opt.path ? opt.path : null;
-    return this.http.post<Response<T>>(`${this.getUrl(path)}`, opt.mutationParams, this.httpOptions());
+    return this.http.post<Response<T>>(
+      `${this.getUrl(path)}`,
+      opt.mutationParams,
+      this.httpOptions()
+    );
   }
 
   createMany(opt: OptRequest<T[] | T>): Observable<Response<T[]>> {
     this.checkOptRequest(opt);
-    const result = (opt.mutationParams as T[]).map(mutationParams => {
-      const optB: OptRequest<T> = {...opt, mutationParams};
+    const result = (opt.mutationParams as T[]).map((mutationParams) => {
+      const optB: OptRequest<T> = { ...opt, mutationParams };
       return this.create(optB).pipe(
-        map(value => ({...value, data: [value.data]})) // trasformo la singola risposta da {data:T} in {data:T[]}
+        map((value) => ({ ...value, data: [value.data] })) // trasformo la singola risposta da {data:T} in {data:T[]}
       );
     });
-    return of(...result).pipe(
-      mergeMap(value => value)
-    );
+    return of(...result).pipe(mergeMap((value) => value));
   }
 
   /**
@@ -56,104 +59,142 @@ export class BaseCrudService<T> implements IBaseCrudService<T> {
    * @param opt
    */
   checkOptRequest(opt: any): boolean {
-    if (opt && opt.hasOwnProperty('item') && !!opt.item) {
-      throw new Error('Error, in new versions of the library the "items" or "item" attribute have been replaced by "mutationParams". all project attributes must be renamed.');
+    if (
+      opt &&
+      Object.prototype.hasOwnProperty.call(opt, 'item') &&
+      !!opt.item
+    ) {
+      throw new Error(
+        'Error, in new versions of the library the "items" or "item" attribute have been replaced by "mutationParams". all project attributes must be renamed.'
+      );
     }
-    if (opt && opt.hasOwnProperty('items') && !!opt.items) {
-      throw new Error('Error, in new versions of the library the "items" or "item" attribute have been replaced by "mutationParams". all project attributes must be renamed.');
+    if (
+      opt &&
+      Object.prototype.hasOwnProperty.call(opt, 'items') &&
+      !!opt.items
+    ) {
+      throw new Error(
+        'Error, in new versions of the library the "items" or "item" attribute have been replaced by "mutationParams". all project attributes must be renamed.'
+      );
     }
     return true;
   }
 
   search(value?: ICriteria): Observable<Response<T[]>> {
-    if (typeof (console) !== 'undefined' && this.debug) {
+    if (typeof console !== 'undefined' && this.debug) {
       console.log('BaseCrudService.search()');
       console.log('Extended from: ' + this.constructor.name);
     }
-    const url = value && value.hasOwnProperty('path') && !!value.path ? value.path.join('/') : '';
+    const url =
+      value &&
+      Object.prototype.hasOwnProperty.call(value, 'path') &&
+      !!value.path
+        ? value.path.join('/')
+        : '';
     let httpOptions = this.httpOptions();
 
-    if (value && value.hasOwnProperty('queryParams') && !!value.queryParams) {
-      httpOptions = ({...httpOptions, ...{params: value.queryParams}});
+    if (
+      value &&
+      Object.prototype.hasOwnProperty.call(value, 'queryParams') &&
+      !!value.queryParams
+    ) {
+      httpOptions = { ...httpOptions, ...{ params: value.queryParams } };
     }
-    return this.http.get(this.getUrl() + url, httpOptions).pipe(
-      map(this.searchMap),
-    ) as Observable<Response<T[]>>;
-
+    return this.http
+      .get(this.getUrl() + url, httpOptions)
+      .pipe(map(this.searchMap)) as Observable<Response<T[]>>;
   }
 
-  searchMap = res => res;
+  searchMap = (res) => res;
 
   select(opt: ICriteria): Observable<Response<T>> {
-    if (typeof (console) !== 'undefined' && this.debug) {
+    if (typeof console !== 'undefined' && this.debug) {
       console.log('%c BaseCrudService.select()', 'color: #777777');
-      console.log('%c Extended from: ' + this.constructor.name, 'color: #777777');
+      console.log(
+        '%c Extended from: ' + this.constructor.name,
+        'color: #777777'
+      );
     }
 
     const id = this.getId(opt.queryParams);
     const path = !!opt && !!opt.path ? opt.path : null;
-    return this
-      .http
-      .get<Response<T>>(`${this.getUrl(path)}/${id}`, this.httpOptions());
+    return this.http.get<Response<T>>(
+      `${this.getUrl(path)}/${id}`,
+      this.httpOptions()
+    );
   }
 
   update(opt: OptRequest<T>): Observable<Response<T>> {
     this.checkOptRequest(opt);
-    if (typeof (console) !== 'undefined' && this.debug) {
+    if (typeof console !== 'undefined' && this.debug) {
       console.log('%c BaseCrudService.update()', 'color: #777777');
-      console.log('%c Extended from: ' + this.constructor.name, 'color: #777777');
+      console.log(
+        '%c Extended from: ' + this.constructor.name,
+        'color: #777777'
+      );
     }
     const id = this.getId(opt.mutationParams);
     const path = !!opt && !!opt.path ? opt.path : null;
-    return this.http.put<Response<T>>(`${this.getUrl(path)}/${id}`, opt.mutationParams, this.httpOptions());
+    return this.http.put<Response<T>>(
+      `${this.getUrl(path)}/${id}`,
+      opt.mutationParams,
+      this.httpOptions()
+    );
   }
 
   updateMany(opt: OptRequest<T[] | T>): Observable<Response<T[]>> {
     this.checkOptRequest(opt);
-    const result = (opt.mutationParams as T[]).map(mutationParams => {
-      const optB: OptRequest<T> = {...opt, mutationParams};
+    const result = (opt.mutationParams as T[]).map((mutationParams) => {
+      const optB: OptRequest<T> = { ...opt, mutationParams };
       return this.update(optB).pipe(
-        map(value => ({...value, data: [value.data]})) // trasformo la singola risposta da {data:T} in {data:T[]}
+        map((value) => ({ ...value, data: [value.data] })) // trasformo la singola risposta da {data:T} in {data:T[]}
       );
     });
-    return of(...result).pipe(
-      mergeMap(value => value)
-    );
+    return of(...result).pipe(mergeMap((value) => value));
   }
 
   delete(opt: OptRequest<T>): Observable<Response<string>> {
     this.checkOptRequest(opt);
-    if (typeof (console) !== 'undefined' && this.debug) {
+    if (typeof console !== 'undefined' && this.debug) {
       console.log('%c BaseCrudService.delete()', 'color: #777777');
-      console.log('%c Extended from: ' + this.constructor.name, 'color: #777777');
+      console.log(
+        '%c Extended from: ' + this.constructor.name,
+        'color: #777777'
+      );
     }
     const id = this.getId(opt.mutationParams);
     const path = !!opt && !!opt.path ? opt.path : null;
-    return this.http.delete<Response<string>>(`${this.getUrl(path)}/${id}`, this.httpOptions());
+    return this.http.delete<Response<string>>(
+      `${this.getUrl(path)}/${id}`,
+      this.httpOptions()
+    );
   }
 
   deleteMany(opt: OptRequest<T[] | T>): Observable<Response<string[]>> {
     this.checkOptRequest(opt);
-    const result = (opt.mutationParams as T[]).map(mutationParams => {
-      const optB: OptRequest<T> = {...opt, mutationParams};
+    const result = (opt.mutationParams as T[]).map((mutationParams) => {
+      const optB: OptRequest<T> = { ...opt, mutationParams };
       return this.delete(optB);
     });
-    return of(...result).pipe(
-      mergeMap(value => value)
-    );
+    return of(...result).pipe(mergeMap((value) => value));
   }
 
   getId = (value) => value[this.id];
 
   getUrl(path?: string[]): string {
     const result = path ? `${this.service}/${path.join('/')}` : this.service;
-    if (typeof (console) !== 'undefined' && this.debug) {
-      console.log('%c BaseCrudService.getUrl(path?:string[]): string', 'color: #777777');
+    if (typeof console !== 'undefined' && this.debug) {
+      console.log(
+        '%c BaseCrudService.getUrl(path?:string[]): string',
+        'color: #777777'
+      );
       console.log('%c path: ' + path, 'color: #777777');
-      console.log('%c Extended from: ' + this.constructor.name, 'color: #777777');
+      console.log(
+        '%c Extended from: ' + this.constructor.name,
+        'color: #777777'
+      );
       console.log('%c result: ' + result, 'color: #777777');
     }
     return result;
   }
-
 }
