@@ -26,14 +26,12 @@
       }
     },
     "lint": {
-      "executor": "@angular-devkit/build-angular:tslint",
+      "executor": "@nx/eslint:lint",
+      "outputs": ["{options.outputFile}"],
       "options": {
-        "tsConfig": [
-          "libs/ngrx-entity-crud/tsconfig.lib.json",
-          "libs/ngrx-entity-crud/tsconfig.spec.json"
-        ],
-        "exclude": [
-          "**/node_modules/**"
+        "lintFilePatterns": [
+          "libs/ngrx-entity-crud/**/*.ts",
+          "libs/ngrx-entity-crud/**/*.html"
         ]
       }
     },
