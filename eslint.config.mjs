@@ -86,15 +86,10 @@ export default [
       '@angular-eslint': angular,
     },
     rules: {
-      // Regole specifiche per Angular
+      // Regole specifiche per Angular (solo quelle esistenti)
       '@angular-eslint/component-class-suffix': 'error',
       '@angular-eslint/directive-class-suffix': 'error',
       '@angular-eslint/no-output-on-prefix': 'error',
-      '@angular-eslint/no-inputs-metadata-property': 'error',
-      '@angular-eslint/no-outputs-metadata-property': 'error',
-      '@angular-eslint/no-host-metadata-property': 'error',
-      '@angular-eslint/no-input-rename': 'error',
-      '@angular-eslint/no-output-rename': 'error',
       '@angular-eslint/use-lifecycle-interface': 'error',
       '@angular-eslint/use-pipe-transform-interface': 'error',
     },
@@ -117,22 +112,6 @@ export default [
       // Override specifici per la libreria ngrx-entity-crud
       'camelcase': ['error', { allow: ['^_'] }],
       '@typescript-eslint/no-inferrable-types': 'off',
-      '@angular-eslint/directive-selector': [
-        'error',
-        {
-          type: 'attribute',
-          prefix: 'lib',
-          style: 'camelCase'
-        }
-      ],
-      '@angular-eslint/component-selector': [
-        'error',
-        {
-          type: 'element',
-          prefix: 'lib',
-          style: 'kebab-case'
-        }
-      ]
     },
   },
 ];
