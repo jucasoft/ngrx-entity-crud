@@ -1,33 +1,37 @@
-# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
-# For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
-
-name: Node.js Package
+# This workflow will publish a package to npm when a release is created
+name: Publish to npm
 
 on:
   release:
     types: [created]
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
-      - run: npm ci
-      - run: npm run build
+permissions:
+  actions: read # Obbligatorio per actions/download-artifact
 
+jobs:
+  # Chiama il workflow riutilizzabile per assicurarsi che il codice sia valido e per creare l'artefatto
+  build_and_test:
+    uses: ./.github/workflows/reusable-build.yml
+
+  # Una volta che l'artefatto è pronto, procedi alla pubblicazione
   publish-npm:
-    needs: build
+    needs: build_and_test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Setup Node.js for publishing
+        uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: '20.x' # Usa la versione LTS più recente per ricevere patch di sicurezza
           registry-url: https://registry.npmjs.org/
-      - run: npm ci
-      - run: npm run npm:build:publish
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: library-package # Nome dell'artefatto caricato dal job precedente
+          path: package-dist # Scarica in una directory dedicata
+
+      - name: Publish to npm
+        run: npm publish
+        working-directory: ./package-dist # Esegui il publish da quella directory
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}

@@ -1,0 +1,47 @@
+# .github/workflows/reusable-build.yml
+# Questo workflow può essere richiamato da altri workflow.
+# Contiene la logica centrale per installare, compilare, analizzare e testare il codice.
+
+name: Reusable Build and Test
+
+on:
+  workflow_call:
+
+jobs:
+  build_lint_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint # Assumendo che tu abbia uno script 'lint' in package.json
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm run testLibs
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: library-package
+          path: dist/ngrx-entity-crud # Carica solo la directory del pacchetto
+          retention-days: 1
