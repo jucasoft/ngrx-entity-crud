@@ -5,6 +5,9 @@ on:
   release:
     types: [created]
 
+permissions:
+  actions: read # Obbligatorio per actions/download-artifact
+
 jobs:
   # Chiama il workflow riutilizzabile per assicurarsi che il codice sia valido e per creare l'artefatto
   build_and_test:
@@ -18,15 +21,17 @@ jobs:
       - name: Setup Node.js for publishing
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '20.x' # Usa la versione LTS più recente per ricevere patch di sicurezza
           registry-url: https://registry.npmjs.org/
 
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: library-package # Nome dell'artefatto caricato dal job precedente
+          path: package-dist # Scarica in una directory dedicata
 
       - name: Publish to npm
         run: npm publish
+        working-directory: ./package-dist # Esegui il publish da quella directory
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
