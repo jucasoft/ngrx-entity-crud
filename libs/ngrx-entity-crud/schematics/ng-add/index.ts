@@ -2,7 +2,7 @@ import {chain, Rule, SchematicsException, Tree} from '@angular-devkit/schematics
 import {addDeclarationToNgModule, render, updateTsConfigSelector} from '../my-utility';
 
 // Just return the tree
-export function ngAdd(options: any): Rule {
+export function ngAdd(options: NgAdd): Rule {
   return (tree: Tree) => {
     const workspaceConfig = tree.read('/angular.json');
     if (!workspaceConfig) {
@@ -48,23 +48,23 @@ export function ngAdd(options: any): Rule {
       render(options, './files', ''),
     addDeclarationToNgModule({
         module: `${pathApp}/app.module.ts`,
-        name: `ThemeJng`,
-        path: `./core/theme/theme-jng.module`
+        name: 'ThemeJng',
+        path: './core/theme/theme-jng.module'
       }),
       addDeclarationToNgModule({
         module: `${pathApp}/app.module.ts`,
-        name: `BrowserAnimations`,
-        path: `@angular/platform-browser/animations`
+        name: 'BrowserAnimations',
+        path: '@angular/platform-browser/animations'
       }),
       addDeclarationToNgModule({
         module: `${pathApp}/app.module.ts`,
-        name: `RootStore`,
-        path: `./root-store`
+        name: 'RootStore',
+        path: './root-store'
       }),
       addDeclarationToNgModule({
         module: `${pathApp}/app.module.ts`,
-        name: `HttpClient`,
-        path: `@angular/common/http`
+        name: 'HttpClient',
+        path: '@angular/common/http'
       }),
       updateTsConfigSelector()
     ];

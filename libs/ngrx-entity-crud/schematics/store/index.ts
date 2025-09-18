@@ -85,11 +85,11 @@ export function makeStore(options: CrudStore): Rule {
       const types: any[] = graphqlSchemaJson.__schema.types;
       const itemType = types.find(value => value.kind === 'OBJECT' && value.name === options.clazz);
       if (!itemType) {
-        throw new SchematicsException("Could not find \"" + options.clazz + "\" in graphql.schema.json configuration, update shema")
+        throw new SchematicsException('Could not find "' + options.clazz + '" in graphql.schema.json configuration, update shema');
       }
       const fields = (itemType.fields as any[]).map(value => value.name);
       console.log('fieldsB', fields);
-      const optionsGQL = {...options, gqlSchema:{fields}}
+      const optionsGQL = {...options, gqlSchema:{fields}};
       return chain([...genericRules, ...crudRules,
         render(optionsGQL, './files/crud-graphql', pathStore),
         render(options, './files/crud-service/graphql', pathService),

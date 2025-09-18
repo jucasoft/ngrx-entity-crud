@@ -25,7 +25,7 @@ export class BaseCrudService<T> implements IBaseCrudService<T> {
     return {
       headers: new HttpHeaders({'Content-Type': 'application/json'})
     };
-  }
+  };
 
   create(opt: OptRequest<T>): Observable<Response<T>> {
     if (typeof (console) !== 'undefined' && this.debug) {
@@ -57,10 +57,10 @@ export class BaseCrudService<T> implements IBaseCrudService<T> {
    */
   checkOptRequest(opt: any): boolean {
     if (opt && opt.hasOwnProperty('item') && !!opt.item) {
-      throw new Error('Error, in new versions of the library the "items" or "item" attribute have been replaced by "mutationParams". all project attributes must be renamed.')
+      throw new Error('Error, in new versions of the library the "items" or "item" attribute have been replaced by "mutationParams". all project attributes must be renamed.');
     }
     if (opt && opt.hasOwnProperty('items') && !!opt.items) {
-      throw new Error('Error, in new versions of the library the "items" or "item" attribute have been replaced by "mutationParams". all project attributes must be renamed.')
+      throw new Error('Error, in new versions of the library the "items" or "item" attribute have been replaced by "mutationParams". all project attributes must be renamed.');
     }
     return true;
   }
@@ -146,7 +146,7 @@ export class BaseCrudService<T> implements IBaseCrudService<T> {
   getId = (value) => value[this.id];
 
   getUrl(path?: string[]): string {
-    const result = !!path ? `${this.service}/${path.join('/')}` : this.service;
+    const result = path ? `${this.service}/${path.join('/')}` : this.service;
     if (typeof (console) !== 'undefined' && this.debug) {
       console.log('%c BaseCrudService.getUrl(path?:string[]): string', 'color: #777777');
       console.log('%c path: ' + path, 'color: #777777');

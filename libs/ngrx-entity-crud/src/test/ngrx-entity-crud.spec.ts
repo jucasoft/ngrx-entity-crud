@@ -10,8 +10,7 @@ export class Pizza {
   name: string;
 }
 
-export interface State extends CrudState<Pizza> {
-}
+export type State = CrudState<Pizza>
 
 describe('NgRx Entity CRUD', () => {
   let adapter: EntityCrudAdapter<Pizza>;

@@ -8,7 +8,7 @@ import {IBaseCrudService} from './ibase-crud-service';
   providedIn: 'root'
 })
 export class BaseCrudGqlService<T> implements IBaseCrudService<T> {
-  public service
+  public service;
 
   protected apollo: any;
 
@@ -17,19 +17,19 @@ export class BaseCrudGqlService<T> implements IBaseCrudService<T> {
   }
 
   select(opt: OptRequest): Observable<Response<T>> {
-    return this.mutate(opt)
+    return this.mutate(opt);
   }
 
   create(opt: OptRequest): Observable<Response<T>> {
-    return this.mutate(opt)
+    return this.mutate(opt);
   }
 
   createMany(opt: OptRequest): Observable<Response<T[]>> {
-    return this.mutate(opt)
+    return this.mutate(opt);
   }
 
   update(opt: OptRequest): Observable<Response<T>> {
-    return this.mutate(opt)
+    return this.mutate(opt);
   }
 
   updateMany(opt: OptRequest): Observable<Response<T[]>> {
@@ -37,39 +37,39 @@ export class BaseCrudGqlService<T> implements IBaseCrudService<T> {
   }
 
   delete(opt: OptRequest): Observable<Response<string>> {
-    return this.mutate(opt)
+    return this.mutate(opt);
   }
 
   deleteMany(opt: OptRequest): Observable<Response<string[]>> {
-    return this.mutate(opt)
+    return this.mutate(opt);
   }
 
   //todo tolgo tipizzazione  MutationOptions mutateMany(opt: OptRequest<MutationOptions>): Observable<Response<string[]>> {
   mutateMany(opt: OptRequest): Observable<Response<string[]>> {
     return this.apollo.mutate(opt.mutationParams).pipe(
       map((response: any) => {
-        debugger
+        debugger;
         return ({
           message: '',
           hasError: false,
           data: (response.data as any).allCoins
-        })
+        });
       })
-    )
+    );
   }
 
   //todo tolgo tipizzazione  MutationOptions mutate(opt: OptRequest<MutationOptions>): Observable<Response<string[]>> {
   mutate(opt: OptRequest): Observable<Response<string[]>> {
     return this.apollo.mutate(opt.mutationParams).pipe(
       map((response: any) => {
-        debugger
+        debugger;
         return ({
           message: '',
           hasError: false,
           data: (response.data as any).allCoins
-        })
+        });
       })
-    )
+    );
   }
 
   //todo tolgo tipizzazione QueryOptions query(value?: ICriteria<QueryOptions>): Observable<Response<T[]>> {
@@ -78,13 +78,13 @@ export class BaseCrudGqlService<T> implements IBaseCrudService<T> {
     return this.apollo
       .query(value.queryParams).pipe(
         map((response: any) => {
-          debugger
+          debugger;
           return ({
             message: '',
             hasError: false,
             data: (response.data as any).allCoins
-          })
+          });
         })
-      )
+      );
   }
 }

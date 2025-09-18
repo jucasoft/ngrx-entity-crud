@@ -14,4 +14,4 @@ export * from './lib/base-crud-gql.service';
 export * from './lib/actions';
 export {getInitialSingleCrudState} from './lib/entity_state';
 export {createCrudOns, createSingularCrudOns, evalData} from './lib/reducer';
-export {getSingeCrudSelectors} from './lib/state_selectors'
+export {getSingeCrudSelectors} from './lib/state_selectors';

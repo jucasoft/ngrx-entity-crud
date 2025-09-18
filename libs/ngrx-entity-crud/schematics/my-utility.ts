@@ -262,16 +262,16 @@ export function updateTsConfigSelector(): Rule {
       '@root-store/*': [
         'src/app/root-store/*'
       ]
-    }
+    };
     console.log('compilerOptionsPathsB', compilerOptionsPathsB);
     tsconfigJson.compilerOptions.paths = {...compilerOptionsPaths, ...compilerOptionsPathsB};
     tsconfigJson.compilerOptions.strict = false;
     tsconfigJson.angularCompilerOptions.strictPropertyInitialization = false;
 
     console.log('tsconfigJson', tsconfigJson);
-    let strContentB = JSON.stringify(tsconfigJson, null, "\t")
+    let strContentB = JSON.stringify(tsconfigJson, null, '\t');
     if (comment_delete) {
-      strContentB = comment.concat("\n" + strContentB);
+      strContentB = comment.concat('\n' + strContentB);
     }
     tree.overwrite('/tsconfig.json',strContentB);
     return tree;
