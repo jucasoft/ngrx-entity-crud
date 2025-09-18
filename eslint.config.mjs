@@ -1,13 +1,17 @@
 import nx from '@nx/eslint-plugin';
 import angular from '@angular-eslint/eslint-plugin';
 import angularTemplate from '@angular-eslint/eslint-plugin-template';
+import tseslint from 'typescript-eslint';
 
 export default [
   ...nx.configs['flat/base'],
   ...nx.configs['flat/typescript'],
   ...nx.configs['flat/javascript'],
   {
-    ignores: ['**/dist'],
+    ignores: [
+      '**/dist',
+      'libs/ngrx-entity-crud/schematics/*/files/**', // Esclude tutte le cartelle "files"
+    ],
   },
   {
     files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
@@ -40,13 +44,13 @@ export default [
     ],
     rules: {
       // Regole di formattazione e stile
-      'quotes': ['error', 'single'],
-      'semi': ['error', 'always'],
+      quotes: ['error', 'single'],
+      semi: ['error', 'always'],
       'eol-last': 'error',
-      'curly': 'error',
+      curly: 'error',
 
       // Regole per TypeScript
-      '@typescript-eslint/no-inferrable-types': ['error', { ignoreParameters: true }],
+      '@typescript-eslint/no-inferrable-types': ['error', {ignoreParameters: true}],
       '@typescript-eslint/no-non-null-assertion': 'error',
 
       // Regole per import
@@ -58,7 +62,17 @@ export default [
       ],
 
       // Regole per console
-      'no-console': ['error', { allow: ['warn', 'error'] }],
+      // 'no-console': ['error', {allow: ['warn', 'error']}],
+
+      // Regole per variabili non utilizzate
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',        // Ignora parametri che iniziano con _
+          varsIgnorePattern: '^_',        // Ignora variabili che iniziano con _
+          caughtErrorsIgnorePattern: '^_' // Ignora errori catch che iniziano con _
+        }
+      ],
 
       // Regole per oggetti
       'quote-props': ['error', 'as-needed'],
@@ -74,10 +88,7 @@ export default [
       ],
 
       // Regole per variabili
-      'camelcase': ['error', { allow: ['^_'] }],
-
-      // Regole per deprecation (warning)
-      '@typescript-eslint/no-deprecated': 'warn'
+      camelcase: ['error', {allow: ['^_']}],
     },
   },
   {
@@ -110,7 +121,7 @@ export default [
     },
     rules: {
       // Override specifici per la libreria ngrx-entity-crud
-      'camelcase': ['error', { allow: ['^_'] }],
+      camelcase: ['error', {allow: ['^_']}],
       '@typescript-eslint/no-inferrable-types': 'off',
     },
   },
