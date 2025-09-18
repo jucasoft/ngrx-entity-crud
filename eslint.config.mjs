@@ -52,6 +52,7 @@ export default [
       // Regole per TypeScript
       '@typescript-eslint/no-inferrable-types': ['error', {ignoreParameters: true}],
       '@typescript-eslint/no-non-null-assertion': 'error',
+      '@typescript-eslint/no-explicit-any': 'warn',
 
       // Regole per import
       'no-restricted-imports': [
