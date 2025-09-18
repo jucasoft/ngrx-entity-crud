@@ -1,4 +1,6 @@
 import nx from '@nx/eslint-plugin';
+import angular from '@angular-eslint/eslint-plugin';
+import angularTemplate from '@angular-eslint/eslint-plugin-template';
 
 export default [
   ...nx.configs['flat/base'],
@@ -42,7 +44,6 @@ export default [
       'semi': ['error', 'always'],
       'eol-last': 'error',
       'curly': 'error',
-      'no-consecutive-blank-lines': 'off',
 
       // Regole per TypeScript
       '@typescript-eslint/no-inferrable-types': ['error', { ignoreParameters: true }],
@@ -81,6 +82,9 @@ export default [
   },
   {
     files: ['**/*.ts'],
+    plugins: {
+      '@angular-eslint': angular,
+    },
     rules: {
       // Regole specifiche per Angular
       '@angular-eslint/component-class-suffix': 'error',
@@ -96,10 +100,22 @@ export default [
     },
   },
   {
+    files: ['**/*.html'],
+    plugins: {
+      '@angular-eslint/template': angularTemplate,
+    },
+    rules: {
+      // Regole per template Angular
+    },
+  },
+  {
     files: ['libs/ngrx-entity-crud/**/*.ts'],
+    plugins: {
+      '@angular-eslint': angular,
+    },
     rules: {
       // Override specifici per la libreria ngrx-entity-crud
-      'camelcase': ['error', { allow: ['^_', 'allow-leading-underscore'] }],
+      'camelcase': ['error', { allow: ['^_'] }],
       '@typescript-eslint/no-inferrable-types': 'off',
       '@angular-eslint/directive-selector': [
         'error',
