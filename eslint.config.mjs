@@ -1,7 +1,6 @@
 import nx from '@nx/eslint-plugin';
 import angular from '@angular-eslint/eslint-plugin';
 import angularTemplate from '@angular-eslint/eslint-plugin-template';
-import tseslint from 'typescript-eslint';
 
 export default [
   ...nx.configs['flat/base'],
