@@ -23,6 +23,13 @@
         "main": "libs/ngrx-entity-crud/src/test.ts",
         "tsConfig": "libs/ngrx-entity-crud/tsconfig.spec.json",
         "karmaConfig": "libs/ngrx-entity-crud/karma.conf.js"
+      },
+      "configurations": {
+        "ci": {
+          "watch": false,
+          "singleRun": true,
+          "browsers": "ChromeHeadlessCI"
+        }
       }
     },
     "lint": {
@@ -48,10 +55,7 @@
     },
     "link": {
       "executor": "nx:run-commands",
-      "dependsOn": [
-        "build",
-        "build-schematics"
-      ],
+      "dependsOn": ["build", "build-schematics"],
       "options": {
         "command": "cd dist/ngrx-entity-crud && npm link",
         "cwd": "{workspaceRoot}"
@@ -59,10 +63,7 @@
     },
     "publish": {
       "executor": "nx:run-commands",
-      "dependsOn": [
-        "build",
-        "build-schematics"
-      ],
+      "dependsOn": ["build", "build-schematics"],
       "options": {
         "command": "cd dist/ngrx-entity-crud && npm publish",
         "cwd": "{workspaceRoot}"
@@ -70,10 +71,7 @@
     },
     "publish-beta": {
       "executor": "nx:run-commands",
-      "dependsOn": [
-        "build",
-        "build-schematics"
-      ],
+      "dependsOn": ["build", "build-schematics"],
       "options": {
         "command": "cd dist/ngrx-entity-crud && npm publish --tag beta",
         "cwd": "{workspaceRoot}"
