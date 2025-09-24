@@ -26,9 +26,7 @@
       },
       "configurations": {
         "ci": {
-          "watch": false,
-          "singleRun": true,
-          "browsers": "ChromeHeadlessCI"
+          "watch": false
         }
       }
     },
