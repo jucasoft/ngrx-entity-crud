@@ -36,8 +36,9 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Run tests
-        run: xvfb-run npx nx test ngrx-entity-crud --configuration=ci
+      - name: Test
+        run:  npx nx test ngrx-entity-crud
+
 #      - name: Upload artifact
 #        uses: actions/upload-artifact@v4
 #        with:
