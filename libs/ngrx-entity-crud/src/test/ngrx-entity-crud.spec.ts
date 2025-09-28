@@ -540,7 +540,7 @@ describe('NgRx Entity CRUD', () => {
   });
 
   describe('Actions Dispatch Tests', () => {
-    let store: jasmine.SpyObj<Store<State>>;
+    let store: Store<State>;
 
     beforeEach(() => {
       store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);

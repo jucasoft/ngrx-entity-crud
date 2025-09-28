@@ -18,11 +18,11 @@
       }
     },
     "test": {
-      "executor": "@angular-devkit/build-angular:karma",
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "main": "libs/ngrx-entity-crud/src/test.ts",
-        "tsConfig": "libs/ngrx-entity-crud/tsconfig.spec.json",
-        "karmaConfig": "libs/ngrx-entity-crud/karma.conf.js"
+        "jestConfig": "libs/ngrx-entity-crud/jest.config.ts",
+        "passWithNoTests": true
       },
       "configurations": {
         "ci": {

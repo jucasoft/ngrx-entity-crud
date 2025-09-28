@@ -2,19 +2,10 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "../../dist/out-tsc",
-    "types": [
-      "jasmine",
-      "node"
-    ]
+    "types": ["jest", "node"],
+    "esModuleInterop": true,
+    "allowJs": true
   },
-  "files": [
-    "src/test.ts"
-  ],
-  "include": [
-    "**/*.spec.ts",
-    "**/*.d.ts"
-  ],
-  "exclude": [
-    "schematics/*/files/**/*"
-  ]
+  "include": ["**/*.spec.ts", "**/*.d.ts"],
+  "exclude": ["schematics/*/files/**/*"]
 }
