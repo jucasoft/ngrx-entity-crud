@@ -23,6 +23,7 @@ const config: Config = {
   transformIgnorePatterns: ['node_modules/(?!(@angular|@ngrx|rxjs|tslib)/)'],
   moduleFileExtensions: ['ts', 'html', 'js', 'json', 'mjs'],
   resolver: 'jest-preset-angular/build/resolvers/ng-jest-resolver.js',
+  testMatch: ['**/*.spec.ts'],
 };
 
 export default config;

@@ -543,7 +543,7 @@ describe('NgRx Entity CRUD', () => {
     let store: Store<State>;
 
     beforeEach(() => {
-      store = jasmine.createSpyObj<Store<State>>('store', ['dispatch']);
+      store = { dispatch: jest.fn() } as unknown as Store<State>;
     });
 
     describe('Request Actions', () => {
