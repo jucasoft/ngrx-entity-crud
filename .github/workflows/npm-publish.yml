@@ -26,7 +26,7 @@ jobs:
         run: |
           set -e
           TAG_VERSION="${{ github.ref_name }}"
-          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          PACKAGE_VERSION=$(node -p "require('./libs/ngrx-entity-crud/package.json').version")
 
           # Controlla che il tag inizi con 'v'
           if ! [[ "$TAG_VERSION" =~ ^v ]]; then
