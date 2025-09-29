@@ -9,7 +9,6 @@ const config: Config = {
     'src/**/*.ts',
     '!src/**/*.spec.ts',
     '!src/test-setup.ts',
-    '!src/test.ts',
   ],
   transform: {
     '^.+\\.(ts|mjs|js|html)$': [
