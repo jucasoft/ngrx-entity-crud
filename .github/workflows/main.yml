@@ -3,51 +3,8 @@ name: Node.js CI
 on:
   push:
     branches: [ main ]
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+*' # E.g. v1.2.3 or v1.2.3-beta.1
 
 jobs:
   # Chiama il workflow riutilizzabile per costruire ed eseguire i test
   build_and_test:
     uses: ./.github/workflows/reusable-build.yml
-
-  # Pubblicazione su npm
-  publish-npm:
-    needs: build_and_test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: 'Verifica coerenza versione: tag vs package.json'
-        if: github.ref_type == 'tag'
-        run: |
-          set -e
-          TAG_VERSION="${{ github.ref_name }}"
-          PACKAGE_VERSION=$(node -p "require('./package.json').version")
-
-          # Controlla che il tag inizi con 'v'
-          if ! [[ "$TAG_VERSION" =~ ^v ]]; then
-            echo "Errore: Il tag di versione '$TAG_VERSION' deve iniziare con 'v' (es. v1.2.3 o v1.2.3-beta.1)."
-            exit 1
-          fi
-
-          # Confronta la versione del tag (es. 'v1.2.3') con quella del package.json (es. '1.2.3')
-          EXPECTED_TAG="v$PACKAGE_VERSION"
-          if [[ "$TAG_VERSION" != "$EXPECTED_TAG" ]]; then
-            echo "Errore: La versione del tag ('$TAG_VERSION') non corrisponde a quella del package.json ('$EXPECTED_TAG')."
-            exit 1
-          fi
-
-          echo "Le versioni del tag e del package.json corrispondono: $TAG_VERSION"
-
-      - name: Setup Node.js for publishing
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20.x' # Usa la versione LTS più recente
-          registry-url: https://registry.npmjs.org/
-
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: dist-artifact # Assicurati che questo nome corrisponda a quello usato in reusable-build.yml

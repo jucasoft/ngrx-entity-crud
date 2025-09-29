@@ -1,9 +1,10 @@
-# Questo workflow pubblica un pacchetto su npm quando viene creata una release.
+# Questo workflow pubblica un pacchetto su npm quando viene creato un tag.
 name: Publish to npm
 
 on:
-  release:
-    types: [created]
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*' # E.g. v1.2.3 or v1.2.3-beta.1
 
 permissions:
   actions: read # Obbligatorio per actions/download-artifact
@@ -18,6 +19,30 @@ jobs:
     needs: build_and_test
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 'Verifica coerenza versione: tag vs package.json'
+        run: |
+          set -e
+          TAG_VERSION="${{ github.ref_name }}"
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+
+          # Controlla che il tag inizi con 'v'
+          if ! [[ "$TAG_VERSION" =~ ^v ]]; then
+            echo "Errore: Il tag di versione '$TAG_VERSION' deve iniziare con 'v' (es. v1.2.3 o v1.2.3-beta.1)."
+            exit 1
+          fi
+
+          # Confronta la versione del tag (es. 'v1.2.3') con quella del package.json (es. '1.2.3')
+          EXPECTED_TAG="v$PACKAGE_VERSION"
+          if [[ "$TAG_VERSION" != "$EXPECTED_TAG" ]]; then
+            echo "Errore: La versione del tag ('$TAG_VERSION') non corrisponde a quella del package.json ('$EXPECTED_TAG')."
+            exit 1
+          fi
+
+          echo "Le versioni del tag e del package.json corrispondono: $TAG_VERSION"
+
       - name: Setup Node.js for publishing
         uses: actions/setup-node@v4
         with:
@@ -32,7 +57,7 @@ jobs:
 
       - name: Publish to npm
         run: |
-          if [[ "${{ github.event.release.tag_name }}" == *"beta"* ]]; then
+          if [[ "${{ github.ref_name }}" == *"beta"* ]]; then
             npm publish --tag beta
           else
             npm publish
