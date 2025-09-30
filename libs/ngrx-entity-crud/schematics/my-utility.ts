@@ -285,14 +285,9 @@ export function updateTsConfigSelector(): Rule {
     if (content) {
       strContent = content.toString();
     }
-    const comment =
-      '/* To learn more about this file see: https://angular.io/config/tsconfig. */';
-    let isCommentRemoved = false;
-    if (strContent.substring(0, 76) === comment) {
-      strContent = strContent.replace(strContent.substring(0, 77), '');
-      isCommentRemoved = true;
-    }
-    const tsconfigJson = JSON.parse(strContent);
+    const tsconfigJson = JSON.parse(
+      strContent.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '')
+    );
 
     const compilerOptionsPaths = tsconfigJson.compilerOptions.paths || {};
     console.log('compilerOptionsPaths', compilerOptionsPaths);
@@ -313,10 +308,7 @@ export function updateTsConfigSelector(): Rule {
     tsconfigJson.angularCompilerOptions.strictPropertyInitialization = false;
 
     console.log('tsconfigJson', tsconfigJson);
-    let strContentB = JSON.stringify(tsconfigJson, null, '\t');
-    if (isCommentRemoved) {
-      strContentB = comment.concat('\n' + strContentB);
-    }
+    const strContentB = JSON.stringify(tsconfigJson, null, '\t');
     tree.overwrite('/tsconfig.json', strContentB);
     return tree;
   };

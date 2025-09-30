@@ -1,19 +1,32 @@
-import {chain, Rule, SchematicsException, Tree} from '@angular-devkit/schematics';
-import {addDeclarationToNgModule, render, updateTsConfigSelector} from '../my-utility';
+import {
+  chain,
+  Rule,
+  SchematicsException,
+  Tree,
+} from '@angular-devkit/schematics';
+import {
+  addDeclarationToNgModule,
+  render,
+  updateTsConfigSelector,
+} from '../my-utility';
 
 // Just return the tree
 export function ngAdd(options: NgAdd): Rule {
   return (tree: Tree) => {
     const workspaceConfig = tree.read('/angular.json');
     if (!workspaceConfig) {
-      throw new SchematicsException('Could not find Angular workspace configuration');
+      throw new SchematicsException(
+        'Could not find Angular workspace configuration'
+      );
     }
 
     // convert workspace to string
     const workspaceContent = workspaceConfig.toString();
 
-    // parse workspace string into JSON object
-    const workspace = JSON.parse(workspaceContent);
+    // parse workspace string into JSON object, removing comments
+    const workspace = JSON.parse(
+      workspaceContent.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '')
+    );
     if (!options.project) {
       options.project = workspace.defaultProject;
     }
@@ -26,8 +39,9 @@ export function ngAdd(options: NgAdd): Rule {
 
     const conf = tree.read('/ngrx-entity-crud.conf.json');
     if (conf) {
-
-      const confData = JSON.parse(conf.toString());
+      const confData = JSON.parse(
+        conf.toString().replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '')
+      );
       pathView = confData.pathView;
       pathStore = confData.pathStore;
       pathApp = confData.pathApp;
@@ -46,31 +60,29 @@ export function ngAdd(options: NgAdd): Rule {
       // addImport(normalize(`${pathStore}/state.ts`), `import {${options.clazz}} from '@models/vo/${strings.dasherize(options.clazz)}';`),
       // updateState(`${strings.underscore(options.name)}:${options.clazz};`, normalize(`${pathStore}/state.ts`)),
       render(options, './files', ''),
-    addDeclarationToNgModule({
+      addDeclarationToNgModule({
         module: `${pathApp}/app.module.ts`,
         name: 'ThemeJng',
-        path: './core/theme/theme-jng.module'
+        path: './core/theme/theme-jng.module',
       }),
       addDeclarationToNgModule({
         module: `${pathApp}/app.module.ts`,
         name: 'BrowserAnimations',
-        path: '@angular/platform-browser/animations'
+        path: '@angular/platform-browser/animations',
       }),
       addDeclarationToNgModule({
         module: `${pathApp}/app.module.ts`,
         name: 'RootStore',
-        path: './root-store'
+        path: './root-store',
       }),
       addDeclarationToNgModule({
         module: `${pathApp}/app.module.ts`,
         name: 'HttpClient',
-        path: '@angular/common/http'
+        path: '@angular/common/http',
       }),
-      updateTsConfigSelector()
+      updateTsConfigSelector(),
     ];
 
     return chain(baseRules);
-
   };
 }
-
