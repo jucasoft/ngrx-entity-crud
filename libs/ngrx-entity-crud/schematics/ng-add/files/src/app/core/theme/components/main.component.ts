@@ -1,8 +1,8 @@
-import { Component, HostBinding, OnInit } from '@angular/core';
-import { Observable, tap } from 'rxjs';
-import { Store } from '@ngrx/store';
-import { ThemeUiStoreSelectors } from '../store/theme-ui-store';
-import { selectMouseoverOrOpen } from '@core/theme/store/theme-ui-store/theme-ui-store.selectors';
+import {Component, HostBinding, inject, OnInit} from '@angular/core';
+import {Observable, tap} from 'rxjs';
+import {Store} from '@ngrx/store';
+import {ThemeUiStoreSelectors} from '../store/theme-ui-store';
+import {LetDirective} from '@ngrx/component';
 
 @Component({
   selector: 'app-main',
@@ -15,33 +15,36 @@ import { selectMouseoverOrOpen } from '@core/theme/store/theme-ui-store/theme-ui
   styles: [
     `
 
-    :host {
-      display:block;
-      position: fixed;
-      top: var(--topbar-height);;
-      left: var(--menu-close-width);
-      right: 0;
-      bottom: var(--footer-height);
-      //background-color: var(--topbar-bg-color);
-      -moz-transition: left var(--menu-transition);
-      -o-transition: left var(--menu-transition);
-      -webkit-transition: left var(--menu-transition);
-      transition: left var(--menu-transition);
-    }
+      :host {
+        display: block;
+        position: fixed;
+        top: var(--topbar-height);;
+        left: var(--menu-close-width);
+        right: 0;
+        bottom: var(--footer-height);
+        //background-color: var(--topbar-bg-color);
+        -moz-transition: left var(--menu-transition);
+        -o-transition: left var(--menu-transition);
+        -webkit-transition: left var(--menu-transition);
+        transition: left var(--menu-transition);
+      }
 
-    .header-height{
-      height: var(--topbar-height);
-    }
+      .header-height {
+        height: var(--topbar-height);
+      }
 
-    .header-color {
-      background-color: var(--topbar-bg-color);
-    }
+      .header-color {
+        background-color: var(--topbar-bg-color);
+      }
 
-    :host(.menu-opened) {
-      left: var(--menu-width);
-    }
-  `,
+      :host(.menu-opened) {
+        left: var(--menu-width);
+      }
+    `,
   ],
+  imports: [
+    LetDirective
+  ]
 })
 export class MainComponent implements OnInit {
   open$: Observable<boolean>;
@@ -49,9 +52,13 @@ export class MainComponent implements OnInit {
   @HostBinding('class.menu-opened')
   menuOpened = false;
 
-  constructor(private readonly store$: Store) {}
+  private store$ = inject(Store);
 
-  ngOnDestroy(): void {}
+  constructor() {
+  }
+
+  ngOnDestroy(): void {
+  }
 
   ngOnInit() {
     this.open$ = this.store$

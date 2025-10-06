@@ -23,6 +23,9 @@ import {
   ThemeUiStoreSelectors,
 } from '../store/theme-ui-store';
 import { filter, map } from 'rxjs/operators';
+import {MenuItemComponent} from '@core/theme/components/menu-item.component';
+import {AsyncPipe, NgForOf} from '@angular/common';
+import {LetDirective} from '@ngrx/component';
 
 @Component({
   selector: 'app-slide-menu-pro',
@@ -32,12 +35,12 @@ import { filter, map } from 'rxjs/operators';
     <div *ngrxLet="mouseoverSubject$; let mouseoverSubject"></div>
 
     <div class="flex justify-content-start text-white m-0 header-height header-color">
-        <div  class="flex-none flex align-items-center justify-content-center w-5rem">
-          <em class="pi pi-heart text-5xl"></em>
-        </div>
-        <div class="flex-none flex align-items-center justify-content-center text-4xl font-medium">
-            Menù
-        </div>
+      <div class="flex-none flex align-items-center justify-content-center w-5rem">
+        <em class="pi pi-heart text-5xl"></em>
+      </div>
+      <div class="flex-none flex align-items-center justify-content-center text-4xl font-medium">
+        Menù
+      </div>
     </div>
     <div class="scroller overflow-auto surface-overlay">
       <app-menu-item *ngFor="let item of (items$ | async); index as i"
@@ -51,61 +54,67 @@ import { filter, map } from 'rxjs/operators';
   `,
   styles: [
     `
-    :host {
-      display: block;
-      top: 0;
-      left: 0;
-      width: var(--menu-close-width);
-      height: 100vh;
-      margin-left: 0;
-      position: fixed;
-      border-right: solid 1px var(--menu-border-right);
-      background-color: var(--sidebar-bg-color);
-      -moz-transition: var(--menu-transition);
-      -o-transition: var(--menu-transition);
-      -webkit-transition: var(--menu-transition);
-      transition: var(--menu-transition);
-    }
+      :host {
+        display: block;
+        top: 0;
+        left: 0;
+        width: var(--menu-close-width);
+        height: 100vh;
+        margin-left: 0;
+        position: fixed;
+        border-right: solid 1px var(--menu-border-right);
+        background-color: var(--sidebar-bg-color);
+        -moz-transition: var(--menu-transition);
+        -o-transition: var(--menu-transition);
+        -webkit-transition: var(--menu-transition);
+        transition: var(--menu-transition);
+      }
 
-    .scroller {
-      height: calc(100vh - (var(--topbar-height) + var(--footer-height)));
-    }
+      .scroller {
+        height: calc(100vh - (var(--topbar-height) + var(--footer-height)));
+      }
 
-    .header-height {
-      height: var(--topbar-height);
-    }
+      .header-height {
+        height: var(--topbar-height);
+      }
 
-    .header-color {
-      background-color: var(--topbar-bg-color);
-    }
+      .header-color {
+        background-color: var(--topbar-bg-color);
+      }
 
-    :host(.menu-opened) {
-      width: var(--menu-width);
-    }
+      :host(.menu-opened) {
+        width: var(--menu-width);
+      }
 
-    /* width */
-    ::-webkit-scrollbar {
-      width: 0.2rem;
-    }
+      /* width */
+      ::-webkit-scrollbar {
+        width: 0.2rem;
+      }
 
-    /* Track */
-    ::-webkit-scrollbar-track {
-      background: #b6b6b6;
-    }
+      /* Track */
+      ::-webkit-scrollbar-track {
+        background: #b6b6b6;
+      }
 
-    /* Handle */
-    ::-webkit-scrollbar-thumb {
-      background: #888;
-    }
+      /* Handle */
+      ::-webkit-scrollbar-thumb {
+        background: #888;
+      }
 
-    /* Handle on hover */
-    ::-webkit-scrollbar-thumb:hover {
-      background: #555;
-    }
+      /* Handle on hover */
+      ::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
 
-  `,
+    `,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    MenuItemComponent,
+    NgForOf,
+    AsyncPipe,
+    LetDirective
+  ]
 })
 export class SlideMenuProComponent implements OnInit, OnDestroy {
   constructor(

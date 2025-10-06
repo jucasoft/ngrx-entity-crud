@@ -9,6 +9,7 @@ import {
   render,
   updateTsConfigSelector,
 } from '../my-utility';
+import {addPackageJsonDependency, NodeDependencyType} from '@schematics/angular/utility/dependencies';
 
 // Just return the tree
 export function ngAdd(options: NgAdd): Rule {
@@ -80,6 +81,14 @@ export function ngAdd(options: NgAdd): Rule {
         name: 'HttpClient',
         path: '@angular/common/http',
       }),
+      (host: Tree) => {
+        addPackageJsonDependency(host, {
+          type: NodeDependencyType.Default,
+          name: '@primeng/themes',
+          version: '^20.2.0',
+        });
+        return host;
+      },
       updateTsConfigSelector(),
     ];
 

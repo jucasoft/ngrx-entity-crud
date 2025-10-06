@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import {inject, Injectable} from '@angular/core';
 import {Actions, createEffect, ofType} from '@ngrx/effects';
 import {Store} from '@ngrx/store';
 import {filter, map, tap} from 'rxjs/operators';
@@ -8,6 +8,12 @@ import {Location} from '@angular/common';
 
 @Injectable()
 export class RouterEffects {
+
+  private actions$ = inject(Actions);
+  private router = inject(Router);
+  private location = inject(Location);
+  private route = inject(ActivatedRoute);
+  private store = inject(Store);
 
   navigate$ = createEffect(() =>
     this.actions$.pipe(
@@ -41,11 +47,6 @@ export class RouterEffects {
   );
 
   constructor(
-    private actions$: Actions,
-    private router: Router,
-    private location: Location,
-    private route: ActivatedRoute,
-    private store: Store<any>
   ) {
     this.listenToRouter();
   }

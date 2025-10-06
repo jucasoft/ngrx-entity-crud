@@ -27,4 +27,3 @@ export const featureReducer = createReducer<State>(initialState,
     }),
   )
 ;
-

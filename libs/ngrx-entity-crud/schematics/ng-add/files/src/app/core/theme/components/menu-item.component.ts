@@ -1,57 +1,63 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import {Component, EventEmitter, inject, Input, OnInit, Output} from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { RouterStoreSelectors } from '@root-store/router-store';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import {AsyncPipe, NgClass} from '@angular/common';
 
 @Component({
   selector: 'app-menu-item',
   template: `
-    <div (click)="onClick($event)" class="flex align-items-center justify-content-start h-3rem overflow-hidden text-base flex-nowrap menu-item-bg-color">
+    <div (click)="onClick($event)"
+         class="flex align-items-center justify-content-start h-3rem overflow-hidden text-base flex-nowrap menu-item-bg-color">
       <div class="item-cursor h-full" [ngClass]="(routerLinkActive$ | async) ? 'bg-red-500' : 'bg-gray-500'"></div>
       <div class="item-icon h-full text-white flex align-items-center justify-content-center flex-nowrap">
         <em [class]="item.icon"></em>
       </div>
       <div class="item-text w-full h-full text-white flex align-items-center justify-content-start min-w-max">
-        <span >{{item.label}}</span>
+        <span>{{ item.label }}</span>
       </div>
     </div>
   `,
   styles: [
     `
-    .item-cursor{
-      min-width: 0.2rem;
-      width: 0.2rem;
-    }
+      .item-cursor {
+        min-width: 0.2rem;
+        width: 0.2rem;
+      }
 
-    .item-icon{
-      min-width: 4.8rem;
-      width: 4.8rem;
-    }
+      .item-icon {
+        min-width: 4.8rem;
+        width: 4.8rem;
+      }
 
-    .menu-item-bg-color{
-      background-color: var(--menu-item-bg-color);
-    }
+      .menu-item-bg-color {
+        background-color: var(--menu-item-bg-color);
+      }
 
-    .mw-4rem {
-      min-width: 4rem !important;
-    }
+      .mw-4rem {
+        min-width: 4rem !important;
+      }
 
-    .mw-1rem {
-      min-width: 1rem !important;
-    }
+      .mw-1rem {
+        min-width: 1rem !important;
+      }
 
-    .menu-item{
-      width: var(--menu-width);
-    }
+      .menu-item {
+        width: var(--menu-width);
+      }
 
-    :host(:hover){
-      opacity: 0.5;
-      cursor: pointer;
-    }
-  `,
+      :host(:hover) {
+        opacity: 0.5;
+        cursor: pointer;
+      }
+    `,
   ],
+  imports: [
+    NgClass,
+    AsyncPipe
+  ]
 })
 export class MenuItemComponent implements OnInit {
   @Input()
@@ -68,7 +74,8 @@ export class MenuItemComponent implements OnInit {
 
   routerLinkActive$: Observable<boolean>;
 
-  constructor(private store$: Store) {}
+  private store$ = inject(Store);
+  constructor() {}
 
   ngOnInit(): void {
     this.routerLinkActive$ = this.store$

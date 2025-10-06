@@ -304,6 +304,7 @@ export function updateTsConfigSelector(): Rule {
       ...compilerOptionsPaths,
       ...compilerOptionsPathsB,
     };
+    tsconfigJson.compilerOptions.baseUrl = './';
     tsconfigJson.compilerOptions.strict = false;
     tsconfigJson.angularCompilerOptions.strictPropertyInitialization = false;
 

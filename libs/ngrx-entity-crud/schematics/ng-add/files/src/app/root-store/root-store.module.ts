@@ -7,11 +7,13 @@ import {RouterStoreModule} from './router-store';
 import {environment} from '../../environments/environment';
 import {StoreDevtoolsModule} from '@ngrx/store-devtools';
 import {HttpClientModule} from "@angular/common/http";
+import {ThemeUiStoreModule} from '@core/theme/store/theme-ui-store';
 
 @NgModule({
   imports: [
     CommonModule,
     HttpClientModule,
+    ThemeUiStoreModule,
     RouterStoreModule,
     StoreModule.forRoot(reducers, {
       metaReducers,
@@ -26,4 +28,7 @@ import {HttpClientModule} from "@angular/common/http";
   declarations: []
 })
 export class RootStoreModule {
+  constructor() {
+    console.log('RootStoreModule.constructor()');
+  }
 }
