@@ -4,78 +4,82 @@ import {
   ElementRef,
   HostBinding,
   HostListener,
+  inject,
   OnDestroy,
   OnInit,
 } from '@angular/core';
-import { select, Store } from '@ngrx/store';
-import { MenuItem } from 'primeng/api';
-import { Observable, tap } from 'rxjs';
-import { menuItemsDecorator } from '../store/theme-ui-store/operators';
-import {
-  ThemeUiStoreActions,
-  ThemeUiStoreSelectors,
-} from '../store/theme-ui-store';
-import { selectMouseoverOrOpen } from '@core/theme/store/theme-ui-store/theme-ui-store.selectors';
-import {map} from 'rxjs/operators';
+import {select, Store} from '@ngrx/store';
+import {MenuItem} from 'primeng/api';
+import {Observable, tap} from 'rxjs';
+import {menuItemsDecorator} from '../store/theme-ui-store/operators';
+import {ThemeUiStoreActions, ThemeUiStoreSelectors,} from '../store/theme-ui-store';
+import {MenuItemComponent} from '@core/theme/components/menu-item.component';
+import {ScrollPanel} from 'primeng/scrollpanel';
+import {Menu} from 'primeng/menu';
+import {AsyncPipe} from '@angular/common';
+import {LetDirective} from '@ngrx/component';
 
 @Component({
   selector: 'app-slide-menu',
   template: `
-    <div *ngrxLet="open$; let open" class="flex justify-content-between flex-wrap text-white m-0 px-2 header-height header-color">
-        <div class="flex-none flex align-items-center justify-content-center text-4xl font-medium">
-            Menù
-        </div>
+    <div *ngrxLet="open$; let open"
+         class="flex justify-content-between flex-wrap text-white m-0 px-2 header-height header-color">
+      <div class="flex-none flex align-items-center justify-content-center text-4xl font-medium">
+        Menù
+      </div>
     </div>
-<app-menu-item></app-menu-item>
-<app-menu-item></app-menu-item>
-<app-menu-item></app-menu-item>
-<app-menu-item></app-menu-item>
-<app-menu-item></app-menu-item>
+    <app-menu-item></app-menu-item>
+    <app-menu-item></app-menu-item>
+    <app-menu-item></app-menu-item>
+    <app-menu-item></app-menu-item>
+    <app-menu-item></app-menu-item>
     <p-scrollPanel>
       <p-menu [model]="items$ | async" styleClass="w-full"></p-menu>
     </p-scrollPanel>
   `,
   styles: [
     `
-    :host {
-      display:block;
-      top: 0;
-      left: 0;
-      width: var(--menu-width);
-      height: 100vh;
-      margin-left: var(--menu-close-margin-left);
-      position: fixed;
-      border-right: solid 1px var(--menu-border-right);
-      background-color: var(--sidebar-bg-color);
-      -moz-transition: var(--menu-transition);
-      -o-transition: var(--menu-transition);
-      -webkit-transition: var(--menu-transition);
-      transition: var(--menu-transition);
-    }
+      :host {
+        display: block;
+        top: 0;
+        left: 0;
+        width: var(--menu-width);
+        height: 100vh;
+        margin-left: var(--menu-close-margin-left);
+        position: fixed;
+        border-right: solid 1px var(--menu-border-right);
+        background-color: var(--sidebar-bg-color);
+        -moz-transition: var(--menu-transition);
+        -o-transition: var(--menu-transition);
+        -webkit-transition: var(--menu-transition);
+        transition: var(--menu-transition);
+      }
 
-    .header-height {
-      height: var(--topbar-height);
-    }
+      .header-height {
+        height: var(--topbar-height);
+      }
 
-    .header-color {
-      background-color: var(--topbar-bg-color);
-    }
+      .header-color {
+        background-color: var(--topbar-bg-color);
+      }
 
-    :host(.menu-opened) {
-      margin-left: 0;
-    }
+      :host(.menu-opened) {
+        margin-left: 0;
+      }
 
-  `,
+    `,
   ],
+  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SlideMenuComponent implements OnInit, OnDestroy {
-  constructor(
-    private readonly store$: Store,
-    private readonly el: ElementRef
-  ) {}
+  private store$ = inject(Store);
+  private el = inject(ElementRef);
 
-  open$: Observable<boolean> =  this.store$
+  constructor() {
+  }
+
+  open$: Observable<boolean> = this.store$
     .select(ThemeUiStoreSelectors.selectMouseoverOrOpen)
     .pipe(tap((value) => (this.menuOpened = value)));
 
@@ -87,7 +91,8 @@ export class SlideMenuComponent implements OnInit, OnDestroy {
   @HostBinding('class.menu-opened')
   menuOpened = false;
 
-  ngOnDestroy(): void {}
+  ngOnDestroy(): void {
+  }
 
   // todo: completare profilazione dei pulsanti.
   ngOnInit(): void {
@@ -110,7 +115,7 @@ export class SlideMenuComponent implements OnInit, OnDestroy {
 
     const clickedInside = this.el.nativeElement.contains(targetElement);
     if (!clickedInside) {
-      this.store$.dispatch(ThemeUiStoreActions.Open({ open: false }));
+      this.store$.dispatch(ThemeUiStoreActions.Open({open: false}));
     }
   }
 }

@@ -60,10 +60,10 @@ export function makeAuth(options: Auth): Rule {
 
 function getView(options: Auth, pathView: string, pathApp: string): Rule[] {
   const result: Rule[] = [
-    render(options, `./files/views`, pathView),
+    render(options, './files/views', pathView),
     addRouteDeclarationToNgModule({
         module: `${pathApp}/app-routing.module.ts`,
-        routeLiteral: `{path: 'login', loadChildren: () => import('./main/views/login/login.module').then(m => m.LoginModule)}`
+        routeLiteral: '{path: \'login\', loadChildren: () => import(\'./main/views/login/login.module\').then(m => m.LoginModule)}'
       }
     )];
   return result;

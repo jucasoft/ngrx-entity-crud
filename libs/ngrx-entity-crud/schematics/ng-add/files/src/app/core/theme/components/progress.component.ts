@@ -1,13 +1,15 @@
-import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, inject, OnInit} from '@angular/core';
 import {Store} from '@ngrx/store';
 import {RootStoreSelectors, RootStoreState} from '@root-store/index';
 import {Observable} from 'rxjs';
+import {ProgressBar} from 'primeng/progressbar';
+import {AsyncPipe, NgIf} from '@angular/common';
 
 @Component({
   selector: 'app-progress',
   template: `
     <p-progressBar *ngIf="isLoading$ | async"
-                   [style]="{'height': 'var(--loader-height)', 'border-radius': '0px', 'background-color': 'var(--primary-300)'}"
+                   [style]="{'height': 'var(--loader-height)', 'border-radius': '0px', 'background-color': 'var(--p-primary-300)'}"
                    mode="indeterminate"></p-progressBar>
   `,
   styles: [`
@@ -18,11 +20,13 @@ import {Observable} from 'rxjs';
       height: var(--loader-height);
     }
   `],
-  changeDetection:ChangeDetectionStrategy.OnPush
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProgressComponent implements OnInit {
+  private store$ = inject(Store);
 
-  constructor(private readonly store$: Store<RootStoreState.State>) {
+  constructor() {
   }
 
   isLoading$: Observable<boolean>;

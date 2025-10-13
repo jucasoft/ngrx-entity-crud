@@ -1,13 +1,10 @@
-# Questo workflow esegue la build e i test ad ogni push su qualsiasi branch.
-name: Build e Test
+name: Node.js CI
 
 on:
   push:
-    branches:
-      - '**' # Si attiva su tutti i branch
+    branches: [ main ]
 
 jobs:
   # Chiama il workflow riutilizzabile per costruire ed eseguire i test
   build_and_test:
     uses: ./.github/workflows/reusable-build.yml
-

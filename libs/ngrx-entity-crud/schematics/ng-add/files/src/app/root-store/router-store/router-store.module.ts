@@ -18,7 +18,6 @@ export const INJECTION_TOKEN = new InjectionToken<ActionReducer<State>>(`router-
   ],
   declarations: [],
   providers: [
-    RouterEffects,
     {
       provide: INJECTION_TOKEN,
       useFactory: (): ActionReducer<State> => featureReducer
@@ -27,4 +26,7 @@ export const INJECTION_TOKEN = new InjectionToken<ActionReducer<State>>(`router-
 
 })
 export class RouterStoreModule {
+  constructor() {
+    console.log('RouterStoreModule.constructor()');
+  }
 }

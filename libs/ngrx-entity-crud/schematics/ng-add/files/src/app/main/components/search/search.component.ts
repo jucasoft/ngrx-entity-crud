@@ -26,5 +26,3 @@ export class SearchComponent implements OnInit {
     this.store$.dispatch(this.actions.SearchRequest({queryParams: parseQueryString(value)}));
   }
 }
-
-

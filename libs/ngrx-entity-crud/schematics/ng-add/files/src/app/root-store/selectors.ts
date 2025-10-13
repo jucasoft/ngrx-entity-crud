@@ -17,4 +17,3 @@ export const selectIsLoading =
       return args.find((value => value));
     }
   );
-

@@ -1,15 +1,18 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  HostBinding,
+  HostBinding, inject,
   OnInit,
 } from '@angular/core';
-import { Observable, tap } from 'rxjs';
-import { Store } from '@ngrx/store';
+import {Observable, tap} from 'rxjs';
+import {Store} from '@ngrx/store';
 import {
   ThemeUiStoreActions,
   ThemeUiStoreSelectors,
 } from '../store/theme-ui-store';
+import {Tooltip} from 'primeng/tooltip';
+import {NgClass} from '@angular/common';
+import {LetDirective} from '@ngrx/component';
 
 @Component({
   selector: 'app-header',
@@ -17,7 +20,8 @@ import {
     <header class="flex justify-content-between flex-nowrap text-white m-0 header-height overflow-auto">
       <div class="flex-none flex align-items-center justify-content-center">
         <div *ngrxLet="open$; let open">
-          <em class="pi  icon-button" [pTooltip]="open ? '' : 'pin opened menu'" [ngClass]="open ? 'pi-times' : 'pi-bars'"
+          <em class="pi  icon-button" [pTooltip]="open ? '' : 'pin opened menu'"
+              [ngClass]="open ? 'pi-times' : 'pi-bars'"
               (click)="onShowMenu($event,open)"></em>
         </div>
       </div>
@@ -34,32 +38,33 @@ import {
   styles: [
     `
 
-    :host {
-      display:block;
-      position: fixed;
-      top: 0;
-      left: var(--menu-close-width);
-      right: 0;
-      background-color: var(--topbar-bg-color);
-      -moz-transition: left var(--menu-transition);
-      -o-transition: left var(--menu-transition);
-      -webkit-transition: left var(--menu-transition);
-      transition: left var(--menu-transition);
-    }
+      :host {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: var(--menu-close-width);
+        right: 0;
+        background-color: var(--topbar-bg-color);
+        -moz-transition: left var(--menu-transition);
+        -o-transition: left var(--menu-transition);
+        -webkit-transition: left var(--menu-transition);
+        transition: left var(--menu-transition);
+      }
 
-    .header-height{
-      height: var(--topbar-height);
-    }
+      .header-height {
+        height: var(--topbar-height);
+      }
 
-    .header-color {
-      background-color: var(--topbar-bg-color);
-    }
+      .header-color {
+        background-color: var(--topbar-bg-color);
+      }
 
-    :host(.menu-opened) {
-      left: var(--menu-width);
-    }
-  `,
+      :host(.menu-opened) {
+        left: var(--menu-width);
+      }
+    `,
   ],
+  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeaderComponent implements OnInit {
@@ -68,7 +73,10 @@ export class HeaderComponent implements OnInit {
   @HostBinding('class.menu-opened')
   menuOpened = false;
 
-  constructor(private readonly store$: Store) {}
+  private store$ = inject(Store);
+
+  constructor() {
+  }
 
   ngOnInit() {
     this.open$ = this.store$
@@ -78,6 +86,6 @@ export class HeaderComponent implements OnInit {
 
   onShowMenu($event: any, value: any) {
     $event.stopPropagation();
-    this.store$.dispatch(ThemeUiStoreActions.Open({ open: !value }));
+    this.store$.dispatch(ThemeUiStoreActions.Open({open: !value}));
   }
 }

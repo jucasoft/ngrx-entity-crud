@@ -20,7 +20,7 @@
       "cache": true
     },
     "test": {
-      "inputs": ["default", "^production", "{workspaceRoot}/karma.conf.js"],
+      "inputs": ["default", "^production", "{workspaceRoot}/**/jest.config.ts"],
       "cache": true
     },
     "lint": {

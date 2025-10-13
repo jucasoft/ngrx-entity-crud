@@ -17,4 +17,3 @@ export const initialState: State = {
   primary: null,
   popUp: null,
 };
-

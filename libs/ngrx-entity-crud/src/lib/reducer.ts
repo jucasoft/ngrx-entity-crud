@@ -34,10 +34,10 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
       error: initialState.error,
       lastCriteria: criteria,
       ...selectedStatePartial
-    }
+    };
 
     if (mode.indexOf('REFRESH') !== -1 || mode.indexOf('upsertMany') !== -1) {
-      return result
+      return result;
     }
 
     return adapter.removeAll(result);
@@ -112,7 +112,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
       const selectedState = {
         entities: state.entitiesSelected,
         ids: state.idsSelected
-      }
+      };
       // preparo gli item ritornati dalla ricerca per aggiornare
       const itemsB: any = items.map((item) => (Object.assign({}, {id: adapter.selectId(item), changes: item})));
       // utilizzo il metodo adapter.updateMany per aggiornare gli elementi selezionati
