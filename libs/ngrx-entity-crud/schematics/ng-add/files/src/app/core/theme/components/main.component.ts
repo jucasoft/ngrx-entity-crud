@@ -1,4 +1,4 @@
-import {Component, HostBinding, inject, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, HostBinding, inject, OnInit} from '@angular/core';
 import {Observable, tap} from 'rxjs';
 import {Store} from '@ngrx/store';
 import {ThemeUiStoreSelectors} from '../store/theme-ui-store';
@@ -42,9 +42,8 @@ import {LetDirective} from '@ngrx/component';
       }
     `,
   ],
-  imports: [
-    LetDirective
-  ]
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MainComponent implements OnInit {
   open$: Observable<boolean>;

@@ -20,12 +20,8 @@ import {AsyncPipe, NgIf} from '@angular/common';
       height: var(--loader-height);
     }
   `],
-  imports: [
-    ProgressBar,
-    NgIf,
-    AsyncPipe
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProgressComponent implements OnInit {
   private store$ = inject(Store);

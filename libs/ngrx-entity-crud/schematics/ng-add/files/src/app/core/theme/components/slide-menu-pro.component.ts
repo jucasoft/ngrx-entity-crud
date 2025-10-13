@@ -108,13 +108,8 @@ import {LetDirective} from '@ngrx/component';
 
     `,
   ],
+  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    MenuItemComponent,
-    NgForOf,
-    AsyncPipe,
-    LetDirective
-  ]
 })
 export class SlideMenuProComponent implements OnInit, OnDestroy {
   constructor(

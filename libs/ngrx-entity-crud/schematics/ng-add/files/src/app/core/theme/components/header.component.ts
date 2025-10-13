@@ -64,12 +64,8 @@ import {LetDirective} from '@ngrx/component';
       }
     `,
   ],
+  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    Tooltip,
-    NgClass,
-    LetDirective
-  ]
 })
 export class HeaderComponent implements OnInit {
   open$: Observable<boolean>;

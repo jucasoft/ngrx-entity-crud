@@ -7,14 +7,17 @@ import {RootStoreModule} from './root-store';
 import {HttpClientModule} from '@angular/common/http';
 import {providePrimeNG} from 'primeng/config';
 import {PrimeuixPresets} from './primeuix-presets';
+import {ThemeJngModule} from '@core/theme/theme-jng.module';
 
 @NgModule({
+  declarations: [AppComponent],
   imports: [
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
     RootStoreModule,
-    HttpClientModule
+    HttpClientModule,
+    ThemeJngModule
   ],
   providers: [
     providePrimeNG({
@@ -28,4 +31,5 @@ import {PrimeuixPresets} from './primeuix-presets';
   ],
   bootstrap: [AppComponent]
 })
-export class AppModule {}
+export class AppModule {
+}

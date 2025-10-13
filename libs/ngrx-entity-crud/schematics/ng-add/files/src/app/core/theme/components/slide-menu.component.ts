@@ -69,14 +69,8 @@ import {LetDirective} from '@ngrx/component';
 
     `,
   ],
+  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    MenuItemComponent,
-    ScrollPanel,
-    Menu,
-    AsyncPipe,
-    LetDirective
-  ]
 })
 export class SlideMenuComponent implements OnInit, OnDestroy {
   private store$ = inject(Store);

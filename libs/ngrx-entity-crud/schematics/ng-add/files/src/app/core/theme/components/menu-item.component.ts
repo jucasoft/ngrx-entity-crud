@@ -1,4 +1,4 @@
-import {Component, EventEmitter, inject, Input, OnInit, Output} from '@angular/core';
+import {ChangeDetectionStrategy, Component, EventEmitter, inject, Input, OnInit, Output} from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { RouterStoreSelectors } from '@root-store/router-store';
 import { Store } from '@ngrx/store';
@@ -54,10 +54,8 @@ import {AsyncPipe, NgClass} from '@angular/common';
       }
     `,
   ],
-  imports: [
-    NgClass,
-    AsyncPipe
-  ]
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MenuItemComponent implements OnInit {
   @Input()

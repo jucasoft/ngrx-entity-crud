@@ -33,6 +33,7 @@ import {Store} from '@ngrx/store';
 
     `,
   ],
+  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FooterComponent implements OnInit {

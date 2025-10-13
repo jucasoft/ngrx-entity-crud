@@ -1,22 +1,9 @@
-import { Component } from '@angular/core';
-import {SlideMenuProComponent} from '@core/theme/components/slide-menu-pro.component';
-import {HeaderComponent} from '@core/theme/components/header.component';
-import {FooterComponent} from '@core/theme/components/footer.component';
-import {MainComponent} from '@core/theme/components/main.component';
-import {ProgressComponent} from '@core/theme/components/progress.component';
-import {RouterOutlet} from '@angular/router';
+import {ChangeDetectionStrategy, Component} from '@angular/core';
 
 @Component({
   selector: 'app-root',
-  standalone: true,
-  imports: [
-    SlideMenuProComponent,
-    HeaderComponent,
-    FooterComponent,
-    MainComponent,
-    ProgressComponent,
-    RouterOutlet
-  ],
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app.component.html'
 })
 export class AppComponent {
