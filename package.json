@@ -59,7 +59,7 @@
     "@angular-eslint/eslint-plugin-template": "^19.2.1",
     "@angular-eslint/schematics": "^19.2.1",
     "@angular-eslint/template-parser": "^19.2.1",
-    "@angular/cli": "^19.2.15",
+    "@angular/cli": "^21.1.2",
     "@angular/compiler-cli": "^19.2.15",
     "@eslint/js": "^9.8.0",
     "@nx/angular": "21.5.2",
