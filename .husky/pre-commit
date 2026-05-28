@@ -2,3 +2,12 @@
 . "$(dirname -- "$0")/_/husky.sh"
 
 npx lint-staged
+
+  # graphify: aggiorna il knowledge graph (non blocca mai il commit)
+  if command -v graphify >/dev/null 2>&1; then
+    if graphify update . >/dev/null 2>&1; then
+      echo "[graphify] knowledge graph aggiornato -> graphify-out/graph.json"
+    fi
+  fi
+
+  exit 0

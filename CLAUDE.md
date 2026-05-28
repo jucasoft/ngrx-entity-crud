@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository purpose
 
-This repo publishes the `ngrx-entity-crud` npm library: a wrapper around `@ngrx/entity` that generates CRUD actions, reducers, effects, selectors and a base HTTP/GQL service for a given entity, plus Angular schematics (`ng-add`, `store`, `section`, `auth`, `auth0`) that scaffold consumer code. It is an Nx workspace whose only project today is the library at `libs/ngrx-entity-crud` (the `apps/` folder is empty — `apps/.gitkeep`).
+This repo publishes the `ngrx-entity-crud` npm library: a wrapper around `@ngrx/entity` that generates CRUD actions, reducers, effects, selectors and a base HTTP/GQL service for a given entity, plus Angular schematics (`ng-add`, `store`, `section`, `auth`) that scaffold consumer code. It is an Nx workspace whose only project today is the library at `libs/ngrx-entity-crud` (the `apps/` folder is empty — `apps/.gitkeep`).
 
 ## Commands
 
@@ -46,7 +46,7 @@ Schematics are TypeScript sources compiled separately (see `tsconfig.schematics.
 - `ng-add` — entry point invoked by `ng add ngrx-entity-crud`; bootstraps store wiring in a consumer app.
 - `store` — scaffolds a feature store (actions/reducer/effects/selectors/service) for a new entity, using the library factories above.
 - `section` — generates a CRUD UI module (PrimeNG-based components in `views/`) bound to a generated store.
-- `auth` / `auth0` — opinionated authentication store + login views (mock service for `auth`, Auth0 integration for `auth0`).
+- `auth` — opinionated authentication store + login views with a mock service.
 
 When editing schematics, remember the templates under `files/` use Angular schematics template syntax (`__name@dasherize__`, `<% if (...) { %>`) — they are NOT compiled TypeScript, so don't try to typecheck them as project code.
 

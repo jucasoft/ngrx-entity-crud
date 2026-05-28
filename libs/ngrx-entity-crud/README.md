@@ -4,7 +4,6 @@ Commands for code generation:
  - `store`: Generates a feature set containing an `entity`, `actions`, `reducer`, ... file.
  - `section`: Generates a new Angular CRUD page containing an `list`, `detail`, `search`, ... file.
  - `auth`: Generates a boilerplate for authentication implementation containing an `store section` and `components` file.
- - `auth0`: Generates Auth0 implementation containing an `store section` and `components` file.
 
 # How to use it?
 To create your first project, follow this [guide](https://github.com/jucasoft/ngrx-entity-crud-prime-ng-boilerplate).
@@ -236,50 +235,6 @@ CREATE src/app/root-store/auth-store/__clazz@dasherize__.state.ts (319 bytes)
 CREATE src/app/main/models/vo/auth.ts (277 bytes)
 
 UPDATE src/app/app-routing.module.ts (558 bytes)
-UPDATE src/app/root-store/index.ts (309 bytes)
-UPDATE src/app/root-store/index.d.ts (309 bytes)
-UPDATE src/app/root-store/__clazz@dasherize__.state.ts (184 bytes)
-UPDATE src/app/root-store/root-store.module.ts (1051 bytes)
-```
-
-## auth0
-
----
-
-### Overview
-
-Generates a boilerplate for authentication implementation containing an `store section` and `components` file.
-
-### Command
-
-```sh
-ng generate ngrx-entity-crud:auth0
-```
-
-#### Examples
-
-```sh
-ng generate ngrx-entity-crud:auth0
-```
-
-#### Files generated/changed by the “:auth0” command
-
-```sh
-CREATE src/app/root-store/auth-store/__clazz@dasherize__.actions.ts (776 bytes)
-CREATE src/app/root-store/auth-store/auth-store.module.ts (1044 bytes)
-CREATE src/app/root-store/auth-store/auth.guard.ts (1359 bytes)
-CREATE src/app/root-store/auth-store/authentication.service.ts (675 bytes)
-CREATE src/app/root-store/auth-store/conf.ts (75 bytes)
-CREATE src/app/root-store/auth-store/__clazz@dasherize__.effects.ts (1754 bytes)
-CREATE src/app/root-store/auth-store/index.d.ts (271 bytes)
-CREATE src/app/root-store/auth-store/index.ts (271 bytes)
-CREATE src/app/root-store/auth-store/login.component.ts (2117 bytes)
-CREATE src/app/root-store/auth-store/__clazz@dasherize__.names.ts (47 bytes)
-CREATE src/app/root-store/auth-store/profile.ts (224 bytes)
-CREATE src/app/root-store/auth-store/__clazz@dasherize__.reducer.ts (475 bytes)
-CREATE src/app/root-store/auth-store/__clazz@dasherize__.selectors.ts (699 bytes)
-CREATE src/app/root-store/auth-store/__clazz@dasherize__.state.ts (192 bytes)
-
 UPDATE src/app/root-store/index.ts (309 bytes)
 UPDATE src/app/root-store/index.d.ts (309 bytes)
 UPDATE src/app/root-store/__clazz@dasherize__.state.ts (184 bytes)

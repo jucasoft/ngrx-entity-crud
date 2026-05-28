@@ -1,0 +1,10 @@
+.firebase/
+.vscode/
+.claude/
+public/
+functions/lib/
+documentation/
+e2e/reports/
+graphify-out/
+serviceAccount.json
+serviceAccount*.json
