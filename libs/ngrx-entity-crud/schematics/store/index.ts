@@ -1,12 +1,13 @@
 import {chain, Rule, SchematicContext, SchematicsException, Tree} from '@angular-devkit/schematics';
 import {normalize, strings} from '@angular-devkit/core';
-import {addDeclarationToNgModule, addExport, addImport, addRootSelector, render, updateState} from '../my-utility';
+import {addDeclarationToNgModule, addExport, addImport, render, updateState} from '../my-utility';
 
 export function makeStore(options: CrudStore): Rule {
   return (tree: Tree, _context: SchematicContext) => {
     console.log('makeStore(options: CrudStore): Rule');
     options.clazz = strings.classify(options.clazz);
     options.name = options.name ? strings.underscore(options.name) : strings.underscore(options.clazz);
+    const lazy = options.registration === 'lazy';
     const workspaceConfig = tree.read('/angular.json');
     if (!workspaceConfig) {
       throw new SchematicsException('Could not find Angular workspace configuration');
@@ -48,30 +49,40 @@ export function makeStore(options: CrudStore): Rule {
       addExport(options, normalize(`${pathStore}/index.d.ts`)),
     ];
 
+    // Il selectors.ts del progetto e' agnostico (scandisce lo stato root sfruttando la
+    // convenzione EntityCrudBaseState), quindi NON va piu' accoppiato ai domini: nessun
+    // import/iniezione di XxxStoreSelectors nell'aggregatore, in nessuna delle due modalita'.
+    // In lazy mode, in piu', lo store non viene registrato nel RootStoreModule e la slice e'
+    // opzionale nello state root, perche' a runtime non esiste finche' il feature module non
+    // e' caricato.
+    const sliceSep = lazy ? '?:' : ':';
+
     const crudRules: Rule[] = [
       addImport(normalize(`${pathStore}/state.ts`), `import {${options.clazz}StoreState} from '@root-store/${strings.dasherize(options.clazz)}-store';`),
-      updateState(`${strings.underscore(options.name)}:${options.clazz}StoreState.State;`, normalize(`${pathStore}/state.ts`)),
-      addImport(normalize(`${pathStore}/selectors.ts`), `import {${options.clazz}StoreSelectors} from '@root-store/${strings.dasherize(options.clazz)}-store';`),
-      addRootSelector(options, normalize(`${pathStore}/selectors.ts`)),
+      updateState(`${strings.underscore(options.name)}${sliceSep}${options.clazz}StoreState.State;`, normalize(`${pathStore}/state.ts`)),
       // render(options, './files/crud-store/plural', pathStore),
       render(options, './files/crud-model', pathVo),
-      addDeclarationToNgModule({
-        module: `${pathStore}/root-store.module.ts`,
-        name: `${options.clazz}Store`,
-        path: `@root-store/${strings.dasherize(options.clazz)}-store`
-      })
+      ...(lazy ? [] : [
+        addDeclarationToNgModule({
+          module: `${pathStore}/root-store.module.ts`,
+          name: `${options.clazz}Store`,
+          path: `@root-store/${strings.dasherize(options.clazz)}-store`
+        })
+      ])
     ];
 
     const baseRules: Rule[] = [
       addImport(normalize(`${pathStore}/state.ts`), `import {${options.clazz}} from '@models/vo/${strings.dasherize(options.clazz)}';`),
-      updateState(`${strings.underscore(options.name)}:${options.clazz};`, normalize(`${pathStore}/state.ts`)),
+      updateState(`${strings.underscore(options.name)}${sliceSep}${options.clazz};`, normalize(`${pathStore}/state.ts`)),
       render(options, './files/base-store', pathStore),
       render(options, './files/base-model', pathVo),
-      addDeclarationToNgModule({
-        module: `${pathStore}/root-store.module.ts`,
-        name: `${options.clazz}Store`,
-        path: `@root-store/${strings.dasherize(options.clazz)}-store`
-      })
+      ...(lazy ? [] : [
+        addDeclarationToNgModule({
+          module: `${pathStore}/root-store.module.ts`,
+          name: `${options.clazz}Store`,
+          path: `@root-store/${strings.dasherize(options.clazz)}-store`
+        })
+      ])
     ];
 
     if (options.type === 'CRUD+GRAPHQL') {

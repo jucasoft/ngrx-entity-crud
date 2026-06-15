@@ -38,6 +38,22 @@
       "$default": {
         "$source": "projectName"
       }
+    },
+    "registration": {
+      "description": "Come registrare lo store: eager nel RootStoreModule (comportamento storico) oppure lazy nel feature module della view.",
+      "type": "string",
+      "enum": [
+        "eager",
+        "lazy"
+      ],
+      "x-prompt": {
+        "message": "Come vuoi registrare lo store?",
+        "type": "list",
+        "items": [
+          { "value": "eager", "label": "eager - nel RootStoreModule (default storico)" },
+          { "value": "lazy",  "label": "lazy  - nel feature module della view" }
+        ]
+      }
     }
   },
   "required": [

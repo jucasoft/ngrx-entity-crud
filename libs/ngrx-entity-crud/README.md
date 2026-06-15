@@ -48,7 +48,27 @@ Store type:
   - Enum: `"CRUD-PLURAL", "CRUD-SINGULAR", "CRUD+GRAPHQL", "BASE"`
   - Default: `false`
 
+Store registration strategy:
+  - `eager`: the store is declared in the application `RootStoreModule` (historical behavior); reducers/effects are loaded at startup.
+  - `lazy`: the store is **not** registered in the root; the view feature module is responsible for importing `<Clazz>StoreModule`, so reducers/effects are loaded only when the section is opened.
+
+- `--registration`
+  - Type: `string`
+  - Enum: `"eager", "lazy"`
+  - Optional. If omitted, the schematic asks interactively. In non-interactive runs (CI/scripts) it falls back to `eager`, so existing pipelines keep working unchanged.
+
+> **Lazy mode notes**
+> - With `--registration=lazy` nothing registers the store automatically: you must import `<Clazz>StoreModule` in the feature module generated for the view (e.g. `coin.module.ts`).
+> - The generated slice is declared as **optional** in `root-store/state.ts`, because it does not exist in the runtime state until the section is loaded.
+> - `root-store/selectors.ts` exposes the global loading/error selectors (`selectIsLoading`, `selectError`, `selectLoadingNames`) in a **store-agnostic** way: they scan the root state using the `EntityCrudBaseState` convention (every CRUD slice exposes `isLoading`/`error` at the top level), so lazily-registered stores contribute to the global loading/error state without coupling the root to any specific domain.
+
 #### Examples
+
+```sh
+ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=CRUD-PLURAL --registration=lazy
+```
+With `--registration=lazy` the store is not added to `RootStoreModule`; remember to import `CoinStoreModule` in the view feature module.
+
 
 ```sh
 ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=CRUD-PLURAL
