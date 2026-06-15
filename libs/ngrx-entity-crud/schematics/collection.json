@@ -20,6 +20,11 @@
       "description": "Add my library to the project.",
       "factory": "./ng-add/index#ngAdd",
       "schema": "./ng-add/schema.json"
+    },
+    "lazy-report": {
+      "description": "Scan the project and report which stores are lazy candidates.",
+      "factory": "./lazy-report/index#lazyReport",
+      "schema": "./lazy-report/schema.json"
     }
   }
 }

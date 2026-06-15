@@ -4,6 +4,7 @@ Commands for code generation:
  - `store`: Generates a feature set containing an `entity`, `actions`, `reducer`, ... file.
  - `section`: Generates a new Angular CRUD page containing an `list`, `detail`, `search`, ... file.
  - `auth`: Generates a boilerplate for authentication implementation containing an `store section` and `components` file.
+ - `lazy-report`: Scans the project and reports which stores are good candidates to become lazy.
 
 # How to use it?
 To create your first project, follow this [guide](https://github.com/jucasoft/ngrx-entity-crud-prime-ng-boilerplate).
@@ -259,6 +260,71 @@ UPDATE src/app/root-store/index.ts (309 bytes)
 UPDATE src/app/root-store/index.d.ts (309 bytes)
 UPDATE src/app/root-store/__clazz@dasherize__.state.ts (184 bytes)
 UPDATE src/app/root-store/root-store.module.ts (1051 bytes)
+```
+
+## lazy-report
+
+---
+
+### Overview
+
+Read-only analysis command. It scans the project and produces a report that maps each store to
+the sections that use it, then suggests which stores are good candidates to be registered as
+**lazy** (see the `--registration` option of the `store` command). Nothing is modified except the
+generated report file: you decide what to convert.
+
+How a store is classified:
+- **candidato lazy**: used by exactly one section, and that section is on a lazy route (`loadChildren`).
+- **multi-sezione**: used by more than one section (evaluate a shared lazy module).
+- **tieni eager (usato dalla shell)**: referenced by the app shell (`core/`, `main/components`, `app.component`) — must stay eager.
+- **sezione non lazy-routed**: its only section is loaded eagerly, so going lazy gives little benefit.
+- **infra (eager)**: infrastructure store (e.g. `router-store`), excluded from candidates.
+- **orfano**: not referenced by any section.
+
+The scan is static and relies on the naming convention (`XxxStoreActions/Selectors/State/Module`).
+Paths are read from `ngrx-entity-crud.conf.json` when present, otherwise defaults are used
+(`src/app/root-store`, `src/app/main/views`, `src/app`).
+
+### Command
+
+```sh
+ng generate ngrx-entity-crud:lazy-report [options]
+```
+
+### Options
+
+Report file to write (relative to the workspace root); empty string = console only.
+- `--output`
+  - Type: `string`
+  - Default: `lazy-report.md`
+
+Format of the written report.
+- `--format`
+  - Type: `string`
+  - Enum: `"md", "json"`
+  - Default: `md`
+
+Infrastructure stores excluded from lazy candidates (folder names).
+- `--infra-stores`
+  - Type: `string[]`
+  - Default: `["router-store"]`
+
+#### Examples
+
+```sh
+ng generate ngrx-entity-crud:lazy-report
+ng generate ngrx-entity-crud:lazy-report --format=json --output=lazy-report.json
+ng generate ngrx-entity-crud:lazy-report --output=        # solo console
+```
+
+Example output (excerpt):
+
+```md
+| store | clazz | type | sezioni | n | lazy route | shell | verdetto |
+|---|---|---|---|---|---|---|---|
+| coin-store | Coin | CRUD-PLURAL | coin | 1 | si | no | candidato lazy |
+| currency-store | Currency | CRUD-PLURAL | coin, invoice | 2 | si | no | multi-sezione (2) -> valuta modulo condiviso |
+| menu-store | Menu | CRUD-PLURAL | - | 0 | - | si | tieni eager (usato dalla shell) |
 ```
 
 ## Running unit tests
