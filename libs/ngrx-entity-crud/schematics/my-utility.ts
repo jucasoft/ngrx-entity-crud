@@ -79,35 +79,6 @@ export function addImport(file: string, importString: string): Rule {
 }
 
 /**
- * Aggiunge al selettore principale RootSelector, i riferimenti allo store appena creato.
- */
-export function addRootSelector(
-  options: { clazz: string },
-  file: string
-): Rule {
-  return (tree: Tree) => {
-    const content: Buffer | null = tree.read(file);
-    let strContent: string = '';
-    if (content) {
-      strContent = content.toString();
-    }
-    strContent = addLine(
-      strContent,
-      ['selectError', 'createSelectorFactory', 'customMemoizer', '('],
-      `${options.clazz}StoreSelectors.selectError,`
-    );
-    strContent = addLine(
-      strContent,
-      ['selectIsLoading', 'createSelectorFactory', 'customMemoizer', '('],
-      `${options.clazz}StoreSelectors.selectIsLoading,`
-    );
-
-    tree.overwrite(file, strContent);
-    return tree;
-  };
-}
-
-/**
  * viene aggiornato un un file che contiene un json
  */
 // export function updateJson(objToMerge: any, file: string): Rule {
@@ -126,28 +97,6 @@ export function addRootSelector(
 //     return tree;
 //   };
 // }
-
-/**
- * Aggiunge una linea all'interno di un file.
- * Il punto dove viene aggiunto viene indicato passando una serie di pattern a comporre un percorso univoco all'interno del file.
- * La linea verrà aggiunta immediatamento dopo l'ultimo pattern.
- *
- * @param content attuale contenuto testuale del file a cui aggiungerela linea
- * @param patterns sequenza di chiavi che servono a identificare il punto dove aggiungere la linea, come per i css
- * @param newLine linea da aggiungere
- */
-export function addLine(
-  content: string,
-  patterns: string[],
-  newLine: string
-): string {
-  let index = 0;
-  patterns.forEach((value) => {
-    index = content.indexOf(value, index) + value.length;
-  });
-
-  return content.slice(0, index + 1) + newLine + content.slice(index);
-}
 
 /**
  * Aggiunge il modulo del nuovo store creato, come dipendenza del modulo Root
