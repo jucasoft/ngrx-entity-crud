@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: 'Verifica coerenza versione: tag vs package.json'
         run: |
@@ -44,13 +44,13 @@ jobs:
           echo "Le versioni del tag e del package.json corrispondono: $TAG_VERSION"
 
       - name: Setup Node.js for publishing
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '20.x' # Usa la versione LTS più recente
+          node-version: '22.x' # Usa la versione LTS più recente
           registry-url: https://registry.npmjs.org/
 
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: library-package # Nome dell'artefatto caricato dal job precedente
           path: package-dist # Scarica in una directory dedicata
