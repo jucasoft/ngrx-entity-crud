@@ -53,7 +53,7 @@ When editing schematics, remember the templates under `files/` use Angular schem
 ### Build pipeline quirks
 
 - `tsconfig.schematics.json` lives inside `dist/ngrx-entity-crud` (copied there by ng-packagr from `libs/ngrx-entity-crud/schematics/tsconfig.schematics.json` via `ng-package.json` assets). That's why `build:schematics` runs *after* the ng-packagr build and references a path under `dist/`.
-- The library `package.json` (`libs/ngrx-entity-crud/package.json`) is the one actually published — its version is independent of the root `package.json`. Update both when bumping versions.
+- The library `package.json` (`libs/ngrx-entity-crud/package.json`) is the one actually published, and it is the single source of truth for the version — when bumping versions, update **only** that file. The root `package.json` is private (`"private": true`) and is never published; its version is pinned to `0.0.0` on purpose and must NOT be kept in sync. The npm-publish workflow's tag/version consistency check reads only the library `package.json`.
 
 ## Reference docs in this repo
 
