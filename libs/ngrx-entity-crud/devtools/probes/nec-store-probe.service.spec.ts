@@ -1,0 +1,83 @@
+import {TestBed} from '@angular/core/testing';
+import {Store} from '@ngrx/store';
+import {of} from 'rxjs';
+import {NecStoreProbeService} from './nec-store-probe.service';
+
+describe('NecStoreProbeService', () => {
+  const rootState = {
+    coin: {isLoading: false, isLoaded: true, error: '', responses: [1, 2], ids: ['a', 'b'], entities: {}},
+    profile: {isLoading: true, isLoaded: false, error: '', responses: [], item: {}},
+    router: {state: {}}, // non-CRUD: niente isLoading boolean -> ignorata
+    settings: {isLoading: false, isLoaded: false, error: 'boom', responses: []}, // né ids né item -> unknown
+  };
+
+  let probe: NecStoreProbeService;
+
+  beforeEach(() => {
+    const fakeStore = {
+      select: (projector: (s: any) => any) => of(projector(rootState)),
+    } as unknown as Store;
+
+    TestBed.configureTestingModule({
+      providers: [NecStoreProbeService, {provide: Store, useValue: fakeStore}],
+    });
+    probe = TestBed.inject(NecStoreProbeService);
+  });
+
+  it('enumera le slice CRUD per convenzione, ordinate ed escludendo le non-CRUD', () => {
+    const r = probe.read();
+    expect(r.slices.map((s) => s.key)).toEqual(['coin', 'profile', 'settings']);
+  });
+
+  it('classifica kind e conteggi (plural/singular/unknown)', () => {
+    const r = probe.read();
+
+    const coin = r.slices.find((s) => s.key === 'coin');
+    expect(coin?.kind).toBe('plural');
+    expect(coin?.entityCount).toBe(2);
+    expect(coin?.responsesCount).toBe(2);
+
+    const profile = r.slices.find((s) => s.key === 'profile');
+    expect(profile?.kind).toBe('singular');
+    expect(profile?.entityCount).toBeUndefined();
+    expect(profile?.isLoading).toBe(true);
+
+    const settings = r.slices.find((s) => s.key === 'settings');
+    expect(settings?.kind).toBe('unknown');
+  });
+
+  it('raccoglie loadingNames ed errori', () => {
+    const r = probe.read();
+    expect(r.loadingNames).toEqual(['profile']);
+    expect(r.errors).toEqual(['settings: boom']);
+  });
+
+  it('rispetta la whitelist', () => {
+    const r = probe.read({whitelist: ['coin']});
+    expect(r.slices.map((s) => s.key)).toEqual(['coin']);
+  });
+
+  it('correla con lazy-report.json e propaga generatedAt', async () => {
+    const lazyJson = {
+      generatedAt: '2026-06-19T10:00:00.000Z',
+      stores: [
+        {name: 'coin', isLazyCandidate: false, lazyRoute: true, sections: ['coins'], verdict: 'x'},
+        {name: 'order', isLazyCandidate: true, lazyRoute: true, sections: ['orders'], verdict: 'candidato lazy'},
+      ],
+    };
+    const originalFetch = (global as any).fetch;
+    (global as any).fetch = jest.fn().mockResolvedValue({ok: true, json: async () => lazyJson});
+    try {
+      const r = await probe.readWithLazyReport('assets/lazy-report.json');
+      expect(r.lazyReportGeneratedAt).toBe('2026-06-19T10:00:00.000Z');
+
+      const coin = r.lazy?.find((l) => l.name === 'coin');
+      expect(coin?.runtimeStatus).toBe('loaded'); // 'coin' è una slice montata
+
+      const order = r.lazy?.find((l) => l.name === 'order');
+      expect(order?.runtimeStatus).toBe('lazy-not-loaded'); // non montato ma candidato
+    } finally {
+      (global as any).fetch = originalFetch;
+    }
+  });
+});

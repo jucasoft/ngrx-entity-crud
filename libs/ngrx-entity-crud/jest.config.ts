@@ -7,7 +7,9 @@ const config: Config = {
   coverageDirectory: '../../coverage/libs/ngrx-entity-crud',
   collectCoverageFrom: [
     'src/**/*.ts',
+    'devtools/**/*.ts',
     '!src/**/*.spec.ts',
+    '!devtools/**/*.spec.ts',
     '!src/test-setup.ts',
   ],
   transform: {
