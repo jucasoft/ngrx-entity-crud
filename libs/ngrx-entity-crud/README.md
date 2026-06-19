@@ -309,6 +309,17 @@ Infrastructure stores excluded from lazy candidates (folder names).
   - Type: `string[]`
   - Default: `["router-store"]`
 
+Include detected persistence providers (localStorage/IndexedDB) from `package.json` in the report.
+- `--storage`
+  - Type: `boolean`
+  - Default: `true`
+
+The JSON report (`--format=json`) also includes a top-level `generatedAt` (ISO timestamp, for
+staleness detection) and, per store, the structured booleans `lazyRoute` and `isLazyCandidate`
+(so tools can correlate without parsing the textual `verdict`). When `--storage` is enabled it
+adds a `storage` object `{ providers, source }`. The `{ paths, stores }` shape is unchanged
+(additive, backward-compatible).
+
 #### Examples
 
 ```sh
@@ -326,6 +337,86 @@ Example output (excerpt):
 | currency-store | Currency | CRUD-PLURAL | coin, invoice | 2 | si | no | multi-sezione (2) -> valuta modulo condiviso |
 | menu-store | Menu | CRUD-PLURAL | - | 0 | - | si | tieni eager (usato dalla shell) |
 ```
+
+## dashboard
+
+---
+
+### Overview
+
+Scaffolds a **project dashboard** view with three runtime summaries: localStorage usage,
+IndexedDB usage (agnostic to the persistence library you use), and NgRx stores + lazy-loading
+candidates. The generated module is a thin PrimeNG wrapper that hosts `<nec-dashboard>`, the
+standalone component exported by the secondary entry-point `ngrx-entity-crud/devtools`; all the
+diagnostic logic lives in the library (versioned and tested), not in generated code.
+
+By default it also generates `src/assets/lazy-report.json` (reusing `lazy-report --format=json`),
+which the dashboard reads at runtime to correlate the loaded/lazy state of each store.
+
+The dashboard can run in **production**: by default it shows only keys, sizes and counts — never
+raw values. Value reveal is opt-in (`[allowRevealValues]="true"`) and always masks sensitive
+patterns (token/JWT/email/secret); keys that look sensitive are flagged.
+
+### Command
+
+```sh
+ng generate ngrx-entity-crud:dashboard [options]
+```
+
+### Options
+
+Feature name (drives the lazy route and the generated file names).
+- `--clazz`
+  - Type: `string`
+  - Default: `Dashboard`
+
+Generate the lazy-report JSON read by the dashboard.
+- `--include-lazy-report`
+  - Type: `boolean`
+  - Default: `true`
+
+Path of the generated lazy-report JSON.
+- `--lazy-report-output`
+  - Type: `string`
+  - Default: `src/assets/lazy-report.json`
+
+The name of the project.
+- `--project`
+  - Type: `string`
+
+#### Using the standalone component directly
+
+If you prefer not to scaffold, import the component from the secondary entry-point and mount it
+anywhere (e.g. behind a dev-only route):
+
+```ts
+import { NecDashboardComponent } from 'ngrx-entity-crud/devtools';
+
+@Component({
+  standalone: true,
+  imports: [NecDashboardComponent],
+  template: `<nec-dashboard
+    lazyReportUrl="assets/lazy-report.json"
+    [idbDatabaseNames]="['NgRxStateStore']"
+    [allowRevealValues]="false"
+    [pollingMs]="0"></nec-dashboard>`,
+})
+export class DevPanelComponent {}
+```
+
+Inputs: `blacklist` / `whitelist` (`string[]`, filter store slices), `lazyReportUrl`
+(default `assets/lazy-report.json`; empty string disables the static correlation),
+`idbDatabaseNames` (`string[]`, DB names to inspect where `indexedDB.databases()` is unsupported —
+Firefox / older Safari), `pollingMs` (`number`, auto-refresh; `0` = manual), `allowRevealValues`
+(`boolean`, opt-in masked value reveal).
+
+Notes:
+- IndexedDB is introspected **agnostically** via native APIs (`indexedDB.databases()` + `count()`),
+  with an optional `NEC_IDB_ADAPTER` injection token for custom providers. Byte sizes per
+  record/store are not measurable; only record counts and the aggregate origin quota
+  (`navigator.storage.estimate()`) are shown.
+- `<nec-dashboard>` requires Angular 17+ on the consumer (standalone component + control flow);
+  the main entry-point keeps the wider peer range.
 
 ## Running unit tests
 Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
