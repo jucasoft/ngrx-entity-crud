@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "$id": "Dashboard",
+  "title": "Dashboard schematics",
+  "type": "object",
+  "properties": {
+    "clazz": {
+      "description": "Nome della feature dashboard (genera la rotta e i file). Default: Dashboard.",
+      "type": "string",
+      "default": "Dashboard"
+    },
+    "project": {
+      "type": "string",
+      "description": "The name of the project.",
+      "$default": {
+        "$source": "projectName"
+      }
+    },
+    "includeLazyReport": {
+      "description": "Genera anche il lazy-report JSON (riuso di lazy-report --format=json) letto dalla dashboard.",
+      "type": "boolean",
+      "default": true
+    },
+    "lazyReportOutput": {
+      "description": "Percorso del lazy-report JSON generato (se includeLazyReport=true).",
+      "type": "string",
+      "default": "src/assets/lazy-report.json"
+    }
+  },
+  "required": []
+}

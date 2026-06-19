@@ -3,3 +3,5 @@
 /coverage
 /.nx/cache
 /.nx/workspace-data
+# Schematics templates (EJS sources, not valid standalone TS/HTML)
+/libs/ngrx-entity-crud/schematics/*/files

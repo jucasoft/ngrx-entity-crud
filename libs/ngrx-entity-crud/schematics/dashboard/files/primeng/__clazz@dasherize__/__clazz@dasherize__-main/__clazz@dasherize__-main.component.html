@@ -1,0 +1,12 @@
+<p-card header="<%= clazz %>">
+  <!--
+    <nec-dashboard> introspeziona localStorage, IndexedDB (in modo agnostico) e gli store NgRx.
+    Input opzionali:
+      - [blacklist] / [whitelist]: filtra le slice dello store.
+      - lazyReportUrl: percorso del lazy-report JSON (default 'assets/lazy-report.json').
+      - [idbDatabaseNames]: nomi DB da ispezionare dove indexedDB.databases() non è supportato
+        (es. Firefox/Safari), p.es. [idbDatabaseNames]="['NgRxStateStore']".
+      - [pollingMs]: auto-refresh in ms (0 = solo manuale).
+  -->
+  <nec-dashboard lazyReportUrl="assets/lazy-report.json"></nec-dashboard>
+</p-card>
