@@ -15,4 +15,9 @@ declare interface LazyReport {
    * Store infrastrutturali da escludere dai candidati lazy (nome cartella).
    */
   infraStores?: string[];
+  /**
+   * Includi nel report il rilevamento dei provider di persistenza
+   * (localStorage/IndexedDB) da package.json. Default: true.
+   */
+  storage?: boolean;
 }

@@ -20,6 +20,17 @@ interface StoreInfo {
 // Identifica i riferimenti agli store generati: XxxStoreActions/Selectors/State/Module/Service.
 const STORE_REF = /\b([A-Z][A-Za-z0-9]*)Store(?:Actions|Selectors|State|Module|Service)\b/g;
 
+// Provider di persistenza noti, rilevati staticamente da package.json (nessun accoppiamento:
+// la dashboard introspeziona comunque IndexedDB in modo agnostico a runtime).
+const STORAGE_PROVIDERS = [
+  'localforage',
+  'idb-keyval',
+  'idb',
+  'dexie',
+  'ngrx-store-idb',
+  'ngrx-store-localstorage',
+];
+
 function toRoot(p: string): string {
   return '/' + p.replace(/^\/+/, '').replace(/\/+$/, '');
 }
@@ -105,6 +116,23 @@ function detectType(tree: Tree, pathStore: string, info: StoreInfo): string {
   return 'unknown';
 }
 
+function detectStorageProvider(tree: Tree): {providers: string[]; source: string} {
+  const pkg = readJson(tree, '/package.json');
+  const names = new Set<string>();
+  if (pkg) {
+    const deps = pkg.dependencies as Record<string, unknown> | undefined;
+    const devDeps = pkg.devDependencies as Record<string, unknown> | undefined;
+    Object.keys(deps || {})
+      .concat(Object.keys(devDeps || {}))
+      .forEach((d) => {
+        if (STORAGE_PROVIDERS.indexOf(d) !== -1) {
+          names.add(d);
+        }
+      });
+  }
+  return {providers: Array.from(names).sort(), source: 'package.json'};
+}
+
 function verdict(info: StoreInfo, lazySections: Set<string>): string {
   if (info.infra) {
     return 'infra (eager)';
@@ -131,6 +159,8 @@ export function lazyReport(options: LazyReport): Rule {
     const format = options.format || 'md';
     const infraStores =
       options.infraStores && options.infraStores.length ? options.infraStores : ['router-store'];
+    const includeStorage = options.storage !== false;
+    const storage = includeStorage ? detectStorageProvider(tree) : null;
 
     // 1. Scopri gli store (sottocartelle *-store di pathStore).
     const stores = new Map<string, StoreInfo>();
@@ -238,24 +268,47 @@ export function lazyReport(options: LazyReport): Rule {
         md.push(`  - poi importa \`${s.clazz}StoreModule\` nel modulo \`${s.sections[0]}.module.ts\` della view.`);
       });
     }
+    if (storage) {
+      md.push('', '## Storage', '');
+      if (storage.providers.length) {
+        md.push(
+          `Provider di persistenza rilevati in package.json: ${storage.providers
+            .map((p) => '`' + p + '`')
+            .join(', ')}.`
+        );
+      } else {
+        md.push('_Nessun provider di persistenza noto rilevato in package.json._');
+      }
+      md.push('La dashboard introspeziona comunque IndexedDB/localStorage in modo agnostico a runtime.');
+    }
     md.push('', '## Note', '');
     md.push('- Analisi statica basata sulle convenzioni di naming (`XxxStoreActions/Selectors/State/Module`).');
     md.push('- Verifica manuale per accoppiamenti nascosti (effect/selettori che combinano piu store).');
     md.push('- Gli store usati dallo shell (`core/`, `main/components`, `app.component`) restano eager.');
     const reportMd = md.join('\n') + '\n';
 
-    const jsonReport = {
+    const jsonReport: Record<string, unknown> = {
+      generatedAt: new Date().toISOString(),
       paths,
-      stores: rows.map((s) => ({
-        name: s.name,
-        clazz: s.clazz,
-        type: s.type,
-        infra: s.infra,
-        sections: s.sections,
-        usedByShell: s.usedByShell,
-        verdict: verdict(s, lazySections),
-      })),
+      stores: rows.map((s) => {
+        const v = verdict(s, lazySections);
+        return {
+          name: s.name,
+          clazz: s.clazz,
+          type: s.type,
+          infra: s.infra,
+          sections: s.sections,
+          usedByShell: s.usedByShell,
+          verdict: v,
+          // Campi strutturati: la dashboard correla per booleano, non parsando `verdict`.
+          lazyRoute: s.sections.length > 0 && s.sections.every((x) => lazySections.has(x)),
+          isLazyCandidate: v === 'candidato lazy',
+        };
+      }),
     };
+    if (storage) {
+      jsonReport.storage = storage;
+    }
 
     // 6. Output: console sempre, file se richiesto.
     context.logger.info(reportMd);

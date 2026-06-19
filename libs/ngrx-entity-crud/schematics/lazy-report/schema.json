@@ -22,6 +22,11 @@
         "type": "string"
       },
       "default": ["router-store"]
+    },
+    "storage": {
+      "description": "Includi nel report il rilevamento dei provider di persistenza (localStorage/IndexedDB) da package.json.",
+      "type": "boolean",
+      "default": true
     }
   },
   "required": []
