@@ -7,6 +7,7 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {NecIdbReport, NecQuotaEstimate, NecStorageReport, NecStoreReport} from './models';
 import {NecLocalStorageProbeService} from './probes/nec-local-storage-probe.service';
 import {NecIndexedDbProbeService} from './probes/nec-indexeddb-probe.service';
@@ -20,10 +21,15 @@ import {looksSensitiveKey, maskValue} from './mask';
  * pannelli: localStorage, IndexedDB (agnostico), store NgRx + sezioni lazy. Per privacy
  * mostra SOLO chiavi/dimensioni/conteggi, mai i valori grezzi. Refresh manuale di default;
  * polling opt-in via `pollingMs`. Pensato per essere usabile anche in produzione.
+ *
+ * Il template usa le direttive strutturali classiche (`*ngIf`/`*ngFor` + `CommonModule`)
+ * anziché il control-flow `@if`/`@for`: così il componente resta compatibile con Angular
+ * >= 12 (la nuova sintassi alzerebbe il `minVersion` del pacchetto a 17).
  */
 @Component({
   selector: 'nec-dashboard',
   standalone: true,
+  imports: [CommonModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [
     `
@@ -98,15 +104,13 @@ import {looksSensitiveKey, maskValue} from './mask';
       <button type="button" (click)="refresh()" [disabled]="busy()">
         {{ busy() ? 'Aggiorno…' : 'Aggiorna' }}
       </button>
-      @if (lastUpdated()) {
-        <span class="nec-note">ultimo aggiornamento: {{ lastUpdated() }}</span>
-      }
+      <span class="nec-note" *ngIf="lastUpdated()">ultimo aggiornamento: {{ lastUpdated() }}</span>
     </div>
 
     <!-- Quota aggregata origine -->
     <div class="nec-panel">
       <h3>Quota origine (aggregata)</h3>
-      @if (quota()?.available) {
+      <ng-container *ngIf="quota()?.available; else noQuota">
         <div>
           uso: <strong>{{ formatBytes(quota()?.usage) }}</strong> /
           quota: <strong>{{ formatBytes(quota()?.quota) }}</strong>
@@ -114,112 +118,108 @@ import {looksSensitiveKey, maskValue} from './mask';
         <div class="nec-note">
           Stima per-origine: include localStorage + IndexedDB + Cache, non scorporabile.
         </div>
-      } @else {
+      </ng-container>
+      <ng-template #noQuota>
         <div class="nec-note">Stima quota non disponibile (Safari o contesto non sicuro).</div>
-      }
+      </ng-template>
     </div>
 
     <!-- localStorage -->
     <div class="nec-panel">
       <h3>localStorage</h3>
-      @if (storage()?.available) {
+      <ng-container *ngIf="storage()?.available; else noLocalStorage">
         <div>
           {{ storage()?.count }} chiavi · totale
           <strong>{{ formatBytes(storage()?.totalBytesUtf16) }}</strong> (UTF-16) /
           {{ formatBytes(storage()?.totalBytesUtf8) }} (UTF-8)
         </div>
-        @if (storage()!.entries.length) {
+        <ng-container *ngIf="storage()!.entries.length; else noLocalStorageEntries">
           <table>
             <thead>
               <tr>
                 <th>chiave</th>
                 <th class="num">UTF-16</th>
                 <th class="num">UTF-8</th>
-                @if (allowRevealValues) {
-                  <th>valore</th>
-                }
+                <th *ngIf="allowRevealValues">valore</th>
               </tr>
             </thead>
             <tbody>
-              @for (e of storage()!.entries; track e.key) {
-                <tr>
-                  <td>
-                    {{ e.key }}
-                    @if (isSensitive(e.key)) {
-                      <span class="nec-badge error" title="chiave potenzialmente sensibile">⚠</span>
-                    }
-                  </td>
-                  <td class="num">{{ formatBytes(e.bytesUtf16) }}</td>
-                  <td class="num">{{ formatBytes(e.bytesUtf8) }}</td>
-                  @if (allowRevealValues) {
-                    <td>
-                      @if (revealed()[e.key] !== undefined) {
-                        <code>{{ revealed()[e.key] }}</code>
-                      } @else {
-                        <button type="button" (click)="reveal(e.key)">mostra</button>
-                      }
-                    </td>
-                  }
-                </tr>
-              }
+              <tr *ngFor="let e of storage()!.entries; trackBy: trackByKey">
+                <td>
+                  {{ e.key }}
+                  <span
+                    class="nec-badge error"
+                    title="chiave potenzialmente sensibile"
+                    *ngIf="isSensitive(e.key)"
+                  >⚠</span>
+                </td>
+                <td class="num">{{ formatBytes(e.bytesUtf16) }}</td>
+                <td class="num">{{ formatBytes(e.bytesUtf8) }}</td>
+                <td *ngIf="allowRevealValues">
+                  <ng-container *ngIf="revealed()[e.key] !== undefined; else revealBtn">
+                    <code>{{ revealed()[e.key] }}</code>
+                  </ng-container>
+                  <ng-template #revealBtn>
+                    <button type="button" (click)="reveal(e.key)">mostra</button>
+                  </ng-template>
+                </td>
+              </tr>
             </tbody>
           </table>
-        } @else {
+        </ng-container>
+        <ng-template #noLocalStorageEntries>
           <div class="nec-note">Nessuna chiave.</div>
-        }
-      } @else {
+        </ng-template>
+      </ng-container>
+      <ng-template #noLocalStorage>
         <div class="nec-note">localStorage non disponibile.</div>
-      }
+      </ng-template>
     </div>
 
     <!-- IndexedDB -->
     <div class="nec-panel">
       <h3>IndexedDB</h3>
-      @if (idb()?.available) {
+      <ng-container *ngIf="idb()?.available; else noIdb">
         <div class="nec-note">adapter: {{ idb()?.adapter }}</div>
-        @if (idb()?.note) {
-          <div class="nec-note">{{ idb()?.note }}</div>
-        }
-        @if (idb()!.databases.length) {
-          <table>
-            <thead>
-              <tr>
-                <th>database</th>
-                <th>object store</th>
-                <th class="num">record</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (db of idb()!.databases; track db.name) {
-                @if (db.stores.length) {
-                  @for (st of db.stores; track st.name) {
-                    <tr>
-                      <td>{{ db.name }} <span class="nec-note">v{{ db.version }}</span></td>
-                      <td>{{ st.name }}</td>
-                      <td class="num">{{ st.count ?? '–' }}</td>
-                    </tr>
-                  }
-                } @else {
-                  <tr>
-                    <td>{{ db.name }} <span class="nec-note">v{{ db.version }}</span></td>
-                    <td class="nec-note" colspan="2">{{ db.note ?? 'nessun object store' }}</td>
-                  </tr>
-                }
-              }
-            </tbody>
-          </table>
-        }
+        <div class="nec-note" *ngIf="idb()?.note">{{ idb()?.note }}</div>
+        <table *ngIf="idb()!.databases.length">
+          <thead>
+            <tr>
+              <th>database</th>
+              <th>object store</th>
+              <th class="num">record</th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let db of idb()!.databases; trackBy: trackByName">
+              <ng-container *ngIf="db.stores.length; else noStores">
+                <tr *ngFor="let st of db.stores; trackBy: trackByName">
+                  <td>{{ db.name }} <span class="nec-note">v{{ db.version }}</span></td>
+                  <td>{{ st.name }}</td>
+                  <td class="num">{{ st.count ?? '–' }}</td>
+                </tr>
+              </ng-container>
+              <ng-template #noStores>
+                <tr>
+                  <td>{{ db.name }} <span class="nec-note">v{{ db.version }}</span></td>
+                  <td class="nec-note" colspan="2">{{ db.note ?? 'nessun object store' }}</td>
+                </tr>
+              </ng-template>
+            </ng-container>
+          </tbody>
+        </table>
         <div class="nec-note">I byte per record/store non sono misurabili: si mostra solo il conteggio.</div>
-      } @else {
+      </ng-container>
+      <ng-template #noIdb>
         <div class="nec-note">IndexedDB non disponibile in questo contesto.</div>
-      }
+      </ng-template>
     </div>
 
     <!-- Store NgRx + lazy -->
     <div class="nec-panel">
       <h3>Store NgRx</h3>
-      @if (storeReport()) {
-        @if (storeReport()!.slices.length) {
+      <ng-container *ngIf="storeReport()">
+        <ng-container *ngIf="storeReport()!.slices.length; else noSlices">
           <table>
             <thead>
               <tr>
@@ -231,39 +231,32 @@ import {looksSensitiveKey, maskValue} from './mask';
               </tr>
             </thead>
             <tbody>
-              @for (s of storeReport()!.slices; track s.key) {
-                <tr>
-                  <td>{{ s.key }}</td>
-                  <td>{{ s.kind }}</td>
-                  <td class="num">{{ s.entityCount ?? '–' }}</td>
-                  <td class="num">{{ s.responsesCount }}</td>
-                  <td>
-                    @if (s.isLoading) {
-                      <span class="nec-badge loading">loading</span>
-                    }
-                    @if (s.error) {
-                      <span class="nec-badge error" [title]="s.error">error</span>
-                    }
-                    @if (!s.isLoading && !s.error) {
-                      <span class="nec-badge">{{ s.isLoaded ? 'caricato' : 'idle' }}</span>
-                    }
-                  </td>
-                </tr>
-              }
+              <tr *ngFor="let s of storeReport()!.slices; trackBy: trackByKey">
+                <td>{{ s.key }}</td>
+                <td>{{ s.kind }}</td>
+                <td class="num">{{ s.entityCount ?? '–' }}</td>
+                <td class="num">{{ s.responsesCount }}</td>
+                <td>
+                  <span class="nec-badge loading" *ngIf="s.isLoading">loading</span>
+                  <span class="nec-badge error" [title]="s.error" *ngIf="s.error">error</span>
+                  <span class="nec-badge" *ngIf="!s.isLoading && !s.error">{{
+                    s.isLoaded ? 'caricato' : 'idle'
+                  }}</span>
+                </td>
+              </tr>
             </tbody>
           </table>
-        } @else {
+        </ng-container>
+        <ng-template #noSlices>
           <div class="nec-note">Nessuna slice CRUD montata.</div>
-        }
+        </ng-template>
 
-        @if (storeReport()!.lazy?.length) {
+        <ng-container *ngIf="storeReport()!.lazy?.length; else noLazy">
           <h3 style="margin-top:12px">Sezioni lazy (da lazy-report)</h3>
-          @if (storeReport()!.lazyReportGeneratedAt) {
-            <div class="nec-note">
-              snapshot generato il {{ storeReport()!.lazyReportGeneratedAt }} — rigenera con
-              <code>ng generate ngrx-entity-crud:lazy-report --format=json</code> se obsoleto.
-            </div>
-          }
+          <div class="nec-note" *ngIf="storeReport()!.lazyReportGeneratedAt">
+            snapshot generato il {{ storeReport()!.lazyReportGeneratedAt }} — rigenera con
+            <code>ng generate ngrx-entity-crud:lazy-report --format=json</code> se obsoleto.
+          </div>
           <table>
             <thead>
               <tr>
@@ -274,28 +267,27 @@ import {looksSensitiveKey, maskValue} from './mask';
               </tr>
             </thead>
             <tbody>
-              @for (l of storeReport()!.lazy!; track l.name) {
-                <tr>
-                  <td>{{ l.name }}</td>
-                  <td>{{ l.sections.join(', ') || '–' }}</td>
-                  <td>{{ l.verdict }}</td>
-                  <td>
-                    <span
-                      class="nec-badge"
-                      [class.lazy]="l.runtimeStatus === 'lazy-not-loaded'"
-                    >{{ l.runtimeStatus }}</span>
-                  </td>
-                </tr>
-              }
+              <tr *ngFor="let l of storeReport()!.lazy!; trackBy: trackByName">
+                <td>{{ l.name }}</td>
+                <td>{{ l.sections.join(', ') || '–' }}</td>
+                <td>{{ l.verdict }}</td>
+                <td>
+                  <span
+                    class="nec-badge"
+                    [class.lazy]="l.runtimeStatus === 'lazy-not-loaded'"
+                  >{{ l.runtimeStatus }}</span>
+                </td>
+              </tr>
             </tbody>
           </table>
-        } @else {
+        </ng-container>
+        <ng-template #noLazy>
           <div class="nec-note">
             Nessun lazy-report caricato (genera src/assets/lazy-report.json con
             <code>ng generate ngrx-entity-crud:lazy-report --format=json</code>).
           </div>
-        }
-      }
+        </ng-template>
+      </ng-container>
     </div>
   `,
 })
@@ -372,6 +364,16 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
 
   isSensitive(key: string): boolean {
     return looksSensitiveKey(key);
+  }
+
+  /** trackBy per le righe identificate da `key` (entry localStorage, slice store). */
+  trackByKey(_: number, item: {key: string}): string {
+    return item.key;
+  }
+
+  /** trackBy per le righe identificate da `name` (DB/object store IndexedDB, voci lazy). */
+  trackByName(_: number, item: {name: string}): string {
+    return item.name;
   }
 
   formatBytes(n: number | undefined | null): string {
