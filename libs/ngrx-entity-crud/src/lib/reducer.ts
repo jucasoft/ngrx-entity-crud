@@ -1,6 +1,6 @@
 import {Actions, EntityCrudState, EntitySingleCrudState, ICriteria, OptRequest, SingularActions} from './models';
 import {EntityAdapter} from '@ngrx/entity';
-import {ActionCreator, createReducer, on, ReducerTypes} from '@ngrx/store';
+import {ActionCreator, ActionReducer, createReducer, on, ReducerTypes} from '@ngrx/store';
 import {selectIdValue, toDictionary} from './utils';
 
 export function evalData<T>(fn: () => T, def: any = null): T {
@@ -482,7 +482,7 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
 }
 
 export function createCrudReducerFactory<T>(adapter: EntityAdapter<T>) {
-  function createCrudReducer<S extends EntityCrudState<T>>(initialState: S, actions: Actions<T>, ...ons: ReducerTypes<S, ActionCreator[]>[]) {
+  function createCrudReducer<S extends EntityCrudState<T>>(initialState: S, actions: Actions<T>, ...ons: ReducerTypes<S, ActionCreator[]>[]): ActionReducer<S> {
     const {...crudOns} = createCrudOns(adapter, initialState, actions);
     const totalOns: ReducerTypes<S, ActionCreator[]>[] = [
       ...ons,
