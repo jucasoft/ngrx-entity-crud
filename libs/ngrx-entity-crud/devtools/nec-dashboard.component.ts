@@ -1,10 +1,12 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  EventEmitter,
   inject,
   Input,
   OnDestroy,
   OnInit,
+  Output,
   signal,
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
@@ -24,7 +26,7 @@ import {looksSensitiveKey, maskValue} from './mask';
  *
  * Il template usa le direttive strutturali classiche (`*ngIf`/`*ngFor` + `CommonModule`)
  * anziché il control-flow `@if`/`@for`: così il componente resta compatibile con Angular
- * >= 12 (la nuova sintassi alzerebbe il `minVersion` del pacchetto a 17).
+ * >= 14 (il `minVersion` del componente standalone; il control-flow lo alzerebbe a 17).
  */
 @Component({
   selector: 'nec-dashboard',
@@ -97,6 +99,19 @@ import {looksSensitiveKey, maskValue} from './mask';
       button {
         cursor: pointer;
       }
+      td.nec-actions {
+        white-space: nowrap;
+      }
+      .nec-confirm {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #b91c1c;
+      }
+      button.nec-danger {
+        border-color: #fca5a5;
+        color: #b91c1c;
+      }
     `,
   ],
   template: `
@@ -104,6 +119,16 @@ import {looksSensitiveKey, maskValue} from './mask';
       <button type="button" (click)="refresh()" [disabled]="busy()">
         {{ busy() ? 'Aggiorno…' : 'Aggiorna' }}
       </button>
+      <ng-container *ngIf="storeReport()?.slices?.length">
+        <span class="nec-confirm" role="alert" *ngIf="pendingResetAll(); else resetAllBtn">
+          azzerare tutte le slice?
+          <button type="button" class="nec-danger" aria-label="Conferma azzeramento di tutte le slice" (click)="confirmResetAll()">Sì</button>
+          <button type="button" aria-label="Annulla azzeramento" (click)="cancelPending()">Annulla</button>
+        </span>
+        <ng-template #resetAllBtn>
+          <button type="button" class="nec-danger" (click)="requestResetAll()">Azzera tutte</button>
+        </ng-template>
+      </ng-container>
       <span class="nec-note" *ngIf="lastUpdated()">ultimo aggiornamento: {{ lastUpdated() }}</span>
     </div>
 
@@ -228,6 +253,7 @@ import {looksSensitiveKey, maskValue} from './mask';
                 <th class="num">entità</th>
                 <th class="num">responses</th>
                 <th>stato</th>
+                <th>azioni</th>
               </tr>
             </thead>
             <tbody>
@@ -242,6 +268,22 @@ import {looksSensitiveKey, maskValue} from './mask';
                   <span class="nec-badge" *ngIf="!s.isLoading && !s.error">{{
                     s.isLoaded ? 'caricato' : 'idle'
                   }}</span>
+                </td>
+                <td class="nec-actions">
+                  <span class="nec-confirm" role="alert" *ngIf="pendingResetKey() === s.key">
+                    azzerare la slice?
+                    <button type="button" class="nec-danger" [attr.aria-label]="'Conferma azzeramento della slice ' + s.key" (click)="confirmReset(s.key)">Sì</button>
+                    <button type="button" aria-label="Annulla azzeramento" (click)="cancelPending()">Annulla</button>
+                  </span>
+                  <span class="nec-confirm" role="alert" *ngIf="pendingResponsesKey() === s.key">
+                    azzerare le responses?
+                    <button type="button" class="nec-danger" [attr.aria-label]="'Conferma azzeramento delle responses di ' + s.key" (click)="confirmResetResponses(s.key)">Sì</button>
+                    <button type="button" aria-label="Annulla azzeramento" (click)="cancelPending()">Annulla</button>
+                  </span>
+                  <ng-container *ngIf="pendingResetKey() !== s.key && pendingResponsesKey() !== s.key">
+                    <button type="button" class="nec-danger" [attr.aria-label]="'Azzera la slice ' + s.key" (click)="requestReset(s.key)">reset</button>
+                    <button type="button" [attr.aria-label]="'Azzera le responses di ' + s.key" (click)="requestResetResponses(s.key)">reset responses</button>
+                  </ng-container>
                 </td>
               </tr>
             </tbody>
@@ -309,6 +351,9 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
   /** Abilita il reveal opt-in dei valori localStorage (sempre mascherati). Default: false. */
   @Input() allowRevealValues = false;
 
+  /** Emesso (con la slice key) a ogni `Reset` completo dispacciato, incluso l'azzera-tutte. */
+  @Output() sliceReset = new EventEmitter<string>();
+
   readonly busy = signal(false);
   readonly lastUpdated = signal<string | null>(null);
   readonly storage = signal<NecStorageReport | null>(null);
@@ -316,8 +361,16 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
   readonly idb = signal<NecIdbReport | null>(null);
   readonly storeReport = signal<NecStoreReport | null>(null);
   readonly revealed = signal<Record<string, string>>({});
+  /** Slice in attesa di conferma per il `Reset` completo (conferma a due step). */
+  readonly pendingResetKey = signal<string | null>(null);
+  /** Slice in attesa di conferma per il `ResetResponses`. */
+  readonly pendingResponsesKey = signal<string | null>(null);
+  /** `true` quando è in attesa di conferma l'azzeramento globale di tutte le slice. */
+  readonly pendingResetAll = signal(false);
 
   private timer: ReturnType<typeof setInterval> | null = null;
+  /** Un refresh richiesto mentre un altro è già in corso: viene ri-eseguito al termine. */
+  private pendingRefresh = false;
 
   ngOnInit(): void {
     void this.refresh();
@@ -335,10 +388,14 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
 
   async refresh(): Promise<void> {
     if (this.busy()) {
+      // Un refresh è già in corso (es. polling): richiedine uno al termine così i conteggi
+      // post-reset non restano stantii se il dispatch arriva mentre l'altro è in volo.
+      this.pendingRefresh = true;
       return;
     }
     this.busy.set(true);
     this.revealed.set({}); // i valori rivelati non sopravvivono a un refresh
+    this.cancelPending(); // nessuna conferma "appesa" dopo un refresh/polling
     try {
       this.storage.set(this.localStorageProbe.read('local'));
       this.quota.set(await this.localStorageProbe.estimate());
@@ -353,6 +410,10 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
       this.lastUpdated.set(new Date().toLocaleTimeString());
     } finally {
       this.busy.set(false);
+      if (this.pendingRefresh) {
+        this.pendingRefresh = false;
+        void this.refresh();
+      }
     }
   }
 
@@ -360,6 +421,60 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
   reveal(key: string): void {
     const value = this.localStorageProbe.readValue(key) ?? '';
     this.revealed.update((m) => ({...m, [key]: maskValue(key, value)}));
+  }
+
+  /** Step 1: chiede conferma per il `Reset` completo della slice. */
+  requestReset(key: string): void {
+    this.pendingResponsesKey.set(null);
+    this.pendingResetAll.set(false);
+    this.pendingResetKey.set(key);
+  }
+
+  /** Step 1: chiede conferma per il `ResetResponses` della slice. */
+  requestResetResponses(key: string): void {
+    this.pendingResetKey.set(null);
+    this.pendingResetAll.set(false);
+    this.pendingResponsesKey.set(key);
+  }
+
+  /** Step 1: chiede conferma per l'azzeramento globale di tutte le slice. */
+  requestResetAll(): void {
+    this.pendingResetKey.set(null);
+    this.pendingResponsesKey.set(null);
+    this.pendingResetAll.set(true);
+  }
+
+  /** Annulla qualsiasi conferma pendente (reset/responses/azzera-tutte). */
+  cancelPending(): void {
+    this.pendingResetKey.set(null);
+    this.pendingResponsesKey.set(null);
+    this.pendingResetAll.set(false);
+  }
+
+  /** Step 2: dispaccia il `Reset` della slice, emette `sliceReset` e ricarica i conteggi. */
+  confirmReset(key: string): void {
+    this.storeProbe.reset(key);
+    this.sliceReset.emit(key);
+    this.cancelPending();
+    void this.refresh();
+  }
+
+  /** Step 2: dispaccia il `ResetResponses` della slice e ricarica i conteggi. */
+  confirmResetResponses(key: string): void {
+    this.storeProbe.resetResponses(key);
+    this.cancelPending();
+    void this.refresh();
+  }
+
+  /** Step 2: dispaccia il `Reset` su tutte le slice elencate, emettendo `sliceReset` per ciascuna. */
+  confirmResetAll(): void {
+    const slices = this.storeReport()?.slices ?? [];
+    for (const s of slices) {
+      this.storeProbe.reset(s.key);
+      this.sliceReset.emit(s.key);
+    }
+    this.cancelPending();
+    void this.refresh();
   }
 
   isSensitive(key: string): boolean {

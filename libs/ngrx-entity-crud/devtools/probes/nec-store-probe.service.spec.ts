@@ -12,10 +12,13 @@ describe('NecStoreProbeService', () => {
   };
 
   let probe: NecStoreProbeService;
+  let dispatch: jest.Mock;
 
   beforeEach(() => {
+    dispatch = jest.fn();
     const fakeStore = {
       select: (projector: (s: any) => any) => of(projector(rootState)),
+      dispatch,
     } as unknown as Store;
 
     TestBed.configureTestingModule({
@@ -55,6 +58,21 @@ describe('NecStoreProbeService', () => {
   it('rispetta la whitelist', () => {
     const r = probe.read({whitelist: ['coin']});
     expect(r.slices.map((s) => s.key)).toEqual(['coin']);
+  });
+
+  it('costruisce i type delle azioni di reset dalla sola slice key', () => {
+    expect(probe.resetActionType('coin')).toBe('[coin] Reset');
+    expect(probe.resetResponsesActionType('coin')).toBe('[coin] Reset Response');
+  });
+
+  it('reset(key) dispaccia [key] Reset', () => {
+    probe.reset('coin');
+    expect(dispatch).toHaveBeenCalledWith({type: '[coin] Reset'});
+  });
+
+  it('resetResponses(key) dispaccia [key] Reset Response', () => {
+    probe.resetResponses('coin');
+    expect(dispatch).toHaveBeenCalledWith({type: '[coin] Reset Response'});
   });
 
   it('correla con lazy-report.json e propaga generatedAt', async () => {

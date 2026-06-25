@@ -80,6 +80,36 @@ export class NecStoreProbeService {
     return {slices, loadingNames, errors};
   }
 
+  /**
+   * Type dell'azione `Reset` della libreria per una slice CRUD.
+   *
+   * Vale la convenzione degli schematic `store`: la feature key nello stato root coincide col
+   * nome passato a `createCrudActions` (entrambi `Names.NAME`), quindi il type `[key] Reset`
+   * (vedi `actions.ts`, `CrudEnum.RESET`) è ricostruibile dalla sola `key` letta da {@link read}.
+   */
+  resetActionType(sliceKey: string): string {
+    return `[${sliceKey}] Reset`;
+  }
+
+  /** Type dell'azione `ResetResponses` (`[key] Reset Response`): svuota solo la cache delle response. */
+  resetResponsesActionType(sliceKey: string): string {
+    return `[${sliceKey}] Reset Response`;
+  }
+
+  /**
+   * Dispaccia il `Reset` della slice: riporta lo stato a `initialState` (entità, selezione,
+   * criteri e response vuoti). La libreria di persistenza, reagendo al cambio di stato, riscrive
+   * lo stato vuoto e di fatto svuota i dati salvati in locale.
+   */
+  reset(sliceKey: string): void {
+    this.store.dispatch({type: this.resetActionType(sliceKey)});
+  }
+
+  /** Dispaccia il `ResetResponses` della slice: svuota solo le response, lasciando entità e selezione. */
+  resetResponses(sliceKey: string): void {
+    this.store.dispatch({type: this.resetResponsesActionType(sliceKey)});
+  }
+
   /** Come `read()`, ma correla con l'inventario statico di `lazy-report.json` (se raggiungibile). */
   async readWithLazyReport(url: string, opts: ProbeOptions = {}): Promise<NecStoreReport> {
     const report = this.read(opts);

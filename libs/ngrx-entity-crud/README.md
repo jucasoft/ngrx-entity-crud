@@ -399,9 +399,14 @@ import { NecDashboardComponent } from 'ngrx-entity-crud/devtools';
     lazyReportUrl="assets/lazy-report.json"
     [idbDatabaseNames]="['NgRxStateStore']"
     [allowRevealValues]="false"
-    [pollingMs]="0"></nec-dashboard>`,
+    [pollingMs]="0"
+    (sliceReset)="onSliceReset($event)"></nec-dashboard>`,
 })
-export class DevPanelComponent {}
+export class DevPanelComponent {
+  onSliceReset(sliceKey: string): void {
+    // reactivity hook: a CRUD slice has just been reset to its initial state
+  }
+}
 ```
 
 Inputs: `blacklist` / `whitelist` (`string[]`, filter store slices), `lazyReportUrl`
@@ -410,13 +415,27 @@ Inputs: `blacklist` / `whitelist` (`string[]`, filter store slices), `lazyReport
 Firefox / older Safari), `pollingMs` (`number`, auto-refresh; `0` = manual), `allowRevealValues`
 (`boolean`, opt-in masked value reveal).
 
+Outputs: `sliceReset` (`EventEmitter<string>`) emits the slice key whenever a full `Reset` is
+dispatched (including via the global **Azzera tutte** button).
+
 Notes:
+- The **Store NgRx** panel exposes per-row actions: **reset** dispatches the library's `Reset`
+  action (`[key] Reset`), restoring the slice to its `initialState` (empty entities, selection,
+  criteria and responses); **reset responses** dispatches the lighter `ResetResponses`
+  (`[key] Reset Response`). A toolbar **Azzera tutte** button resets every listed slice at once.
+  All three are destructive and require an inline two-step confirmation before dispatching.
+  Because the slice key in the root state matches the action name by convention (the `store`
+  schematic feeds the same `Names.NAME` to both `StoreModule.forFeature` and `createCrudActions`),
+  the dashboard can target the right action from the slice key alone — no per-domain wiring needed.
+  After a reset the dashboard refreshes its counts; if you persist the NgRx state (e.g. to
+  IndexedDB), your persistence layer will write back the emptied state, clearing the local data.
 - IndexedDB is introspected **agnostically** via native APIs (`indexedDB.databases()` + `count()`),
   with an optional `NEC_IDB_ADAPTER` injection token for custom providers. Byte sizes per
   record/store are not measurable; only record counts and the aggregate origin quota
   (`navigator.storage.estimate()`) are shown.
-- `<nec-dashboard>` requires Angular 17+ on the consumer (standalone component + control flow);
-  the main entry-point keeps the wider peer range.
+- `<nec-dashboard>` is a standalone component built with the classic structural directives
+  (`*ngIf`/`*ngFor`), so it stays compatible with Angular 14+ consumers; the main entry-point keeps
+  the wider peer range.
 
 ## Running unit tests
 Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).

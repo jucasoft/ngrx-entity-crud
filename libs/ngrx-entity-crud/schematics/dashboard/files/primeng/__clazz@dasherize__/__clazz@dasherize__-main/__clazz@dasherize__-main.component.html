@@ -7,6 +7,9 @@
       - [idbDatabaseNames]: nomi DB da ispezionare dove indexedDB.databases() non è supportato
         (es. Firefox/Safari), p.es. [idbDatabaseNames]="['NgRxStateStore']".
       - [pollingMs]: auto-refresh in ms (0 = solo manuale).
+    Il pannello "Store NgRx" espone i pulsanti "reset" / "reset responses" per riga e
+    "Azzera tutte" (con conferma a due step); l'output (sliceReset)="..." emette la key
+    della slice azzerata.
   -->
   <nec-dashboard lazyReportUrl="assets/lazy-report.json"></nec-dashboard>
 </p-card>
