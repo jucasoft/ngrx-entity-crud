@@ -1,5 +1,12 @@
 import {Inject, Injectable, Optional} from '@angular/core';
-import {NecIdbAdapter, NecIdbDbReport, NecIdbReport, NecIdbStoreReport} from '../models';
+import {
+  NecIdbAdapter,
+  NecIdbDbReport,
+  NecIdbEntry,
+  NecIdbReport,
+  NecIdbStoreEntries,
+  NecIdbStoreReport,
+} from '../models';
 import {NEC_IDB_ADAPTER} from '../idb-adapter.token';
 
 /**
@@ -180,5 +187,146 @@ export class NecIndexedDbProbeService {
         });
       };
     });
+  }
+
+  /**
+   * Legge ON-DEMAND i record di un object store, per la vista ad albero della dashboard.
+   *
+   * Usa un cursore e si ferma a `limit` record (default 50) per non caricare in memoria interi
+   * store enormi; `truncated` segnala se ci sono altri record oltre il limite. Restituisce i
+   * valori GREZZI: la serializzazione/mascheratura per la privacy spetta alla dashboard.
+   */
+  async readStoreEntries(
+    dbName: string,
+    storeName: string,
+    limit = 50,
+    openTimeoutMs = 3000
+  ): Promise<NecIdbStoreEntries> {
+    const empty = (note?: string): NecIdbStoreEntries => ({
+      db: dbName,
+      store: storeName,
+      entries: [],
+      total: null,
+      truncated: false,
+      note,
+    });
+
+    if (typeof indexedDB === 'undefined') {
+      return empty('IndexedDB non disponibile in questo contesto');
+    }
+
+    return new Promise<NecIdbStoreEntries>((resolve) => {
+      let settled = false;
+      const done = (r: NecIdbStoreEntries): void => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        resolve(r);
+      };
+
+      const timer = setTimeout(() => done(empty('timeout lettura record')), openTimeoutMs);
+
+      let request: IDBOpenDBRequest;
+      try {
+        request = indexedDB.open(dbName);
+      } catch {
+        clearTimeout(timer);
+        done(empty('open() fallita'));
+        return;
+      }
+
+      request.onupgradeneeded = (event) => {
+        // Il DB non esisteva: non crearne lo schema (annulla la transazione di upgrade).
+        try {
+          (event.target as IDBOpenDBRequest).transaction?.abort();
+        } catch {
+          /* noop */
+        }
+      };
+      request.onblocked = () => {
+        clearTimeout(timer);
+        done(empty('apertura bloccata (versionchange in un\'altra scheda)'));
+      };
+      request.onerror = () => {
+        clearTimeout(timer);
+        done(empty('errore apertura DB (o DB inesistente)'));
+      };
+
+      request.onsuccess = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains(storeName)) {
+          clearTimeout(timer);
+          db.close();
+          done(empty('object store inesistente'));
+          return;
+        }
+
+        let tx: IDBTransaction;
+        try {
+          tx = db.transaction([storeName], 'readonly');
+        } catch {
+          clearTimeout(timer);
+          db.close();
+          done(empty('transazione fallita'));
+          return;
+        }
+
+        const os = tx.objectStore(storeName);
+        const entries: NecIdbEntry[] = [];
+        let total: number | null = null;
+        let truncated = false;
+        let cursorDone = false;
+        let countDone = false;
+        const maybeFinish = (): void => {
+          if (cursorDone && countDone) {
+            clearTimeout(timer);
+            db.close();
+            done({db: dbName, store: storeName, entries, total, truncated});
+          }
+        };
+
+        const countReq = os.count();
+        countReq.onsuccess = () => {
+          total = countReq.result;
+          countDone = true;
+          maybeFinish();
+        };
+        countReq.onerror = () => {
+          countDone = true;
+          maybeFinish();
+        };
+
+        const cursorReq = os.openCursor();
+        cursorReq.onsuccess = () => {
+          const cursor = cursorReq.result;
+          if (cursor && entries.length < limit) {
+            entries.push({key: this.stringifyKey(cursor.key), value: cursor.value});
+            cursor.continue();
+            return;
+          }
+          // Se il cursore non è esaurito ma siamo al limite, ci sono altri record: troncato.
+          truncated = !!cursor;
+          cursorDone = true;
+          maybeFinish();
+        };
+        cursorReq.onerror = () => {
+          cursorDone = true;
+          maybeFinish();
+        };
+      };
+    });
+  }
+
+  /** Serializza una `IDBValidKey` (stringa/numero/Date/array) in stringa per la UI. */
+  private stringifyKey(key: IDBValidKey): string {
+    try {
+      if (Array.isArray(key)) {
+        return key.map((k) => this.stringifyKey(k as IDBValidKey)).join(', ');
+      }
+      return String(key);
+    } catch {
+      return '«chiave non serializzabile»';
+    }
   }
 }

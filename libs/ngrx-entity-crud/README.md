@@ -413,7 +413,9 @@ Inputs: `blacklist` / `whitelist` (`string[]`, filter store slices), `lazyReport
 (default `assets/lazy-report.json`; empty string disables the static correlation),
 `idbDatabaseNames` (`string[]`, DB names to inspect where `indexedDB.databases()` is unsupported —
 Firefox / older Safari), `pollingMs` (`number`, auto-refresh; `0` = manual), `allowRevealValues`
-(`boolean`, opt-in masked value reveal).
+(`boolean`, opt-in masked value reveal — gates both localStorage values and IndexedDB record
+values), `idbEntryLimit` (`number`, default `50`, max records read per object store in the
+IndexedDB tree).
 
 Outputs: `sliceReset` (`EventEmitter<string>`) emits the slice key whenever a full `Reset` is
 dispatched (including via the global **Azzera tutte** button).
@@ -429,10 +431,16 @@ Notes:
   the dashboard can target the right action from the slice key alone — no per-domain wiring needed.
   After a reset the dashboard refreshes its counts; if you persist the NgRx state (e.g. to
   IndexedDB), your persistence layer will write back the emptied state, clearing the local data.
+- The **Store NgRx** panel has a toggle button: by default it lists every mounted slice, but
+  **Mostra solo le slice con dati** filters down to slices that actually hold data (entities for
+  `plural`, an `item` for `singular`, or cached responses).
 - IndexedDB is introspected **agnostically** via native APIs (`indexedDB.databases()` + `count()`),
   with an optional `NEC_IDB_ADAPTER` injection token for custom providers. Byte sizes per
   record/store are not measurable; only record counts and the aggregate origin quota
-  (`navigator.storage.estimate()`) are shown.
+  (`navigator.storage.estimate()`) are shown. The panel renders an **expandable tree** (database →
+  object store → record): expanding an object store lazily reads up to `idbEntryLimit` records and
+  lists their keys; with `[allowRevealValues]="true"` each record can be expanded further to show
+  its value (serialized to JSON and masked for sensitive patterns).
 - `<nec-dashboard>` is a standalone component built with the classic structural directives
   (`*ngIf`/`*ngFor`), so it stays compatible with Angular 14+ consumers; the main entry-point keeps
   the wider peer range.

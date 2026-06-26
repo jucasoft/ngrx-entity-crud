@@ -49,6 +49,16 @@ describe('NecStoreProbeService', () => {
     expect(settings?.kind).toBe('unknown');
   });
 
+  it('calcola hasData (entità, item singolare o response)', () => {
+    const r = probe.read();
+    // coin: 2 entità + 2 response -> true
+    expect(r.slices.find((s) => s.key === 'coin')?.hasData).toBe(true);
+    // profile: singular con item presente -> true
+    expect(r.slices.find((s) => s.key === 'profile')?.hasData).toBe(true);
+    // settings: né ids né item né response -> false
+    expect(r.slices.find((s) => s.key === 'settings')?.hasData).toBe(false);
+  });
+
   it('raccoglie loadingNames ed errori', () => {
     const r = probe.read();
     expect(r.loadingNames).toEqual(['profile']);

@@ -53,19 +53,25 @@ export class NecStoreProbeService {
       const error =
         typeof v['error'] === 'string' && v['error'].length > 0 ? (v['error'] as string) : null;
 
+      const entityCount =
+        kind === 'plural'
+          ? Array.isArray(v['ids'])
+            ? v['ids'].length
+            : Object.keys(v['entities'] ?? {}).length
+          : undefined;
+      const responsesCount = Array.isArray(v['responses']) ? v['responses'].length : 0;
+      const hasData =
+        (entityCount ?? 0) > 0 || (kind === 'singular' && v['item'] != null) || responsesCount > 0;
+
       const slice: NecStoreSlice = {
         key,
         kind,
         isLoading: v['isLoading'] === true,
         isLoaded: v['isLoaded'] === true,
         error,
-        entityCount:
-          kind === 'plural'
-            ? Array.isArray(v['ids'])
-              ? v['ids'].length
-              : Object.keys(v['entities'] ?? {}).length
-            : undefined,
-        responsesCount: Array.isArray(v['responses']) ? v['responses'].length : 0,
+        entityCount,
+        responsesCount,
+        hasData,
       };
       slices.push(slice);
       if (slice.isLoading) {

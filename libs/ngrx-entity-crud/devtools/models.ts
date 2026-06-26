@@ -63,6 +63,26 @@ export interface NecIdbReport {
   note?: string;
 }
 
+/** Un record di un object store IndexedDB, letto ON-DEMAND per la vista ad albero. */
+export interface NecIdbEntry {
+  /** Chiave primaria del record, serializzata a stringa. */
+  key: string;
+  /** Valore grezzo del record; la dashboard lo serializza/maschera prima di mostrarlo. */
+  value: unknown;
+}
+
+/** Risultato della lettura on-demand dei record di un object store (vista ad albero). */
+export interface NecIdbStoreEntries {
+  db: string;
+  store: string;
+  entries: NecIdbEntry[];
+  /** Conteggio totale dei record (`count()`); `null` se non determinabile. */
+  total: number | null;
+  /** `true` se `entries` è troncato rispetto a `total` (raggiunto il `limit`). */
+  truncated: boolean;
+  note?: string;
+}
+
 /**
  * Punto di estensione agnostico: il consumer può fornire un adapter esplicito (via
  * `NEC_IDB_ADAPTER`) per conteggi accurati quando la sua libreria di persistenza nasconde
@@ -89,6 +109,8 @@ export interface NecStoreSlice {
   /** Numero entità (solo slice `plural`). */
   entityCount?: number;
   responsesCount: number;
+  /** `true` se la slice contiene dati: entità (`plural`), item (`singular`) o response. */
+  hasData: boolean;
 }
 
 export type NecRuntimeStatus = 'loaded' | 'lazy-not-loaded' | 'unknown';
