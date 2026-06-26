@@ -11,13 +11,13 @@ import {
   signal,
 } from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {
-  NecIdbReport,
-  NecIdbStoreEntries,
-  NecQuotaEstimate,
-  NecStorageReport,
-  NecStoreReport,
-} from './models';
+import {ButtonModule} from 'primeng/button';
+import {CardModule} from 'primeng/card';
+import {TableModule} from 'primeng/table';
+import {TagModule} from 'primeng/tag';
+import {TreeModule} from 'primeng/tree';
+import {TreeNode} from 'primeng/api';
+import {NecIdbReport, NecIdbStoreEntries, NecQuotaEstimate, NecStorageReport, NecStoreReport} from './models';
 import {NecLocalStorageProbeService} from './probes/nec-local-storage-probe.service';
 import {NecIndexedDbProbeService} from './probes/nec-indexeddb-probe.service';
 import {NecStoreProbeService} from './probes/nec-store-probe.service';
@@ -26,21 +26,25 @@ import {looksSensitiveKey, maskValue} from './mask';
 /**
  * `<nec-dashboard>` — dashboard di gestione progetto plug-and-play.
  *
- * Standalone, OnPush, template HTML inline (nessun PrimeNG → importabile ovunque). Tre
- * pannelli: localStorage, IndexedDB (agnostico, con vista ad albero espandibile), store NgRx
- * + sezioni lazy. Per privacy mostra di default SOLO chiavi/dimensioni/conteggi; i valori
- * (localStorage e record IndexedDB) sono rivelabili solo con `allowRevealValues` e comunque
- * mascherati. Refresh manuale di default; polling opt-in via `pollingMs`. Usabile anche in
- * produzione.
+ * Standalone, OnPush, costruita sui componenti **PrimeNG** (`p-card`, `p-table`, `p-tag`,
+ * `p-tree`, direttiva `pButton`): richiede quindi `primeng` + `primeicons` nell'app consumer
+ * (peerDependencies opzionali del solo entry-point `devtools`). Quattro pannelli: quota
+ * origine, localStorage, IndexedDB (agnostico, con `p-tree` espandibile e lazy-load dei
+ * record), store NgRx + sezioni lazy. Per privacy mostra di default SOLO chiavi/dimensioni/
+ * conteggi; i valori (localStorage e record IndexedDB) sono rivelabili solo con
+ * `allowRevealValues` e comunque mascherati. Refresh manuale di default; polling opt-in via
+ * `pollingMs`. Usabile anche in produzione.
  *
- * Il template usa le direttive strutturali classiche (`*ngIf`/`*ngFor` + `CommonModule`)
- * anziché il control-flow `@if`/`@for`: così il componente resta compatibile con Angular
- * >= 14 (il `minVersion` del componente standalone; il control-flow lo alzerebbe a 17).
+ * I pulsanti usano la direttiva `pButton` con le **classi** severity (`p-button-danger`,
+ * `-text`, `-sm`) e i tag solo le severity `success`/`info`/`danger`: questo idioma è
+ * compatibile sia con PrimeNG 16 (target dell'app consumer) sia con le major successive.
+ * Il template usa le direttive strutturali classiche (`*ngIf`/`*ngFor`) anziché il
+ * control-flow `@if`/`@for`, per restare compatibile con Angular 16+.
  */
 @Component({
   selector: 'nec-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ButtonModule, CardModule, TableModule, TagModule, TreeModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [
     `
@@ -50,110 +54,28 @@ import {looksSensitiveKey, maskValue} from './mask';
         font-size: 13px;
         color: #1f2933;
       }
-      .nec-toolbar {
+      .nec-row {
         display: flex;
         align-items: center;
-        gap: 12px;
-        margin-bottom: 12px;
+        gap: 8px;
+        flex-wrap: wrap;
       }
-      .nec-panel {
-        border: 1px solid #d7dce2;
-        border-radius: 6px;
-        padding: 12px 16px;
+      .nec-mb {
         margin-bottom: 16px;
-      }
-      .nec-panel h3 {
-        margin: 0 0 8px;
-        font-size: 14px;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-      th,
-      td {
-        text-align: left;
-        padding: 4px 8px;
-        border-bottom: 1px solid #eceff3;
-      }
-      th {
-        font-weight: 600;
-        color: #52606d;
-      }
-      td.num,
-      th.num {
-        text-align: right;
-        font-variant-numeric: tabular-nums;
       }
       .nec-note {
         color: #7b8794;
         font-style: italic;
       }
-      .nec-badge {
-        display: inline-block;
-        padding: 1px 6px;
-        border-radius: 10px;
-        font-size: 11px;
-        background: #e4e7eb;
-      }
-      .nec-badge.loading {
-        background: #fde68a;
-      }
-      .nec-badge.error {
-        background: #fca5a5;
-      }
-      .nec-badge.lazy {
-        background: #bfdbfe;
-      }
-      button {
-        cursor: pointer;
-      }
-      td.nec-actions {
-        white-space: nowrap;
-      }
-      .nec-confirm {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        color: #b91c1c;
-      }
-      button.nec-danger {
-        border-color: #fca5a5;
-        color: #b91c1c;
-      }
-      button.nec-active {
-        background: #bfdbfe;
-        border-color: #93c5fd;
-      }
-      .nec-tree {
+      .nec-num {
+        text-align: right;
         font-variant-numeric: tabular-nums;
       }
-      .nec-tree ul {
-        list-style: none;
-        margin: 0;
-        padding-left: 18px;
-      }
-      .nec-tree li {
-        padding: 1px 0;
-      }
-      button.nec-tree-toggle {
-        background: none;
-        border: none;
-        padding: 2px 0;
-        font: inherit;
-        color: inherit;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        text-align: left;
-      }
-      .nec-tree-caret {
-        display: inline-block;
-        width: 1em;
-        color: #7b8794;
+      .nec-ml {
+        margin-left: 6px;
       }
       .nec-idb-value {
-        margin: 2px 0 6px 24px;
+        margin: 4px 0;
         padding: 6px 8px;
         background: #f5f7fa;
         border: 1px solid #eceff3;
@@ -167,264 +89,262 @@ import {looksSensitiveKey, maskValue} from './mask';
     `,
   ],
   template: `
-    <div class="nec-toolbar">
-      <button type="button" (click)="refresh()" [disabled]="busy()">
-        {{ busy() ? 'Aggiorno…' : 'Aggiorna' }}
-      </button>
+    <div class="nec-row nec-mb">
+      <button
+        type="button"
+        pButton
+        class="p-button-sm"
+        icon="pi pi-refresh"
+        [label]="busy() ? 'Aggiorno…' : 'Aggiorna'"
+        [disabled]="busy()"
+        (click)="refresh()"
+      ></button>
       <ng-container *ngIf="storeReport()?.slices?.length">
-        <span class="nec-confirm" role="alert" *ngIf="pendingResetAll(); else resetAllBtn">
-          azzerare tutte le slice?
-          <button type="button" class="nec-danger" aria-label="Conferma azzeramento di tutte le slice" (click)="confirmResetAll()">Sì</button>
-          <button type="button" aria-label="Annulla azzeramento" (click)="cancelPending()">Annulla</button>
-        </span>
+        <ng-container *ngIf="pendingResetAll(); else resetAllBtn">
+          <span class="nec-note" role="alert">azzerare tutte le slice?</span>
+          <button type="button" pButton class="p-button-danger p-button-sm" label="Sì"
+                  aria-label="Conferma azzeramento di tutte le slice" (click)="confirmResetAll()"></button>
+          <button type="button" pButton class="p-button-text p-button-sm" label="Annulla"
+                  aria-label="Annulla azzeramento" (click)="cancelPending()"></button>
+        </ng-container>
         <ng-template #resetAllBtn>
-          <button type="button" class="nec-danger" (click)="requestResetAll()">Azzera tutte</button>
+          <button type="button" pButton class="p-button-danger p-button-sm" icon="pi pi-trash"
+                  label="Azzera tutte" (click)="requestResetAll()"></button>
         </ng-template>
       </ng-container>
       <span class="nec-note" *ngIf="lastUpdated()">ultimo aggiornamento: {{ lastUpdated() }}</span>
     </div>
 
     <!-- Quota aggregata origine -->
-    <div class="nec-panel">
-      <h3>Quota origine (aggregata)</h3>
-      <ng-container *ngIf="quota()?.available; else noQuota">
-        <div>
-          uso: <strong>{{ formatBytes(quota()?.usage) }}</strong> /
-          quota: <strong>{{ formatBytes(quota()?.quota) }}</strong>
-        </div>
-        <div class="nec-note">
-          Stima per-origine: include localStorage + IndexedDB + Cache, non scorporabile.
-        </div>
-      </ng-container>
-      <ng-template #noQuota>
-        <div class="nec-note">Stima quota non disponibile (Safari o contesto non sicuro).</div>
-      </ng-template>
+    <div class="nec-mb">
+      <p-card header="Quota origine (aggregata)">
+        <ng-container *ngIf="quota()?.available; else noQuota">
+          <div>
+            uso: <strong>{{ formatBytes(quota()?.usage) }}</strong> /
+            quota: <strong>{{ formatBytes(quota()?.quota) }}</strong>
+          </div>
+          <div class="nec-note">
+            Stima per-origine: include localStorage + IndexedDB + Cache, non scorporabile.
+          </div>
+        </ng-container>
+        <ng-template #noQuota>
+          <div class="nec-note">Stima quota non disponibile (Safari o contesto non sicuro).</div>
+        </ng-template>
+      </p-card>
     </div>
 
     <!-- localStorage -->
-    <div class="nec-panel">
-      <h3>localStorage</h3>
-      <ng-container *ngIf="storage()?.available; else noLocalStorage">
-        <div>
-          {{ storage()?.count }} chiavi · totale
-          <strong>{{ formatBytes(storage()?.totalBytesUtf16) }}</strong> (UTF-16) /
-          {{ formatBytes(storage()?.totalBytesUtf8) }} (UTF-8)
-        </div>
-        <ng-container *ngIf="storage()!.entries.length; else noLocalStorageEntries">
-          <table>
-            <thead>
+    <div class="nec-mb">
+      <p-card header="localStorage">
+        <ng-container *ngIf="storage()?.available; else noLocalStorage">
+          <div class="nec-mb">
+            {{ storage()?.count }} chiavi · totale
+            <strong>{{ formatBytes(storage()?.totalBytesUtf16) }}</strong> (UTF-16) /
+            {{ formatBytes(storage()?.totalBytesUtf8) }} (UTF-8)
+          </div>
+          <p-table *ngIf="storage()!.entries.length; else noLocalStorageEntries"
+                   [value]="storage()!.entries" styleClass="p-datatable-sm">
+            <ng-template pTemplate="header">
               <tr>
                 <th>chiave</th>
-                <th class="num">UTF-16</th>
-                <th class="num">UTF-8</th>
+                <th class="nec-num">UTF-16</th>
+                <th class="nec-num">UTF-8</th>
                 <th *ngIf="allowRevealValues">valore</th>
               </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let e of storage()!.entries; trackBy: trackByKey">
+            </ng-template>
+            <ng-template pTemplate="body" let-e>
+              <tr>
                 <td>
                   {{ e.key }}
-                  <span
-                    class="nec-badge error"
-                    title="chiave potenzialmente sensibile"
-                    *ngIf="isSensitive(e.key)"
-                  >⚠</span>
+                  <i class="pi pi-exclamation-triangle nec-ml" style="color:#b91c1c"
+                     title="chiave potenzialmente sensibile" *ngIf="isSensitive(e.key)"></i>
                 </td>
-                <td class="num">{{ formatBytes(e.bytesUtf16) }}</td>
-                <td class="num">{{ formatBytes(e.bytesUtf8) }}</td>
+                <td class="nec-num">{{ formatBytes(e.bytesUtf16) }}</td>
+                <td class="nec-num">{{ formatBytes(e.bytesUtf8) }}</td>
                 <td *ngIf="allowRevealValues">
                   <ng-container *ngIf="revealed()[e.key] !== undefined; else revealBtn">
                     <code>{{ revealed()[e.key] }}</code>
                   </ng-container>
                   <ng-template #revealBtn>
-                    <button type="button" (click)="reveal(e.key)">mostra</button>
+                    <button type="button" pButton class="p-button-text p-button-sm" label="mostra"
+                            (click)="reveal(e.key)"></button>
                   </ng-template>
                 </td>
               </tr>
-            </tbody>
-          </table>
+            </ng-template>
+          </p-table>
+          <ng-template #noLocalStorageEntries>
+            <div class="nec-note">Nessuna chiave.</div>
+          </ng-template>
         </ng-container>
-        <ng-template #noLocalStorageEntries>
-          <div class="nec-note">Nessuna chiave.</div>
+        <ng-template #noLocalStorage>
+          <div class="nec-note">localStorage non disponibile.</div>
         </ng-template>
-      </ng-container>
-      <ng-template #noLocalStorage>
-        <div class="nec-note">localStorage non disponibile.</div>
-      </ng-template>
+      </p-card>
     </div>
 
     <!-- IndexedDB -->
-    <div class="nec-panel">
-      <h3>IndexedDB</h3>
-      <ng-container *ngIf="idb()?.available; else noIdb">
-        <div class="nec-note">adapter: {{ idb()?.adapter }}</div>
-        <div class="nec-note" *ngIf="idb()?.note">{{ idb()?.note }}</div>
-        <div class="nec-tree" *ngIf="idb()!.databases.length; else noDatabases">
-          <ng-container *ngFor="let db of idb()!.databases; trackBy: trackByName">
-            <!-- livello 1: database -->
-            <button type="button" class="nec-tree-toggle" (click)="toggleDb(db.name)"
-                    [attr.aria-expanded]="isDbExpanded(db.name)">
-              <span class="nec-tree-caret">{{ isDbExpanded(db.name) ? '▾' : '▸' }}</span>
-              <strong>{{ db.name }}</strong>
-              <span class="nec-note">v{{ db.version }} · {{ db.stores.length }} object store</span>
-            </button>
-            <ul *ngIf="isDbExpanded(db.name)">
-              <li class="nec-note" *ngIf="!db.stores.length">{{ db.note ?? 'nessun object store' }}</li>
-              <!-- livello 2: object store -->
-              <li *ngFor="let st of db.stores; trackBy: trackByName">
-                <button type="button" class="nec-tree-toggle" (click)="toggleStore(db.name, st.name)"
-                        [attr.aria-expanded]="isStoreExpanded(db.name, st.name)">
-                  <span class="nec-tree-caret">{{ isStoreExpanded(db.name, st.name) ? '▾' : '▸' }}</span>
-                  {{ st.name }}
-                  <span class="nec-badge">{{ st.count ?? '–' }} record</span>
-                </button>
-                <ng-container *ngIf="isStoreExpanded(db.name, st.name)">
-                  <div class="nec-note" style="padding-left:24px" *ngIf="isStoreLoading(db.name, st.name)">
-                    caricamento…
-                  </div>
-                  <ng-container *ngIf="entriesFor(db.name, st.name) as data">
-                    <ul>
-                      <li class="nec-note" *ngIf="!data.entries.length && !data.note">store vuoto</li>
-                      <li class="nec-note" *ngIf="data.note">{{ data.note }}</li>
-                      <!-- livello 3: record -->
-                      <li *ngFor="let e of data.entries; trackBy: trackByKey">
-                        <ng-container *ngIf="allowRevealValues; else keyOnly">
-                          <button type="button" class="nec-tree-toggle"
-                                  (click)="toggleKey(db.name, st.name, e.key)"
-                                  [attr.aria-expanded]="isKeyExpanded(db.name, st.name, e.key)">
-                            <span class="nec-tree-caret">{{ isKeyExpanded(db.name, st.name, e.key) ? '▾' : '▸' }}</span>
-                            <code>{{ e.key }}</code>
-                          </button>
-                          <pre class="nec-idb-value" *ngIf="isKeyExpanded(db.name, st.name, e.key)">{{ formatIdbValue(e.value) }}</pre>
-                        </ng-container>
-                        <ng-template #keyOnly>
-                          <span class="nec-tree-caret"></span><code>{{ e.key }}</code>
-                        </ng-template>
-                      </li>
-                      <li class="nec-note" *ngIf="data.truncated">
-                        mostrati i primi {{ data.entries.length }}{{ data.total != null ? ' di ' + data.total : '' }} record
-                      </li>
-                    </ul>
-                  </ng-container>
-                </ng-container>
-              </li>
-            </ul>
-          </ng-container>
-        </div>
-        <ng-template #noDatabases>
-          <div class="nec-note">Nessun database elencabile.</div>
+    <div class="nec-mb">
+      <p-card header="IndexedDB">
+        <ng-container *ngIf="idb()?.available; else noIdb">
+          <div class="nec-note">adapter: {{ idb()?.adapter }}</div>
+          <div class="nec-note nec-mb" *ngIf="idb()?.note">{{ idb()?.note }}</div>
+          <p-tree
+            *ngIf="idbTreeNodes().length; else noDatabases"
+            [value]="idbTreeNodes()"
+            [lazy]="true"
+            [loading]="idbLoading()"
+            (onNodeExpand)="onNodeExpand($event)"
+          >
+            <ng-template let-node pTemplate="store">
+              {{ node.data.store }}
+              <p-tag styleClass="nec-ml" severity="info"
+                     [value]="(node.data.count == null ? '–' : node.data.count) + ' record'"></p-tag>
+            </ng-template>
+            <ng-template let-node pTemplate="record">
+              <code>{{ node.label }}</code>
+            </ng-template>
+            <ng-template let-node pTemplate="value">
+              <pre class="nec-idb-value">{{ node.label }}</pre>
+            </ng-template>
+            <ng-template let-node pTemplate="note">
+              <span class="nec-note">{{ node.label }}</span>
+            </ng-template>
+          </p-tree>
+          <ng-template #noDatabases>
+            <div class="nec-note">Nessun database elencabile.</div>
+          </ng-template>
+          <div class="nec-note" *ngIf="!allowRevealValues">
+            I valori dei record sono nascosti: imposta <code>[allowRevealValues]="true"</code> per
+            espandere ogni record e vederne il contenuto (mascherato).
+          </div>
+        </ng-container>
+        <ng-template #noIdb>
+          <div class="nec-note">IndexedDB non disponibile in questo contesto.</div>
         </ng-template>
-        <div class="nec-note" *ngIf="!allowRevealValues">
-          I valori dei record sono nascosti: imposta <code>[allowRevealValues]="true"</code> per
-          espandere ogni record e vederne il contenuto (mascherato).
-        </div>
-      </ng-container>
-      <ng-template #noIdb>
-        <div class="nec-note">IndexedDB non disponibile in questo contesto.</div>
-      </ng-template>
+      </p-card>
     </div>
 
     <!-- Store NgRx + lazy -->
-    <div class="nec-panel">
-      <h3>Store NgRx</h3>
-      <ng-container *ngIf="storeReport()">
-        <ng-container *ngIf="storeReport()!.slices.length; else noSlices">
-          <div class="nec-toolbar">
-            <button type="button" [class.nec-active]="onlyWithData()" (click)="toggleOnlyWithData()">
-              {{ onlyWithData() ? 'Mostra tutte le slice' : 'Mostra solo le slice con dati' }}
-            </button>
-            <span class="nec-note" *ngIf="onlyWithData()">
-              {{ visibleSlices().length }} di {{ storeReport()!.slices.length }} slice
-            </span>
-          </div>
-          <table *ngIf="visibleSlices().length; else noDataSlices">
-            <thead>
-              <tr>
-                <th>slice</th>
-                <th>tipo</th>
-                <th class="num">entità</th>
-                <th class="num">responses</th>
-                <th>stato</th>
-                <th>azioni</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let s of visibleSlices(); trackBy: trackByKey">
-                <td>{{ s.key }}</td>
-                <td>{{ s.kind }}</td>
-                <td class="num">{{ s.entityCount ?? '–' }}</td>
-                <td class="num">{{ s.responsesCount }}</td>
-                <td>
-                  <span class="nec-badge loading" *ngIf="s.isLoading">loading</span>
-                  <span class="nec-badge error" [title]="s.error" *ngIf="s.error">error</span>
-                  <span class="nec-badge" *ngIf="!s.isLoading && !s.error">{{
-                    s.isLoaded ? 'caricato' : 'idle'
-                  }}</span>
-                </td>
-                <td class="nec-actions">
-                  <span class="nec-confirm" role="alert" *ngIf="pendingResetKey() === s.key">
-                    azzerare la slice?
-                    <button type="button" class="nec-danger" [attr.aria-label]="'Conferma azzeramento della slice ' + s.key" (click)="confirmReset(s.key)">Sì</button>
-                    <button type="button" aria-label="Annulla azzeramento" (click)="cancelPending()">Annulla</button>
-                  </span>
-                  <span class="nec-confirm" role="alert" *ngIf="pendingResponsesKey() === s.key">
-                    azzerare le responses?
-                    <button type="button" class="nec-danger" [attr.aria-label]="'Conferma azzeramento delle responses di ' + s.key" (click)="confirmResetResponses(s.key)">Sì</button>
-                    <button type="button" aria-label="Annulla azzeramento" (click)="cancelPending()">Annulla</button>
-                  </span>
-                  <ng-container *ngIf="pendingResetKey() !== s.key && pendingResponsesKey() !== s.key">
-                    <button type="button" class="nec-danger" [attr.aria-label]="'Azzera la slice ' + s.key" (click)="requestReset(s.key)">reset</button>
-                    <button type="button" [attr.aria-label]="'Azzera le responses di ' + s.key" (click)="requestResetResponses(s.key)">reset responses</button>
-                  </ng-container>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <ng-template #noDataSlices>
-            <div class="nec-note">Nessuna slice con dati caricati.</div>
+    <div class="nec-mb">
+      <p-card header="Store NgRx">
+        <ng-container *ngIf="storeReport()">
+          <ng-container *ngIf="storeReport()!.slices.length; else noSlices">
+            <div class="nec-row nec-mb">
+              <button
+                type="button"
+                pButton
+                class="p-button-sm"
+                [class.p-button-outlined]="!onlyWithData()"
+                [label]="onlyWithData() ? 'Mostra tutte le slice' : 'Mostra solo le slice con dati'"
+                (click)="toggleOnlyWithData()"
+              ></button>
+              <span class="nec-note" *ngIf="onlyWithData()">
+                {{ visibleSlices().length }} di {{ storeReport()!.slices.length }} slice
+              </span>
+            </div>
+            <p-table *ngIf="visibleSlices().length; else noDataSlices"
+                     [value]="visibleSlices()" styleClass="p-datatable-sm">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th>slice</th>
+                  <th>tipo</th>
+                  <th class="nec-num">entità</th>
+                  <th class="nec-num">responses</th>
+                  <th>stato</th>
+                  <th>azioni</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-s>
+                <tr>
+                  <td>{{ s.key }}</td>
+                  <td>{{ s.kind }}</td>
+                  <td class="nec-num">{{ s.entityCount ?? '–' }}</td>
+                  <td class="nec-num">{{ s.responsesCount }}</td>
+                  <td>
+                    <span [title]="s.error || ''">
+                      <p-tag *ngIf="s.isLoading" severity="info" value="loading"></p-tag>
+                      <p-tag *ngIf="s.error" severity="danger" value="error"></p-tag>
+                      <p-tag *ngIf="!s.isLoading && !s.error"
+                             [severity]="s.isLoaded ? 'success' : 'info'"
+                             [value]="s.isLoaded ? 'caricato' : 'idle'"></p-tag>
+                    </span>
+                  </td>
+                  <td>
+                    <div class="nec-row">
+                      <ng-container *ngIf="pendingResetKey() === s.key">
+                        <span class="nec-note" role="alert">azzerare la slice?</span>
+                        <button type="button" pButton class="p-button-danger p-button-sm" label="Sì"
+                                [attr.aria-label]="'Conferma azzeramento della slice ' + s.key"
+                                (click)="confirmReset(s.key)"></button>
+                        <button type="button" pButton class="p-button-text p-button-sm" label="Annulla"
+                                aria-label="Annulla azzeramento" (click)="cancelPending()"></button>
+                      </ng-container>
+                      <ng-container *ngIf="pendingResponsesKey() === s.key">
+                        <span class="nec-note" role="alert">azzerare le responses?</span>
+                        <button type="button" pButton class="p-button-danger p-button-sm" label="Sì"
+                                [attr.aria-label]="'Conferma azzeramento delle responses di ' + s.key"
+                                (click)="confirmResetResponses(s.key)"></button>
+                        <button type="button" pButton class="p-button-text p-button-sm" label="Annulla"
+                                aria-label="Annulla azzeramento" (click)="cancelPending()"></button>
+                      </ng-container>
+                      <ng-container *ngIf="pendingResetKey() !== s.key && pendingResponsesKey() !== s.key">
+                        <button type="button" pButton class="p-button-danger p-button-text p-button-sm"
+                                icon="pi pi-trash" label="reset"
+                                [attr.aria-label]="'Azzera la slice ' + s.key" (click)="requestReset(s.key)"></button>
+                        <button type="button" pButton class="p-button-text p-button-sm" label="reset responses"
+                                [attr.aria-label]="'Azzera le responses di ' + s.key"
+                                (click)="requestResetResponses(s.key)"></button>
+                      </ng-container>
+                    </div>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+            <ng-template #noDataSlices>
+              <div class="nec-note">Nessuna slice con dati caricati.</div>
+            </ng-template>
+          </ng-container>
+          <ng-template #noSlices>
+            <div class="nec-note">Nessuna slice CRUD montata.</div>
+          </ng-template>
+
+          <ng-container *ngIf="storeReport()!.lazy?.length; else noLazy">
+            <h4 style="margin: 16px 0 8px">Sezioni lazy (da lazy-report)</h4>
+            <div class="nec-note nec-mb" *ngIf="storeReport()!.lazyReportGeneratedAt">
+              snapshot generato il {{ storeReport()!.lazyReportGeneratedAt }} — rigenera con
+              <code>ng generate ngrx-entity-crud:lazy-report --format=json</code> se obsoleto.
+            </div>
+            <p-table [value]="storeReport()!.lazy!" styleClass="p-datatable-sm">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th>store</th>
+                  <th>sezioni</th>
+                  <th>verdetto</th>
+                  <th>runtime</th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-l>
+                <tr>
+                  <td>{{ l.name }}</td>
+                  <td>{{ l.sections.join(', ') || '–' }}</td>
+                  <td>{{ l.verdict }}</td>
+                  <td>
+                    <p-tag [severity]="l.runtimeStatus === 'loaded' ? 'success' : 'info'"
+                           [value]="l.runtimeStatus"></p-tag>
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </ng-container>
+          <ng-template #noLazy>
+            <div class="nec-note">
+              Nessun lazy-report caricato (genera src/assets/lazy-report.json con
+              <code>ng generate ngrx-entity-crud:lazy-report --format=json</code>).
+            </div>
           </ng-template>
         </ng-container>
-        <ng-template #noSlices>
-          <div class="nec-note">Nessuna slice CRUD montata.</div>
-        </ng-template>
-
-        <ng-container *ngIf="storeReport()!.lazy?.length; else noLazy">
-          <h3 style="margin-top:12px">Sezioni lazy (da lazy-report)</h3>
-          <div class="nec-note" *ngIf="storeReport()!.lazyReportGeneratedAt">
-            snapshot generato il {{ storeReport()!.lazyReportGeneratedAt }} — rigenera con
-            <code>ng generate ngrx-entity-crud:lazy-report --format=json</code> se obsoleto.
-          </div>
-          <table>
-            <thead>
-              <tr>
-                <th>store</th>
-                <th>sezioni</th>
-                <th>verdetto</th>
-                <th>runtime</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let l of storeReport()!.lazy!; trackBy: trackByName">
-                <td>{{ l.name }}</td>
-                <td>{{ l.sections.join(', ') || '–' }}</td>
-                <td>{{ l.verdict }}</td>
-                <td>
-                  <span
-                    class="nec-badge"
-                    [class.lazy]="l.runtimeStatus === 'lazy-not-loaded'"
-                  >{{ l.runtimeStatus }}</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </ng-container>
-        <ng-template #noLazy>
-          <div class="nec-note">
-            Nessun lazy-report caricato (genera src/assets/lazy-report.json con
-            <code>ng generate ngrx-entity-crud:lazy-report --format=json</code>).
-          </div>
-        </ng-template>
-      </ng-container>
+      </p-card>
     </div>
   `,
 })
@@ -473,14 +393,10 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
     return this.onlyWithData() ? all.filter((s) => s.hasData) : all;
   });
 
-  /** Stato di espansione della vista ad albero IndexedDB (chiavi: vedi `dbId`/`storeId`/`keyId`). */
-  readonly expandedDbs = signal<Record<string, boolean>>({});
-  readonly expandedStores = signal<Record<string, boolean>>({});
-  readonly expandedKeys = signal<Record<string, boolean>>({});
-  /** Record letti on-demand per object store, indicizzati per `storeId`. */
-  readonly idbEntries = signal<Record<string, NecIdbStoreEntries>>({});
-  /** Object store in corso di lettura, indicizzati per `storeId`. */
-  readonly idbLoading = signal<Record<string, boolean>>({});
+  /** Nodi `p-tree` della vista IndexedDB (DB → object store; i record sono lazy-load). */
+  readonly idbTreeNodes = signal<TreeNode[]>([]);
+  /** `true` mentre `p-tree` sta caricando i record di un object store espanso. */
+  readonly idbLoading = signal(false);
 
   private timer: ReturnType<typeof setInterval> | null = null;
   /** Un refresh richiesto mentre un altro è già in corso: viene ri-eseguito al termine. */
@@ -509,12 +425,14 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
     }
     this.busy.set(true);
     this.revealed.set({}); // i valori rivelati non sopravvivono a un refresh
-    this.collapseIdbTree(); // l'albero IndexedDB si ricarica: la cache record sarebbe stantia
+    this.idbLoading.set(false);
     this.cancelPending(); // nessuna conferma "appesa" dopo un refresh/polling
     try {
       this.storage.set(this.localStorageProbe.read('local'));
       this.quota.set(await this.localStorageProbe.estimate());
       this.idb.set(await this.indexedDbProbe.read(this.idbDatabaseNames));
+      // L'albero si ricostruisce: collassato e con la cache record svuotata (sarebbe stantia).
+      this.idbTreeNodes.set(this.buildIdbTree(this.idb()));
 
       const opts = {blacklist: this.blacklist, whitelist: this.whitelist};
       if (this.lazyReportUrl) {
@@ -545,60 +463,76 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
     this.onlyWithData.update((v) => !v);
   }
 
-  // --- Vista ad albero IndexedDB ------------------------------------------------------------
+  // --- Vista ad albero IndexedDB (p-tree, lazy) ---------------------------------------------
 
-  private storeId(db: string, store: string): string {
-    return `${db} ${store}`;
+  /** Costruisce i nodi DB → object store dal report; i record restano vuoti (lazy-load). */
+  private buildIdbTree(report: NecIdbReport | null): TreeNode[] {
+    const databases = report?.databases ?? [];
+    return databases.map((db): TreeNode => {
+      const storeNodes: TreeNode[] = db.stores.map((st) => ({
+        label: st.name,
+        type: 'store',
+        data: {db: db.name, store: st.name, count: st.count},
+        leaf: st.count === 0, // store vuoto: nessun figlio da caricare
+        children: [],
+      }));
+      const noStores = db.stores.length === 0;
+      return {
+        label: noStores
+          ? `${db.name}  ·  v${db.version ?? '?'}  —  ${db.note ?? 'nessun object store'}`
+          : `${db.name}  ·  v${db.version ?? '?'}  ·  ${db.stores.length} object store`,
+        data: {db: db.name},
+        leaf: noStores,
+        children: storeNodes,
+      };
+    });
   }
 
-  private keyId(db: string, store: string, key: string): string {
-    return `${db} ${store} ${key}`;
-  }
-
-  isDbExpanded(db: string): boolean {
-    return !!this.expandedDbs()[db];
-  }
-
-  toggleDb(db: string): void {
-    this.expandedDbs.update((m) => ({...m, [db]: !m[db]}));
-  }
-
-  isStoreExpanded(db: string, store: string): boolean {
-    return !!this.expandedStores()[this.storeId(db, store)];
-  }
-
-  /** Espande/collassa un object store; alla prima espansione ne legge i record on-demand. */
-  async toggleStore(db: string, store: string): Promise<void> {
-    const id = this.storeId(db, store);
-    const willExpand = !this.expandedStores()[id];
-    this.expandedStores.update((m) => ({...m, [id]: willExpand}));
-    if (!willExpand || this.idbEntries()[id] || this.idbLoading()[id]) {
-      return;
+  /** Lazy-load: alla prima espansione di un object store ne legge i record e ne crea i nodi. */
+  async onNodeExpand(event: {node: TreeNode}): Promise<void> {
+    const node = event?.node;
+    const data = node?.data as {db?: string; store?: string} | undefined;
+    if (node?.type !== 'store' || !data?.db || !data?.store) {
+      return; // nodo database o non pertinente: niente da caricare
     }
-    this.idbLoading.update((m) => ({...m, [id]: true}));
+    if (node.children && node.children.length) {
+      return; // già caricato
+    }
+    this.idbLoading.set(true);
     try {
-      const data = await this.indexedDbProbe.readStoreEntries(db, store, this.idbEntryLimit);
-      this.idbEntries.update((m) => ({...m, [id]: data}));
+      const res = await this.indexedDbProbe.readStoreEntries(data.db, data.store, this.idbEntryLimit);
+      node.children = this.buildRecordNodes(res);
+      this.idbTreeNodes.update((nodes) => [...nodes]); // nuova ref top-level → re-render p-tree
     } finally {
-      this.idbLoading.update((m) => ({...m, [id]: false}));
+      this.idbLoading.set(false);
     }
   }
 
-  isStoreLoading(db: string, store: string): boolean {
-    return !!this.idbLoading()[this.storeId(db, store)];
-  }
-
-  entriesFor(db: string, store: string): NecIdbStoreEntries | undefined {
-    return this.idbEntries()[this.storeId(db, store)];
-  }
-
-  isKeyExpanded(db: string, store: string, key: string): boolean {
-    return !!this.expandedKeys()[this.keyId(db, store, key)];
-  }
-
-  toggleKey(db: string, store: string, key: string): void {
-    const id = this.keyId(db, store, key);
-    this.expandedKeys.update((m) => ({...m, [id]: !m[id]}));
+  /** Trasforma i record letti in nodi `record` (più nodi `note` per store vuoto/troncato). */
+  private buildRecordNodes(data: NecIdbStoreEntries): TreeNode[] {
+    const nodes: TreeNode[] = data.entries.map((e): TreeNode => {
+      const record: TreeNode = {label: e.key, type: 'record', leaf: !this.allowRevealValues};
+      if (this.allowRevealValues) {
+        // Il valore (mascherato) è un nodo figlio: si rivela espandendo il record.
+        record.children = [{label: this.formatIdbValue(e.value), type: 'value', leaf: true, selectable: false}];
+      }
+      return record;
+    });
+    if (!data.entries.length) {
+      nodes.push({label: data.note ?? 'store vuoto', type: 'note', leaf: true, selectable: false});
+    } else if (data.note) {
+      nodes.push({label: data.note, type: 'note', leaf: true, selectable: false});
+    }
+    if (data.truncated) {
+      const of = data.total != null ? ` di ${data.total}` : '';
+      nodes.push({
+        label: `mostrati i primi ${data.entries.length}${of} record`,
+        type: 'note',
+        leaf: true,
+        selectable: false,
+      });
+    }
+    return nodes;
   }
 
   /** Serializza e maschera (privacy) il valore grezzo di un record IndexedDB per la UI. */
@@ -610,15 +544,6 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
       text = String(value);
     }
     return maskValue('', text ?? 'undefined', 2000);
-  }
-
-  /** Collassa l'intero albero IndexedDB e svuota la cache dei record (chiamato a ogni refresh). */
-  private collapseIdbTree(): void {
-    this.expandedDbs.set({});
-    this.expandedStores.set({});
-    this.expandedKeys.set({});
-    this.idbEntries.set({});
-    this.idbLoading.set({});
   }
 
   /** Step 1: chiede conferma per il `Reset` completo della slice. */
@@ -677,16 +602,6 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
 
   isSensitive(key: string): boolean {
     return looksSensitiveKey(key);
-  }
-
-  /** trackBy per le righe identificate da `key` (entry localStorage, slice store). */
-  trackByKey(_: number, item: {key: string}): string {
-    return item.key;
-  }
-
-  /** trackBy per le righe identificate da `name` (DB/object store IndexedDB, voci lazy). */
-  trackByName(_: number, item: {name: string}): string {
-    return item.name;
   }
 
   formatBytes(n: number | undefined | null): string {

@@ -138,33 +138,38 @@ describe('NecDashboardComponent (azioni di reset)', () => {
     });
   });
 
-  describe('albero IndexedDB', () => {
-    it('toggleDb alterna l\'espansione del database', () => {
-      expect(component.isDbExpanded('app')).toBe(false);
-      component.toggleDb('app');
-      expect(component.isDbExpanded('app')).toBe(true);
-      component.toggleDb('app');
-      expect(component.isDbExpanded('app')).toBe(false);
-    });
+  describe('albero IndexedDB (p-tree lazy)', () => {
+    it('onNodeExpand su un nodo store legge i record e popola i figli', async () => {
+      const node: any = {type: 'store', data: {db: 'app', store: 's1', count: 1}, children: []};
+      await component.onNodeExpand({node});
 
-    it('toggleStore espande e legge i record on-demand una sola volta', async () => {
-      await component.toggleStore('app', 's1');
-      expect(component.isStoreExpanded('app', 's1')).toBe(true);
       expect(idbProbe.readStoreEntries).toHaveBeenCalledWith('app', 's1', component.idbEntryLimit);
-      expect(component.entriesFor('app', 's1')?.entries.length).toBe(1);
-      expect(component.isStoreLoading('app', 's1')).toBe(false);
-
-      // collassa e riespande: niente seconda lettura (cache)
-      await component.toggleStore('app', 's1');
-      expect(component.isStoreExpanded('app', 's1')).toBe(false);
-      await component.toggleStore('app', 's1');
-      expect(idbProbe.readStoreEntries).toHaveBeenCalledTimes(1);
+      expect(node.children.length).toBe(1);
+      expect(node.children[0].label).toBe('1');
+      expect(component.idbLoading()).toBe(false);
     });
 
-    it('toggleKey alterna la rivelazione del valore del record', () => {
-      expect(component.isKeyExpanded('app', 's1', '1')).toBe(false);
-      component.toggleKey('app', 's1', '1');
-      expect(component.isKeyExpanded('app', 's1', '1')).toBe(true);
+    it('onNodeExpand ignora i nodi database (nessuna lettura)', async () => {
+      const node: any = {data: {db: 'app'}, children: []};
+      await component.onNodeExpand({node});
+      expect(idbProbe.readStoreEntries).not.toHaveBeenCalled();
+    });
+
+    it('onNodeExpand non rilegge un nodo store già caricato', async () => {
+      const node: any = {type: 'store', data: {db: 'app', store: 's1'}, children: [{label: 'x'}]};
+      await component.onNodeExpand({node});
+      expect(idbProbe.readStoreEntries).not.toHaveBeenCalled();
+    });
+
+    it('con allowRevealValues il record ha un nodo figlio col valore mascherato', async () => {
+      component.allowRevealValues = true;
+      const node: any = {type: 'store', data: {db: 'app', store: 's1'}, children: []};
+      await component.onNodeExpand({node});
+
+      const record = node.children[0];
+      expect(record.leaf).toBe(false);
+      expect(record.children[0].type).toBe('value');
+      expect(record.children[0].label).toContain('"a": 1');
     });
 
     it('formatIdbValue serializza e maschera il valore', () => {

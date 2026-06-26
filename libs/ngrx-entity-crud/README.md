@@ -346,9 +346,16 @@ Example output (excerpt):
 
 Scaffolds a **project dashboard** view with three runtime summaries: localStorage usage,
 IndexedDB usage (agnostic to the persistence library you use), and NgRx stores + lazy-loading
-candidates. The generated module is a thin PrimeNG wrapper that hosts `<nec-dashboard>`, the
-standalone component exported by the secondary entry-point `ngrx-entity-crud/devtools`; all the
-diagnostic logic lives in the library (versioned and tested), not in generated code.
+candidates. The generated module hosts `<nec-dashboard>`, the standalone component exported by the
+secondary entry-point `ngrx-entity-crud/devtools`; all the diagnostic logic lives in the library
+(versioned and tested), not in generated code.
+
+`<nec-dashboard>` is built on **PrimeNG** components (`p-card`, `p-table`, `p-tag`, `p-tree`, the
+`pButton` directive), so the `ngrx-entity-crud/devtools` entry-point requires `primeng` and
+`primeicons` in your app (declared as **optional** peerDependencies — the core entry-point does
+not need them). The component uses the `pButton` severity *classes* and the `success`/`info`/
+`danger` tag severities, an idiom compatible with PrimeNG 16 (the consumer baseline) through the
+later majors.
 
 By default it also generates `src/assets/lazy-report.json` (reusing `lazy-report --format=json`),
 which the dashboard reads at runtime to correlate the loaded/lazy state of each store.
@@ -437,13 +444,13 @@ Notes:
 - IndexedDB is introspected **agnostically** via native APIs (`indexedDB.databases()` + `count()`),
   with an optional `NEC_IDB_ADAPTER` injection token for custom providers. Byte sizes per
   record/store are not measurable; only record counts and the aggregate origin quota
-  (`navigator.storage.estimate()`) are shown. The panel renders an **expandable tree** (database →
-  object store → record): expanding an object store lazily reads up to `idbEntryLimit` records and
-  lists their keys; with `[allowRevealValues]="true"` each record can be expanded further to show
-  its value (serialized to JSON and masked for sensitive patterns).
-- `<nec-dashboard>` is a standalone component built with the classic structural directives
-  (`*ngIf`/`*ngFor`), so it stays compatible with Angular 14+ consumers; the main entry-point keeps
-  the wider peer range.
+  (`navigator.storage.estimate()`) are shown. The panel renders a PrimeNG `p-tree` (database →
+  object store → record): expanding an object store **lazily** reads up to `idbEntryLimit` records
+  and lists their keys; with `[allowRevealValues]="true"` each record can be expanded further to
+  show its value (serialized to JSON and masked for sensitive patterns).
+- `<nec-dashboard>` is a standalone component that imports PrimeNG modules and uses the classic
+  structural directives (`*ngIf`/`*ngFor`), so it stays compatible with Angular 16+ consumers; the
+  core entry-point keeps the wider peer range and has no PrimeNG dependency.
 
 ## Running unit tests
 Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
