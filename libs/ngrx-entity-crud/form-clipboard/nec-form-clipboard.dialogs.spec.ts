@@ -65,7 +65,7 @@ describe('NecFormDataExportDialogComponent', () => {
     expect(component.previewJson).toContain('startDate');
   });
 
-  it("copy copia l'anteprima e chiude con {copied: true}", () => {
+  it('copy copia l\'anteprima e chiude con {copied: true}', () => {
     jest.spyOn(service, 'copy').mockReturnValue(true);
     const fixture = TestBed.createComponent(NecFormDataExportDialogComponent);
     fixture.detectChanges();

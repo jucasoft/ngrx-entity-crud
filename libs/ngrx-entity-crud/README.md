@@ -362,7 +362,10 @@ which the dashboard reads at runtime to correlate the loaded/lazy state of each 
 
 The dashboard can run in **production**: by default it shows only keys, sizes and counts — never
 raw values. Value reveal is opt-in (`[allowRevealValues]="true"`) and always masks sensitive
-patterns (token/JWT/email/secret); keys that look sensitive are flagged.
+patterns (token/JWT/email/secret); keys that look sensitive are flagged. The only exception is
+the **Python snippet** feature (opt-in via `pythonSnippetKeys`): it copies the RAW values of the
+listed keys to the clipboard — they are needed to call the APIs from a script — but never renders
+them on screen.
 
 ### Command
 
@@ -422,7 +425,10 @@ Inputs: `blacklist` / `whitelist` (`string[]`, filter store slices), `lazyReport
 Firefox / older Safari), `pollingMs` (`number`, auto-refresh; `0` = manual), `allowRevealValues`
 (`boolean`, opt-in masked value reveal — gates both localStorage values and IndexedDB record
 values), `idbEntryLimit` (`number`, default `50`, max records read per object store in the
-IndexedDB tree).
+IndexedDB tree), `pythonSnippetKeys` (`string[]`, default `[]` = feature hidden; localStorage
+keys exported as variables in the Python snippet, e.g. `['access_token']` — the copied snippet
+contains their RAW values), `apiBaseUrl` (`string`, base URL used in the Python snippet; defaults
+to `location.origin`).
 
 Outputs: `sliceReset` (`EventEmitter<string>`) emits the slice key whenever a full `Reset` is
 dispatched (including via the global **Azzera tutte** button).
@@ -441,6 +447,12 @@ Notes:
 - The **Store NgRx** panel has a toggle button: by default it lists every mounted slice, but
   **Mostra solo le slice con dati** filters down to slices that actually hold data (entities for
   `plural`, an `item` for `singular`, or cached responses).
+- With `pythonSnippetKeys` set, the **localStorage** panel offers two buttons: **Copia snippet
+  Python** copies a ready-to-adapt `requests` script whose variables (`BASE_URL`, one
+  `UPPER_SNAKE` variable per listed key, e.g. `ACCESS_TOKEN`) are read from localStorage; **Copia
+  solo variabili** copies just the marker-delimited variables block, regenerated with the current
+  values — when the token rotates, paste it over the stale block without touching the rest of the
+  script.
 - IndexedDB is introspected **agnostically** via native APIs (`indexedDB.databases()` + `count()`),
   with an optional `NEC_IDB_ADAPTER` injection token for custom providers. Byte sizes per
   record/store are not measurable; only record counts and the aggregate origin quota

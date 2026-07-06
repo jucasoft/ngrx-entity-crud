@@ -13,6 +13,9 @@ import {
 import {CommonModule} from '@angular/common';
 import {ButtonModule} from 'primeng/button';
 import {CardModule} from 'primeng/card';
+import {DividerModule} from 'primeng/divider';
+import {MessageModule} from 'primeng/message';
+import {ProgressBarModule} from 'primeng/progressbar';
 import {TableModule} from 'primeng/table';
 import {TagModule} from 'primeng/tag';
 import {TreeModule} from 'primeng/tree';
@@ -24,35 +27,53 @@ import {NecStoreProbeService} from './probes/nec-store-probe.service';
 import {looksSensitiveKey, maskValue} from './mask';
 
 /**
+ * Marcatori del blocco variabili nello snippet Python: ricopiando SOLO il blocco ("Copia solo
+ * variabili") si sostituiscono i valori scaduti (es. token) senza toccare il resto dello script.
+ */
+const PY_VARS_BEGIN = '# --- nec-dashboard: inizio variabili ---';
+const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
+
+/**
  * `<nec-dashboard>` — dashboard di gestione progetto plug-and-play.
  *
  * Standalone, OnPush, costruita sui componenti **PrimeNG** (`p-card`, `p-table`, `p-tag`,
- * `p-tree`, direttiva `pButton`): richiede quindi `primeng` + `primeicons` nell'app consumer
- * (peerDependencies opzionali del solo entry-point `devtools`). Quattro pannelli: quota
- * origine, localStorage, IndexedDB (agnostico, con `p-tree` espandibile e lazy-load dei
- * record), store NgRx + sezioni lazy. Per privacy mostra di default SOLO chiavi/dimensioni/
+ * `p-tree`, `p-message`, `p-divider`, `p-progressBar`, direttiva `pButton`): richiede quindi
+ * `primeng` + `primeicons` nell'app consumer (peerDependencies opzionali del solo entry-point
+ * `devtools`). Toolbar sticky con refresh, "Copia report" (snapshot JSON dei soli metadati,
+ * per issue/supporto) e pausa/riprendi del polling. Quattro pannelli: quota origine (progress
+ * bar + dettaglio `usageDetails` su Chromium) e localStorage affiancati in griglia responsive,
+ * IndexedDB (agnostico, con `p-tree` espandibile e lazy-load dei record), store NgRx + sezioni
+ * lazy (contatori, riepilogo errori e "Azzera tutte" DENTRO il pannello, perché agisce solo
+ * sulle slice; tabelle ordinabili). Per privacy mostra di default SOLO chiavi/dimensioni/
  * conteggi; i valori (localStorage e record IndexedDB) sono rivelabili solo con
- * `allowRevealValues` e comunque mascherati. Refresh manuale di default; polling opt-in via
- * `pollingMs`. Usabile anche in produzione.
+ * `allowRevealValues` e comunque mascherati. Unica eccezione, con opt-in dedicato: lo snippet
+ * Python (`pythonSnippetKeys`) copia negli appunti i valori IN CHIARO delle sole chiavi
+ * elencate — servono per invocare le API da script — senza mai mostrarli a schermo. Refresh
+ * manuale di default; polling opt-in via `pollingMs`. Usabile anche in produzione.
  *
- * I pulsanti usano la direttiva `pButton` con le **classi** severity (`p-button-danger`,
- * `-text`, `-sm`) e i tag solo le severity `success`/`info`/`danger`: questo idioma è
- * compatibile sia con PrimeNG 16 (target dell'app consumer) sia con le major successive.
+ * Tutta la UI è a componenti PrimeNG, con uno stile uniforme: pulsanti sempre `pButton` +
+ * `p-button-sm` con icona — pieni per l'azione primaria del contesto (Aggiorna, Azzera tutte,
+ * conferma "Sì"), `p-button-outlined` per le azioni secondarie e di riga; severity `danger`
+ * per le distruttive, `secondary` per le neutre. Stati vuoti/non disponibili con `p-message`,
+ * marcatori con `p-tag`, intestazioni di sezione con `p-divider`; i colori vengono dalle CSS
+ * variable del tema PrimeNG (con fallback), così la dashboard eredita il tema dell'app.
+ * Le **classi** severity (`p-button-danger`, `-outlined`, `-sm`) sono l'idioma compatibile
+ * sia con PrimeNG 16 (target dell'app consumer) sia con le major successive.
  * Il template usa le direttive strutturali classiche (`*ngIf`/`*ngFor`) anziché il
  * control-flow `@if`/`@for`, per restare compatibile con Angular 16+.
  */
 @Component({
   selector: 'nec-dashboard',
   standalone: true,
-  imports: [CommonModule, ButtonModule, CardModule, TableModule, TagModule, TreeModule],
+  imports: [CommonModule, ButtonModule, CardModule, DividerModule, MessageModule, ProgressBarModule, TableModule, TagModule, TreeModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [
     `
       :host {
         display: block;
-        font-family: system-ui, sans-serif;
+        font-family: var(--font-family, var(--p-font-family, system-ui, sans-serif));
         font-size: 13px;
-        color: #1f2933;
+        color: var(--text-color, var(--p-text-color, #1f2933));
       }
       .nec-row {
         display: flex;
@@ -60,11 +81,36 @@ import {looksSensitiveKey, maskValue} from './mask';
         gap: 8px;
         flex-wrap: wrap;
       }
+      .nec-toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        background: var(--surface-card, var(--p-content-background, #ffffff));
+        padding: 4px 0;
+      }
+      .nec-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr));
+        gap: 16px;
+        align-items: start;
+      }
+      .nec-spacer {
+        margin-left: auto;
+      }
+      .nec-actions {
+        min-width: 340px;
+      }
+      .nec-errors {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+      }
       .nec-mb {
         margin-bottom: 16px;
       }
       .nec-note {
-        color: #7b8794;
+        color: var(--text-color-secondary, var(--p-text-muted-color, #7b8794));
         font-style: italic;
       }
       .nec-num {
@@ -77,8 +123,8 @@ import {looksSensitiveKey, maskValue} from './mask';
       .nec-idb-value {
         margin: 4px 0;
         padding: 6px 8px;
-        background: #f5f7fa;
-        border: 1px solid #eceff3;
+        background: var(--surface-100, var(--p-surface-100, #f5f7fa));
+        border: 1px solid var(--surface-border, var(--p-content-border-color, #eceff3));
         border-radius: 4px;
         white-space: pre-wrap;
         word-break: break-word;
@@ -89,7 +135,7 @@ import {looksSensitiveKey, maskValue} from './mask';
     `,
   ],
   template: `
-    <div class="nec-row nec-mb">
+    <div class="nec-row nec-toolbar nec-mb">
       <button
         type="button"
         pButton
@@ -99,42 +145,58 @@ import {looksSensitiveKey, maskValue} from './mask';
         [disabled]="busy()"
         (click)="refresh()"
       ></button>
-      <ng-container *ngIf="storeReport()?.slices?.length">
-        <ng-container *ngIf="pendingResetAll(); else resetAllBtn">
-          <span class="nec-note" role="alert">azzerare tutte le slice?</span>
-          <button type="button" pButton class="p-button-danger p-button-sm" label="Sì"
-                  aria-label="Conferma azzeramento di tutte le slice" (click)="confirmResetAll()"></button>
-          <button type="button" pButton class="p-button-text p-button-sm" label="Annulla"
-                  aria-label="Annulla azzeramento" (click)="cancelPending()"></button>
-        </ng-container>
-        <ng-template #resetAllBtn>
-          <button type="button" pButton class="p-button-danger p-button-sm" icon="pi pi-trash"
-                  label="Azzera tutte" (click)="requestResetAll()"></button>
-        </ng-template>
+      <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm"
+              icon="pi pi-copy" [label]="copied() ? 'Copiato' : 'Copia report'"
+              aria-label="Copia il report diagnostico (solo metadati) negli appunti"
+              (click)="copyReport()"></button>
+      <ng-container *ngIf="pollingMs > 0">
+        <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm"
+                [icon]="paused() ? 'pi pi-play' : 'pi pi-pause'"
+                [label]="paused() ? 'Riprendi' : 'Pausa'"
+                aria-label="Sospende o riprende l'auto-refresh" (click)="togglePaused()"></button>
+        <p-tag severity="info"
+               [value]="paused() ? 'auto-refresh in pausa' : 'auto-refresh ' + pollingMs / 1000 + 's'"></p-tag>
       </ng-container>
       <span class="nec-note" *ngIf="lastUpdated()">ultimo aggiornamento: {{ lastUpdated() }}</span>
     </div>
 
-    <!-- Quota aggregata origine -->
-    <div class="nec-mb">
+    <!-- Quota aggregata origine + localStorage, affiancati sui viewport larghi -->
+    <div class="nec-grid nec-mb">
       <p-card header="Quota origine (aggregata)">
         <ng-container *ngIf="quota()?.available; else noQuota">
-          <div>
+          <div class="nec-mb">
             uso: <strong>{{ formatBytes(quota()?.usage) }}</strong> /
             quota: <strong>{{ formatBytes(quota()?.quota) }}</strong>
           </div>
-          <div class="nec-note">
+          <p-progressBar *ngIf="quotaPercent() !== null" styleClass="nec-mb"
+                         [value]="quotaPercent()!" [showValue]="true"></p-progressBar>
+          <p-table *ngIf="usageDetailEntries().length"
+                   [value]="usageDetailEntries()" styleClass="p-datatable-sm">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>area</th>
+                <th class="nec-num">uso</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-d>
+              <tr>
+                <td>{{ d.key }}</td>
+                <td class="nec-num">{{ formatBytes(d.value) }}</td>
+              </tr>
+            </ng-template>
+          </p-table>
+          <div class="nec-note" *ngIf="!usageDetailEntries().length">
             Stima per-origine: include localStorage + IndexedDB + Cache, non scorporabile.
+          </div>
+          <div class="nec-note" *ngIf="usageDetailEntries().length">
+            Stima per-origine con dettaglio per area (usageDetails, solo Chromium).
           </div>
         </ng-container>
         <ng-template #noQuota>
-          <div class="nec-note">Stima quota non disponibile (Safari o contesto non sicuro).</div>
+          <p-message severity="warn" text="Stima quota non disponibile (Safari o contesto non sicuro)."></p-message>
         </ng-template>
       </p-card>
-    </div>
 
-    <!-- localStorage -->
-    <div class="nec-mb">
       <p-card header="localStorage">
         <ng-container *ngIf="storage()?.available; else noLocalStorage">
           <div class="nec-mb">
@@ -142,13 +204,25 @@ import {looksSensitiveKey, maskValue} from './mask';
             <strong>{{ formatBytes(storage()?.totalBytesUtf16) }}</strong> (UTF-16) /
             {{ formatBytes(storage()?.totalBytesUtf8) }} (UTF-8)
           </div>
+          <div class="nec-row nec-mb" *ngIf="pythonSnippetKeys.length">
+            <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm"
+                    icon="pi pi-code" [label]="copiedPython() === 'snippet' ? 'Copiato' : 'Copia snippet Python'"
+                    aria-label="Copia negli appunti lo snippet Python completo (variabili + esempio requests)"
+                    (click)="copyPythonSnippet()"></button>
+            <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm"
+                    icon="pi pi-copy" [label]="copiedPython() === 'vars' ? 'Copiato' : 'Copia solo variabili'"
+                    aria-label="Copia negli appunti il solo blocco variabili aggiornato"
+                    (click)="copyPythonVariables()"></button>
+            <span class="nec-note">negli appunti i valori vanno in chiaro (a schermo restano nascosti)</span>
+          </div>
           <p-table *ngIf="storage()!.entries.length; else noLocalStorageEntries"
-                   [value]="storage()!.entries" styleClass="p-datatable-sm">
+                   [value]="storage()!.entries" sortField="bytesUtf16" [sortOrder]="-1"
+                   styleClass="p-datatable-sm">
             <ng-template pTemplate="header">
               <tr>
-                <th>chiave</th>
-                <th class="nec-num">UTF-16</th>
-                <th class="nec-num">UTF-8</th>
+                <th pSortableColumn="key">chiave <p-sortIcon field="key"></p-sortIcon></th>
+                <th class="nec-num" pSortableColumn="bytesUtf16">UTF-16 <p-sortIcon field="bytesUtf16"></p-sortIcon></th>
+                <th class="nec-num" pSortableColumn="bytesUtf8">UTF-8 <p-sortIcon field="bytesUtf8"></p-sortIcon></th>
                 <th *ngIf="allowRevealValues">valore</th>
               </tr>
             </ng-template>
@@ -156,8 +230,8 @@ import {looksSensitiveKey, maskValue} from './mask';
               <tr>
                 <td>
                   {{ e.key }}
-                  <i class="pi pi-exclamation-triangle nec-ml" style="color:#b91c1c"
-                     title="chiave potenzialmente sensibile" *ngIf="isSensitive(e.key)"></i>
+                  <p-tag styleClass="nec-ml" severity="danger" icon="pi pi-exclamation-triangle"
+                         value="sensibile" *ngIf="isSensitive(e.key)"></p-tag>
                 </td>
                 <td class="nec-num">{{ formatBytes(e.bytesUtf16) }}</td>
                 <td class="nec-num">{{ formatBytes(e.bytesUtf8) }}</td>
@@ -166,7 +240,7 @@ import {looksSensitiveKey, maskValue} from './mask';
                     <code>{{ revealed()[e.key] }}</code>
                   </ng-container>
                   <ng-template #revealBtn>
-                    <button type="button" pButton class="p-button-text p-button-sm" label="mostra"
+                    <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm" icon="pi pi-eye" label="mostra"
                             (click)="reveal(e.key)"></button>
                   </ng-template>
                 </td>
@@ -174,11 +248,11 @@ import {looksSensitiveKey, maskValue} from './mask';
             </ng-template>
           </p-table>
           <ng-template #noLocalStorageEntries>
-            <div class="nec-note">Nessuna chiave.</div>
+            <p-message severity="info" text="Nessuna chiave."></p-message>
           </ng-template>
         </ng-container>
         <ng-template #noLocalStorage>
-          <div class="nec-note">localStorage non disponibile.</div>
+          <p-message severity="warn" text="localStorage non disponibile."></p-message>
         </ng-template>
       </p-card>
     </div>
@@ -212,7 +286,7 @@ import {looksSensitiveKey, maskValue} from './mask';
             </ng-template>
           </p-tree>
           <ng-template #noDatabases>
-            <div class="nec-note">Nessun database elencabile.</div>
+            <p-message severity="info" text="Nessun database elencabile."></p-message>
           </ng-template>
           <div class="nec-note" *ngIf="!allowRevealValues">
             I valori dei record sono nascosti: imposta <code>[allowRevealValues]="true"</code> per
@@ -220,7 +294,7 @@ import {looksSensitiveKey, maskValue} from './mask';
           </div>
         </ng-container>
         <ng-template #noIdb>
-          <div class="nec-note">IndexedDB non disponibile in questo contesto.</div>
+          <p-message severity="warn" text="IndexedDB non disponibile in questo contesto."></p-message>
         </ng-template>
       </p-card>
     </div>
@@ -231,11 +305,38 @@ import {looksSensitiveKey, maskValue} from './mask';
         <ng-container *ngIf="storeReport()">
           <ng-container *ngIf="storeReport()!.slices.length; else noSlices">
             <div class="nec-row nec-mb">
+              <p-tag severity="info" [value]="storeReport()!.slices.length + ' slice'"></p-tag>
+              <p-tag severity="success" *ngIf="withDataCount()"
+                     [value]="withDataCount() + ' con dati'"></p-tag>
+              <p-tag severity="info" *ngIf="storeReport()!.loadingNames.length"
+                     [value]="storeReport()!.loadingNames.length + ' in loading'"></p-tag>
+              <p-tag severity="danger" *ngIf="storeReport()!.errors.length"
+                     [value]="storeReport()!.errors.length + ' in errore'"></p-tag>
+              <!-- L'azione distruttiva sta a destra, lontana dai contatori (evita i misclick). -->
+              <div class="nec-row nec-spacer">
+                <ng-container *ngIf="pendingResetAll(); else resetAllBtn">
+                  <span class="nec-note" role="alert">azzerare tutte le slice?</span>
+                  <button type="button" pButton class="p-button-danger p-button-sm" icon="pi pi-check" label="Sì"
+                          aria-label="Conferma azzeramento di tutte le slice" (click)="confirmResetAll()"></button>
+                  <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm" icon="pi pi-times" label="Annulla"
+                          aria-label="Annulla azzeramento" (click)="cancelPending()"></button>
+                </ng-container>
+                <ng-template #resetAllBtn>
+                  <button type="button" pButton class="p-button-danger p-button-sm" icon="pi pi-trash"
+                          label="Azzera tutte" (click)="requestResetAll()"></button>
+                </ng-template>
+              </div>
+            </div>
+            <div class="nec-errors nec-mb" *ngIf="storeReport()!.errors.length">
+              <p-message severity="error" *ngFor="let err of storeReport()!.errors" [text]="err"></p-message>
+            </div>
+            <div class="nec-row nec-mb">
               <button
                 type="button"
                 pButton
                 class="p-button-sm"
                 [class.p-button-outlined]="!onlyWithData()"
+                [icon]="onlyWithData() ? 'pi pi-filter-slash' : 'pi pi-filter'"
                 [label]="onlyWithData() ? 'Mostra tutte le slice' : 'Mostra solo le slice con dati'"
                 (click)="toggleOnlyWithData()"
               ></button>
@@ -247,12 +348,12 @@ import {looksSensitiveKey, maskValue} from './mask';
                      [value]="visibleSlices()" styleClass="p-datatable-sm">
               <ng-template pTemplate="header">
                 <tr>
-                  <th>slice</th>
-                  <th>tipo</th>
-                  <th class="nec-num">entità</th>
-                  <th class="nec-num">responses</th>
+                  <th pSortableColumn="key">slice <p-sortIcon field="key"></p-sortIcon></th>
+                  <th pSortableColumn="kind">tipo <p-sortIcon field="kind"></p-sortIcon></th>
+                  <th class="nec-num" pSortableColumn="entityCount">entità <p-sortIcon field="entityCount"></p-sortIcon></th>
+                  <th class="nec-num" pSortableColumn="responsesCount">responses <p-sortIcon field="responsesCount"></p-sortIcon></th>
                   <th>stato</th>
-                  <th>azioni</th>
+                  <th class="nec-actions">azioni</th>
                 </tr>
               </ng-template>
               <ng-template pTemplate="body" let-s>
@@ -270,29 +371,29 @@ import {looksSensitiveKey, maskValue} from './mask';
                              [value]="s.isLoaded ? 'caricato' : 'idle'"></p-tag>
                     </span>
                   </td>
-                  <td>
+                  <td class="nec-actions">
                     <div class="nec-row">
                       <ng-container *ngIf="pendingResetKey() === s.key">
                         <span class="nec-note" role="alert">azzerare la slice?</span>
-                        <button type="button" pButton class="p-button-danger p-button-sm" label="Sì"
+                        <button type="button" pButton class="p-button-danger p-button-sm" icon="pi pi-check" label="Sì"
                                 [attr.aria-label]="'Conferma azzeramento della slice ' + s.key"
                                 (click)="confirmReset(s.key)"></button>
-                        <button type="button" pButton class="p-button-text p-button-sm" label="Annulla"
+                        <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm" icon="pi pi-times" label="Annulla"
                                 aria-label="Annulla azzeramento" (click)="cancelPending()"></button>
                       </ng-container>
                       <ng-container *ngIf="pendingResponsesKey() === s.key">
                         <span class="nec-note" role="alert">azzerare le responses?</span>
-                        <button type="button" pButton class="p-button-danger p-button-sm" label="Sì"
+                        <button type="button" pButton class="p-button-danger p-button-sm" icon="pi pi-check" label="Sì"
                                 [attr.aria-label]="'Conferma azzeramento delle responses di ' + s.key"
                                 (click)="confirmResetResponses(s.key)"></button>
-                        <button type="button" pButton class="p-button-text p-button-sm" label="Annulla"
+                        <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm" icon="pi pi-times" label="Annulla"
                                 aria-label="Annulla azzeramento" (click)="cancelPending()"></button>
                       </ng-container>
                       <ng-container *ngIf="pendingResetKey() !== s.key && pendingResponsesKey() !== s.key">
-                        <button type="button" pButton class="p-button-danger p-button-text p-button-sm"
+                        <button type="button" pButton class="p-button-danger p-button-outlined p-button-sm"
                                 icon="pi pi-trash" label="reset"
                                 [attr.aria-label]="'Azzera la slice ' + s.key" (click)="requestReset(s.key)"></button>
-                        <button type="button" pButton class="p-button-text p-button-sm" label="reset responses"
+                        <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm" icon="pi pi-eraser" label="reset responses"
                                 [attr.aria-label]="'Azzera le responses di ' + s.key"
                                 (click)="requestResetResponses(s.key)"></button>
                       </ng-container>
@@ -302,15 +403,15 @@ import {looksSensitiveKey, maskValue} from './mask';
               </ng-template>
             </p-table>
             <ng-template #noDataSlices>
-              <div class="nec-note">Nessuna slice con dati caricati.</div>
+              <p-message severity="info" text="Nessuna slice con dati caricati."></p-message>
             </ng-template>
           </ng-container>
           <ng-template #noSlices>
-            <div class="nec-note">Nessuna slice CRUD montata.</div>
+            <p-message severity="info" text="Nessuna slice CRUD montata."></p-message>
           </ng-template>
 
           <ng-container *ngIf="storeReport()!.lazy?.length; else noLazy">
-            <h4 style="margin: 16px 0 8px">Sezioni lazy (da lazy-report)</h4>
+            <p-divider align="left"><b>Sezioni lazy (da lazy-report)</b></p-divider>
             <div class="nec-note nec-mb" *ngIf="storeReport()!.lazyReportGeneratedAt">
               snapshot generato il {{ storeReport()!.lazyReportGeneratedAt }} — rigenera con
               <code>ng generate ngrx-entity-crud:lazy-report --format=json</code> se obsoleto.
@@ -338,10 +439,10 @@ import {looksSensitiveKey, maskValue} from './mask';
             </p-table>
           </ng-container>
           <ng-template #noLazy>
-            <div class="nec-note">
-              Nessun lazy-report caricato (genera src/assets/lazy-report.json con
-              <code>ng generate ngrx-entity-crud:lazy-report --format=json</code>).
-            </div>
+            <p-message
+              severity="info"
+              text="Nessun lazy-report caricato: genera src/assets/lazy-report.json con «ng generate ngrx-entity-crud:lazy-report --format=json»."
+            ></p-message>
           </ng-template>
         </ng-container>
       </p-card>
@@ -361,12 +462,21 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
   @Input() lazyReportUrl: string | null = 'assets/lazy-report.json';
   /** Nomi DB IndexedDB da ispezionare dove `databases()` non è supportato (es. Firefox). */
   @Input() idbDatabaseNames: string[] = [];
-  /** Intervallo di auto-refresh in ms; 0 = solo manuale (default). */
+  /** Intervallo di auto-refresh in ms; 0 = solo manuale (default). Sospendibile dalla toolbar. */
   @Input() pollingMs = 0;
   /** Abilita il reveal opt-in dei valori localStorage e dei record IndexedDB (sempre mascherati). Default: false. */
   @Input() allowRevealValues = false;
   /** Numero massimo di record letti per object store nella vista ad albero IndexedDB. Default: 50. */
   @Input() idbEntryLimit = 50;
+  /**
+   * Opt-in dello snippet Python nel pannello localStorage: chiavi da esportare come variabili
+   * (es. `['access_token']`). Vuoto (default) = pulsanti nascosti. ATTENZIONE: la copia mette
+   * negli appunti i valori IN CHIARO di queste sole chiavi (servono per invocare le API da
+   * script); a schermo non vengono comunque mai mostrati.
+   */
+  @Input() pythonSnippetKeys: string[] = [];
+  /** Base URL delle API usata nello snippet Python; default: `location.origin`. */
+  @Input() apiBaseUrl: string | null = null;
 
   /** Emesso (con la slice key) a ogni `Reset` completo dispacciato, incluso l'azzera-tutte. */
   @Output() sliceReset = new EventEmitter<string>();
@@ -384,6 +494,12 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
   readonly pendingResponsesKey = signal<string | null>(null);
   /** `true` quando è in attesa di conferma l'azzeramento globale di tutte le slice. */
   readonly pendingResetAll = signal(false);
+  /** `true` mentre l'auto-refresh è sospeso dal pulsante Pausa (il timer resta attivo). */
+  readonly paused = signal(false);
+  /** Feedback transitorio del pulsante "Copia report" (label "Copiato" per 2s). */
+  readonly copied = signal(false);
+  /** Feedback transitorio dei pulsanti dello snippet Python (quale copia è appena riuscita). */
+  readonly copiedPython = signal<'snippet' | 'vars' | null>(null);
 
   /** `true` per mostrare solo le slice che contengono dati (filtro del pannello Store NgRx). */
   readonly onlyWithData = signal(false);
@@ -392,6 +508,25 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
     const all = this.storeReport()?.slices ?? [];
     return this.onlyWithData() ? all.filter((s) => s.hasData) : all;
   });
+  /** Numero di slice con dati (contatore in testa al pannello Store NgRx). */
+  readonly withDataCount = computed(
+    () => (this.storeReport()?.slices ?? []).filter((s) => s.hasData).length
+  );
+  /** Percentuale di quota origine usata (0–100, arrotondata); `null` se non stimabile. */
+  readonly quotaPercent = computed(() => {
+    const q = this.quota();
+    if (!q?.available || !q.quota || q.usage == null) {
+      return null;
+    }
+    return Math.round((q.usage / q.quota) * 100);
+  });
+  /** Voci `usageDetails` (breakdown per area, solo Chromium) ordinate per uso decrescente. */
+  readonly usageDetailEntries = computed(() => {
+    const details = this.quota()?.usageDetails ?? {};
+    return Object.entries(details)
+      .map(([key, value]) => ({key, value}))
+      .sort((a, b) => b.value - a.value);
+  });
 
   /** Nodi `p-tree` della vista IndexedDB (DB → object store; i record sono lazy-load). */
   readonly idbTreeNodes = signal<TreeNode[]>([]);
@@ -399,13 +534,19 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
   readonly idbLoading = signal(false);
 
   private timer: ReturnType<typeof setInterval> | null = null;
+  private copiedTimer: ReturnType<typeof setTimeout> | null = null;
+  private copiedPythonTimer: ReturnType<typeof setTimeout> | null = null;
   /** Un refresh richiesto mentre un altro è già in corso: viene ri-eseguito al termine. */
   private pendingRefresh = false;
 
   ngOnInit(): void {
     void this.refresh();
     if (this.pollingMs > 0) {
-      this.timer = setInterval(() => void this.refresh(), this.pollingMs);
+      this.timer = setInterval(() => {
+        if (!this.paused()) {
+          void this.refresh();
+        }
+      }, this.pollingMs);
     }
   }
 
@@ -413,6 +554,14 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
     if (this.timer != null) {
       clearInterval(this.timer);
       this.timer = null;
+    }
+    if (this.copiedTimer != null) {
+      clearTimeout(this.copiedTimer);
+      this.copiedTimer = null;
+    }
+    if (this.copiedPythonTimer != null) {
+      clearTimeout(this.copiedPythonTimer);
+      this.copiedPythonTimer = null;
     }
   }
 
@@ -454,6 +603,128 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
   reveal(key: string): void {
     const value = this.localStorageProbe.readValue(key) ?? '';
     this.revealed.update((m) => ({...m, [key]: maskValue(key, value)}));
+  }
+
+  // --- Toolbar: polling e report diagnostico -------------------------------------------------
+
+  /** Sospende/riprende l'auto-refresh (solo con `pollingMs > 0`; il timer non viene ricreato). */
+  togglePaused(): void {
+    this.paused.update((v) => !v);
+  }
+
+  /**
+   * Report diagnostico JSON con i soli metadati già visibili in dashboard (chiavi, dimensioni,
+   * conteggi): niente valori, quindi incollabile in una issue senza rischi di privacy.
+   */
+  diagnosticReport(): string {
+    return JSON.stringify(
+      {
+        generatedAt: new Date().toISOString(),
+        quota: this.quota(),
+        localStorage: this.storage(),
+        indexedDb: this.idb(),
+        store: this.storeReport(),
+      },
+      null,
+      2
+    );
+  }
+
+  /** Copia il report diagnostico negli appunti e mostra "Copiato" per 2s. */
+  async copyReport(): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(this.diagnosticReport());
+    } catch {
+      return; // appunti non disponibili (permessi/contesto non sicuro): nessun feedback
+    }
+    this.copied.set(true);
+    if (this.copiedTimer != null) {
+      clearTimeout(this.copiedTimer);
+    }
+    this.copiedTimer = setTimeout(() => this.copied.set(false), 2000);
+  }
+
+  // --- Snippet Python (pannello localStorage) -----------------------------------------------
+
+  /** Nome variabile Python derivato dalla chiave localStorage (`access_token` → `ACCESS_TOKEN`). */
+  private toPythonName(key: string): string {
+    const name = key
+      .replace(/[^A-Za-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .toUpperCase();
+    return /^[0-9]/.test(name) ? `_${name}` : name || 'VALUE';
+  }
+
+  /** Literal stringa Python: l'escaping JSON è un sottoinsieme valido dei literal Python 3. */
+  private toPythonString(value: string): string {
+    return JSON.stringify(value);
+  }
+
+  /**
+   * Blocco variabili Python delimitato dai marcatori, coi valori localStorage ATTUALI in
+   * chiaro: quando il token scade basta ricopiarlo e incollarlo sopra il blocco vecchio.
+   */
+  pythonVariablesBlock(): string {
+    const baseUrl = this.apiBaseUrl ?? (typeof location === 'undefined' ? '' : location.origin);
+    const lines = [
+      PY_VARS_BEGIN,
+      `# generato dalla nec-dashboard il ${new Date().toISOString()}`,
+      `BASE_URL = ${this.toPythonString(baseUrl)}`,
+    ];
+    for (const key of this.pythonSnippetKeys) {
+      const value = this.localStorageProbe.readValue(key);
+      const name = this.toPythonName(key);
+      lines.push(
+        value == null
+          ? `${name} = ""  # chiave ${this.toPythonString(key)} assente in localStorage`
+          : `${name} = ${this.toPythonString(value)}  # localStorage[${this.toPythonString(key)}]`
+      );
+    }
+    lines.push(PY_VARS_END);
+    return lines.join('\n');
+  }
+
+  /** Snippet Python completo: blocco variabili + esempio `requests` pronto da adattare. */
+  pythonSnippet(): string {
+    const authVar = this.pythonSnippetKeys.length
+      ? this.toPythonName(this.pythonSnippetKeys[0])
+      : 'ACCESS_TOKEN';
+    return [
+      this.pythonVariablesBlock(),
+      '',
+      'import requests',
+      '',
+      'session = requests.Session()',
+      `session.headers["Authorization"] = f"Bearer {${authVar}}"  # adatta lo schema se serve`,
+      '',
+      'resp = session.get(f"{BASE_URL}/api/resource")',
+      'resp.raise_for_status()',
+      'print(resp.json())',
+      '',
+    ].join('\n');
+  }
+
+  /** Copia negli appunti lo snippet Python completo (variabili + esempio `requests`). */
+  async copyPythonSnippet(): Promise<void> {
+    await this.copyPython(this.pythonSnippet(), 'snippet');
+  }
+
+  /** Copia negli appunti il solo blocco variabili, rigenerato coi valori correnti. */
+  async copyPythonVariables(): Promise<void> {
+    await this.copyPython(this.pythonVariablesBlock(), 'vars');
+  }
+
+  private async copyPython(text: string, kind: 'snippet' | 'vars'): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      return; // appunti non disponibili (permessi/contesto non sicuro): nessun feedback
+    }
+    this.copiedPython.set(kind);
+    if (this.copiedPythonTimer != null) {
+      clearTimeout(this.copiedPythonTimer);
+    }
+    this.copiedPythonTimer = setTimeout(() => this.copiedPython.set(null), 2000);
   }
 
   // --- Filtro slice (pannello Store NgRx) ---------------------------------------------------

@@ -19,6 +19,7 @@ describe('NecDashboardComponent (azioni di reset)', () => {
   let component: NecDashboardComponent;
   let storeProbe: {reset: jest.Mock; resetResponses: jest.Mock; read: jest.Mock; readWithLazyReport: jest.Mock};
   let idbProbe: {read: jest.Mock; readStoreEntries: jest.Mock};
+  let localProbe: {read: jest.Mock; estimate: jest.Mock; readValue: jest.Mock};
 
   beforeEach(() => {
     storeProbe = {
@@ -27,7 +28,7 @@ describe('NecDashboardComponent (azioni di reset)', () => {
       read: jest.fn().mockReturnValue(report),
       readWithLazyReport: jest.fn().mockResolvedValue(report),
     };
-    const localProbe = {
+    localProbe = {
       read: jest.fn().mockReturnValue({available: false, type: 'local', entries: [], count: 0, totalBytesUtf16: 0, totalBytesUtf8: 0}),
       estimate: jest.fn().mockResolvedValue({available: false}),
       readValue: jest.fn().mockReturnValue(null),
@@ -120,6 +121,104 @@ describe('NecDashboardComponent (azioni di reset)', () => {
     expect(component.pendingResetKey()).toBeNull();
     expect(component.pendingResponsesKey()).toBeNull();
     expect(component.pendingResetAll()).toBe(false);
+  });
+
+  describe('contatori e quota (computed)', () => {
+    it('withDataCount conta le slice con dati', () => {
+      expect(component.withDataCount()).toBe(1);
+    });
+
+    it('quotaPercent arrotonda uso/quota e vale null se non stimabile', () => {
+      component.quota.set({available: true, usage: 50, quota: 200});
+      expect(component.quotaPercent()).toBe(25);
+
+      component.quota.set({available: false});
+      expect(component.quotaPercent()).toBeNull();
+
+      component.quota.set({available: true, usage: 50, quota: 0});
+      expect(component.quotaPercent()).toBeNull();
+    });
+
+    it('usageDetailEntries ordina il breakdown per uso decrescente', () => {
+      component.quota.set({
+        available: true,
+        usage: 30,
+        quota: 100,
+        usageDetails: {caches: 10, indexedDB: 20},
+      });
+      expect(component.usageDetailEntries()).toEqual([
+        {key: 'indexedDB', value: 20},
+        {key: 'caches', value: 10},
+      ]);
+    });
+  });
+
+  describe('toolbar: pausa polling e report diagnostico', () => {
+    it('togglePaused alterna la sospensione dell\'auto-refresh', () => {
+      expect(component.paused()).toBe(false);
+      component.togglePaused();
+      expect(component.paused()).toBe(true);
+      component.togglePaused();
+      expect(component.paused()).toBe(false);
+    });
+
+    it('diagnosticReport serializza i soli metadati dei report correnti', () => {
+      const parsed = JSON.parse(component.diagnosticReport());
+      expect(parsed.store.slices.map((s: {key: string}) => s.key)).toEqual(['coin', 'profile']);
+      expect(parsed.generatedAt).toEqual(expect.any(String));
+      expect(parsed).toHaveProperty('quota');
+      expect(parsed).toHaveProperty('localStorage');
+      expect(parsed).toHaveProperty('indexedDb');
+    });
+
+    it('copyReport scrive negli appunti e attiva il feedback "Copiato"', async () => {
+      const writeText = jest.fn().mockResolvedValue(undefined);
+      Object.defineProperty(navigator, 'clipboard', {value: {writeText}, configurable: true});
+
+      await component.copyReport();
+
+      expect(writeText).toHaveBeenCalledTimes(1);
+      expect(writeText.mock.calls[0][0]).toContain('"coin"');
+      expect(component.copied()).toBe(true);
+      component.ngOnDestroy(); // azzera il timer del feedback
+    });
+  });
+
+  describe('snippet Python (pannello localStorage)', () => {
+    beforeEach(() => {
+      component.pythonSnippetKeys = ['access_token', 'refresh-token'];
+      component.apiBaseUrl = 'https://api.example.com';
+      localProbe.readValue.mockImplementation((k: string) => (k === 'access_token' ? 'tok"123' : null));
+    });
+
+    it('pythonVariablesBlock esporta le variabili con marcatori e valori escapati', () => {
+      const block = component.pythonVariablesBlock();
+      expect(block).toContain('# --- nec-dashboard: inizio variabili ---');
+      expect(block).toContain('BASE_URL = "https://api.example.com"');
+      expect(block).toContain('ACCESS_TOKEN = "tok\\"123"');
+      expect(block).toContain('REFRESH_TOKEN = ""  # chiave "refresh-token" assente in localStorage');
+      expect(block).toContain('# --- nec-dashboard: fine variabili ---');
+    });
+
+    it('pythonSnippet accoda l\'esempio requests con il Bearer della prima chiave', () => {
+      const code = component.pythonSnippet();
+      expect(code).toContain('import requests');
+      expect(code).toContain('f"Bearer {ACCESS_TOKEN}"');
+      expect(code).toContain('f"{BASE_URL}/api/resource"');
+    });
+
+    it('copyPythonVariables copia solo il blocco variabili e attiva il feedback', async () => {
+      const writeText = jest.fn().mockResolvedValue(undefined);
+      Object.defineProperty(navigator, 'clipboard', {value: {writeText}, configurable: true});
+
+      await component.copyPythonVariables();
+
+      expect(writeText).toHaveBeenCalledTimes(1);
+      expect(writeText.mock.calls[0][0]).toContain('inizio variabili');
+      expect(writeText.mock.calls[0][0]).not.toContain('import requests');
+      expect(component.copiedPython()).toBe('vars');
+      component.ngOnDestroy(); // azzera il timer del feedback
+    });
   });
 
   describe('filtro slice (onlyWithData)', () => {
