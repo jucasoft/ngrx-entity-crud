@@ -31,7 +31,7 @@ Questa directory contiene tutti i workflow di GitHub Actions per il progetto `ng
 ### 📄 `npm-publish.yml`
 
 - **Scopo:** Automatizzare la pubblicazione del pacchetto su **npm**.
-- **Attivazione:** Si attiva quando viene creata una nuova **Release** tramite l'interfaccia di GitHub.
+- **Attivazione:** Si attiva al **push di un tag** di versione (`v1.2.3`, `v1.2.3-beta.1`). Il tag deve corrispondere esattamente a `v` + la versione in `libs/ngrx-entity-crud/package.json`, altrimenti il job fallisce.
 - **Azione:**
   1.  Esegue `reusable-build.yml` per creare il pacchetto.
   2.  Scarica l'artefatto della build.

@@ -22,6 +22,18 @@ Run from the workspace root unless noted.
 
 Husky + lint-staged run Prettier and `eslint --fix` on staged `*.{ts,js,json,md}` via pre-commit.
 
+## Release procedure (publishing a new version)
+
+Publishing is driven by pushing a version tag — CI does the npm publish (`.github/workflows/npm-publish.yml`), so do NOT run `npm run publish` locally unless explicitly asked. Steps:
+
+1. Verify locally that `npm run testLibs` and `npm run build` pass (CI rebuilds and re-tests, but a broken tag is noise).
+2. Commit pending work with a conventional message (e.g. `feat(scope): ...`).
+3. Bump the version in `libs/ngrx-entity-crud/package.json` ONLY (see Build pipeline quirks below). On a beta branch, increment the `-beta.N` suffix.
+4. Commit the bump by itself with the bare version as message, e.g. `v19.4.0-beta.11` (matches prior release commits).
+5. Tag that commit `v<version>` — the tag must equal `v` + the package.json version exactly, or the workflow's consistency check fails.
+6. Push branch and tag (`git push origin <branch>` + `git push origin v<version>`). The tag push triggers "Publish to npm", which builds, tests, and publishes — with `--tag beta` when the version contains "beta", otherwise as `latest`.
+7. Confirm the run succeeds: `gh run list` / `gh run watch <id>`.
+
 ## Architecture
 
 ### Library (`libs/ngrx-entity-crud/src/lib`)
