@@ -14,7 +14,6 @@ import {CommonModule} from '@angular/common';
 import {ButtonModule} from 'primeng/button';
 import {CardModule} from 'primeng/card';
 import {DividerModule} from 'primeng/divider';
-import {MessageModule} from 'primeng/message';
 import {ProgressBarModule} from 'primeng/progressbar';
 import {TableModule} from 'primeng/table';
 import {TagModule} from 'primeng/tag';
@@ -37,7 +36,7 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
  * `<nec-dashboard>` — dashboard di gestione progetto plug-and-play.
  *
  * Standalone, OnPush, costruita sui componenti **PrimeNG** (`p-card`, `p-table`, `p-tag`,
- * `p-tree`, `p-message`, `p-divider`, `p-progressBar`, direttiva `pButton`): richiede quindi
+ * `p-tree`, `p-divider`, `p-progressBar`, direttiva `pButton`): richiede quindi
  * `primeng` + `primeicons` nell'app consumer (peerDependencies opzionali del solo entry-point
  * `devtools`). Toolbar sticky con refresh, "Copia report" (snapshot JSON dei soli metadati,
  * per issue/supporto) e pausa/riprendi del polling. Quattro pannelli: quota origine (progress
@@ -54,18 +53,26 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
  * Tutta la UI è a componenti PrimeNG, con uno stile uniforme: pulsanti sempre `pButton` +
  * `p-button-sm` con icona — pieni per l'azione primaria del contesto (Aggiorna, Azzera tutte,
  * conferma "Sì"), `p-button-outlined` per le azioni secondarie e di riga; severity `danger`
- * per le distruttive, `secondary` per le neutre. Stati vuoti/non disponibili con `p-message`,
- * marcatori con `p-tag`, intestazioni di sezione con `p-divider`; i colori vengono dalle CSS
- * variable del tema PrimeNG (con fallback), così la dashboard eredita il tema dell'app.
+ * per le distruttive, `secondary` per le neutre. Stati vuoti/non disponibili ed errori usano
+ * il box `.nec-message` (stilato con le variabili del tema), marcatori con `p-tag`,
+ * intestazioni di sezione con `p-divider`; i colori vengono dalle CSS variable del tema
+ * PrimeNG (con fallback), così la dashboard eredita il tema dell'app.
  * Le **classi** severity (`p-button-danger`, `-outlined`, `-sm`) sono l'idioma compatibile
  * sia con PrimeNG 16 (target dell'app consumer) sia con le major successive.
+ *
+ * VINCOLO di compatibilità: ng-packagr (Ivy partial) embedda nel bundle i riferimenti alle
+ * CLASSI dei componenti PrimeNG usati nel template; sono quindi ammessi solo componenti il
+ * cui nome di classe è identico da PrimeNG 16 a 19. NIENTE `p-message`: la classe è
+ * `UIMessage` in v16 e `Message` in v17+, e romperebbe una delle due major (è il motivo del
+ * box `.nec-message`). Prima di adottare un nuovo modulo PrimeNG, verificare il nome della
+ * classe nel `.d.ts` di entrambe le versioni (es. `npm pack primeng@16`).
  * Il template usa le direttive strutturali classiche (`*ngIf`/`*ngFor`) anziché il
  * control-flow `@if`/`@for`, per restare compatibile con Angular 16+.
  */
 @Component({
   selector: 'nec-dashboard',
   standalone: true,
-  imports: [CommonModule, ButtonModule, CardModule, DividerModule, MessageModule, ProgressBarModule, TableModule, TagModule, TreeModule],
+  imports: [CommonModule, ButtonModule, CardModule, DividerModule, ProgressBarModule, TableModule, TagModule, TreeModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [
     `
@@ -105,6 +112,31 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
         flex-direction: column;
         gap: 8px;
         align-items: flex-start;
+      }
+      /* Inline message "a tema" senza p-message: UIMessage (v16) vs Message (v17+) rende
+         il componente inutilizzabile su tutto il range supportato (vedi doc in testata). */
+      .nec-message {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+      }
+      .nec-message-info {
+        background: var(--blue-50, var(--p-blue-50, #eff6ff));
+        border-color: var(--blue-200, var(--p-blue-200, #bfdbfe));
+        color: var(--blue-900, var(--p-blue-900, #1e3a8a));
+      }
+      .nec-message-warn {
+        background: var(--yellow-50, var(--p-yellow-50, #fefce8));
+        border-color: var(--yellow-200, var(--p-yellow-200, #fef08a));
+        color: var(--yellow-900, var(--p-yellow-900, #713f12));
+      }
+      .nec-message-error {
+        background: var(--red-50, var(--p-red-50, #fef2f2));
+        border-color: var(--red-200, var(--p-red-200, #fecaca));
+        color: var(--red-900, var(--p-red-900, #7f1d1d));
       }
       .nec-mb {
         margin-bottom: 16px;
@@ -193,7 +225,9 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
           </div>
         </ng-container>
         <ng-template #noQuota>
-          <p-message severity="warn" text="Stima quota non disponibile (Safari o contesto non sicuro)."></p-message>
+          <div class="nec-message nec-message-warn">
+            <i class="pi pi-exclamation-triangle"></i>Stima quota non disponibile (Safari o contesto non sicuro).
+          </div>
         </ng-template>
       </p-card>
 
@@ -248,11 +282,13 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
             </ng-template>
           </p-table>
           <ng-template #noLocalStorageEntries>
-            <p-message severity="info" text="Nessuna chiave."></p-message>
+            <div class="nec-message nec-message-info"><i class="pi pi-info-circle"></i>Nessuna chiave.</div>
           </ng-template>
         </ng-container>
         <ng-template #noLocalStorage>
-          <p-message severity="warn" text="localStorage non disponibile."></p-message>
+          <div class="nec-message nec-message-warn">
+            <i class="pi pi-exclamation-triangle"></i>localStorage non disponibile.
+          </div>
         </ng-template>
       </p-card>
     </div>
@@ -286,7 +322,7 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
             </ng-template>
           </p-tree>
           <ng-template #noDatabases>
-            <p-message severity="info" text="Nessun database elencabile."></p-message>
+            <div class="nec-message nec-message-info"><i class="pi pi-info-circle"></i>Nessun database elencabile.</div>
           </ng-template>
           <div class="nec-note" *ngIf="!allowRevealValues">
             I valori dei record sono nascosti: imposta <code>[allowRevealValues]="true"</code> per
@@ -294,7 +330,9 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
           </div>
         </ng-container>
         <ng-template #noIdb>
-          <p-message severity="warn" text="IndexedDB non disponibile in questo contesto."></p-message>
+          <div class="nec-message nec-message-warn">
+            <i class="pi pi-exclamation-triangle"></i>IndexedDB non disponibile in questo contesto.
+          </div>
         </ng-template>
       </p-card>
     </div>
@@ -328,7 +366,9 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
               </div>
             </div>
             <div class="nec-errors nec-mb" *ngIf="storeReport()!.errors.length">
-              <p-message severity="error" *ngFor="let err of storeReport()!.errors" [text]="err"></p-message>
+              <div class="nec-message nec-message-error" *ngFor="let err of storeReport()!.errors">
+                <i class="pi pi-times-circle"></i>{{ err }}
+              </div>
             </div>
             <div class="nec-row nec-mb">
               <button
@@ -403,11 +443,13 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
               </ng-template>
             </p-table>
             <ng-template #noDataSlices>
-              <p-message severity="info" text="Nessuna slice con dati caricati."></p-message>
+              <div class="nec-message nec-message-info">
+                <i class="pi pi-info-circle"></i>Nessuna slice con dati caricati.
+              </div>
             </ng-template>
           </ng-container>
           <ng-template #noSlices>
-            <p-message severity="info" text="Nessuna slice CRUD montata."></p-message>
+            <div class="nec-message nec-message-info"><i class="pi pi-info-circle"></i>Nessuna slice CRUD montata.</div>
           </ng-template>
 
           <ng-container *ngIf="storeReport()!.lazy?.length; else noLazy">
@@ -439,10 +481,10 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
             </p-table>
           </ng-container>
           <ng-template #noLazy>
-            <p-message
-              severity="info"
-              text="Nessun lazy-report caricato: genera src/assets/lazy-report.json con «ng generate ngrx-entity-crud:lazy-report --format=json»."
-            ></p-message>
+            <div class="nec-message nec-message-info">
+              <i class="pi pi-info-circle"></i>Nessun lazy-report caricato: genera
+              src/assets/lazy-report.json con «ng generate ngrx-entity-crud:lazy-report --format=json».
+            </div>
           </ng-template>
         </ng-container>
       </p-card>
