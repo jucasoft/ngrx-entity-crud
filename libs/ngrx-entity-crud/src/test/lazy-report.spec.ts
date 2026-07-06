@@ -59,7 +59,7 @@ describe('lazy-report schematic (Rule)', () => {
 
     const coin = json.stores.find((s: any) => s.name === 'coin-store');
     expect(coin.type).toBe('CRUD-PLURAL');
-    expect(coin.verdict).toBe('candidato lazy');
+    expect(coin.verdict).toBe('lazy candidate');
     expect(coin.isLazyCandidate).toBe(true);
     expect(coin.lazyRoute).toBe(true);
 

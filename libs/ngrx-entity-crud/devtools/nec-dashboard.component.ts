@@ -26,11 +26,11 @@ import {NecStoreProbeService} from './probes/nec-store-probe.service';
 import {looksSensitiveKey, maskValue} from './mask';
 
 /**
- * Marcatori del blocco variabili nello snippet Python: ricopiando SOLO il blocco ("Copia solo
- * variabili") si sostituiscono i valori scaduti (es. token) senza toccare il resto dello script.
+ * Marcatori del blocco variabili nello snippet Python: ricopiando SOLO il blocco ("Copy
+ * variables only") si sostituiscono i valori scaduti (es. token) senza toccare il resto dello script.
  */
-const PY_VARS_BEGIN = '# --- nec-dashboard: inizio variabili ---';
-const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
+const PY_VARS_BEGIN = '# --- nec-dashboard: variables begin ---';
+const PY_VARS_END = '# --- nec-dashboard: variables end ---';
 
 /**
  * `<nec-dashboard>` — dashboard di gestione progetto plug-and-play.
@@ -38,21 +38,22 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
  * Standalone, OnPush, costruita sui componenti **PrimeNG** (`p-card`, `p-table`, `p-tag`,
  * `p-tree`, `p-divider`, `p-progressBar`, direttiva `pButton`): richiede quindi
  * `primeng` + `primeicons` nell'app consumer (peerDependencies opzionali del solo entry-point
- * `devtools`). Toolbar sticky con refresh, "Copia report" (snapshot JSON dei soli metadati,
- * per issue/supporto) e pausa/riprendi del polling. Quattro pannelli: quota origine (progress
+ * `devtools`). Toolbar sticky con refresh, "Copy report" (snapshot JSON dei soli metadati,
+ * per issue/supporto) e pausa/riprendi del polling. Pannelli: quota origine (progress
  * bar + dettaglio `usageDetails` su Chromium) e localStorage affiancati in griglia responsive,
- * IndexedDB (agnostico, con `p-tree` espandibile e lazy-load dei record), store NgRx + sezioni
- * lazy (contatori, riepilogo errori e "Azzera tutte" DENTRO il pannello, perché agisce solo
- * sulle slice; tabelle ordinabili). Per privacy mostra di default SOLO chiavi/dimensioni/
- * conteggi; i valori (localStorage e record IndexedDB) sono rivelabili solo con
- * `allowRevealValues` e comunque mascherati. Unica eccezione, con opt-in dedicato: lo snippet
- * Python (`pythonSnippetKeys`) copia negli appunti i valori IN CHIARO delle sole chiavi
- * elencate — servono per invocare le API da script — senza mai mostrarli a schermo. Refresh
- * manuale di default; polling opt-in via `pollingMs`. Usabile anche in produzione.
+ * snippet Python (pannello dedicato, opt-in), IndexedDB (agnostico, con `p-tree` espandibile
+ * e lazy-load dei record), store NgRx + sezioni lazy (contatori, riepilogo errori e "Reset all"
+ * DENTRO il pannello, perché agisce solo sulle slice; tabelle ordinabili). Per privacy mostra
+ * di default SOLO chiavi/dimensioni/conteggi; i valori (localStorage e record IndexedDB) sono
+ * rivelabili solo con `allowRevealValues` e comunque mascherati. Unica eccezione, con opt-in
+ * dedicato: lo snippet Python (`pythonSnippetKeys`) copia negli appunti i valori IN CHIARO
+ * delle sole chiavi elencate — servono per invocare le API da script — mentre le anteprime a
+ * schermo restano SEMPRE mascherate (`maskValue`). Refresh manuale di default; polling opt-in
+ * via `pollingMs`. Usabile anche in produzione. Tutte le stringhe visibili sono in inglese.
  *
  * Tutta la UI è a componenti PrimeNG, con uno stile uniforme: pulsanti sempre `pButton` +
- * `p-button-sm` con icona — pieni per l'azione primaria del contesto (Aggiorna, Azzera tutte,
- * conferma "Sì"), `p-button-outlined` per le azioni secondarie e di riga; severity `danger`
+ * `p-button-sm` con icona — pieni per l'azione primaria del contesto (Refresh, Reset all,
+ * conferma "Yes"), `p-button-outlined` per le azioni secondarie e di riga; severity `danger`
  * per le distruttive, `secondary` per le neutre. Stati vuoti/non disponibili ed errori usano
  * il box `.nec-message` (stilato con le variabili del tema), marcatori con `p-tag`,
  * intestazioni di sezione con `p-divider`; i colori vengono dalle CSS variable del tema
@@ -152,7 +153,8 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
       .nec-ml {
         margin-left: 6px;
       }
-      .nec-idb-value {
+      /* Blocco codice a tema: valori dei record IndexedDB e anteprime dello snippet Python. */
+      .nec-code {
         margin: 4px 0;
         padding: 6px 8px;
         background: var(--surface-100, var(--p-surface-100, #f5f7fa));
@@ -173,31 +175,31 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
         pButton
         class="p-button-sm"
         icon="pi pi-refresh"
-        [label]="busy() ? 'Aggiorno…' : 'Aggiorna'"
+        [label]="busy() ? 'Refreshing…' : 'Refresh'"
         [disabled]="busy()"
         (click)="refresh()"
       ></button>
       <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm"
-              icon="pi pi-copy" [label]="copied() ? 'Copiato' : 'Copia report'"
-              aria-label="Copia il report diagnostico (solo metadati) negli appunti"
+              icon="pi pi-copy" [label]="copied() ? 'Copied' : 'Copy report'"
+              aria-label="Copy the diagnostic report (metadata only) to the clipboard"
               (click)="copyReport()"></button>
       <ng-container *ngIf="pollingMs > 0">
         <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm"
                 [icon]="paused() ? 'pi pi-play' : 'pi pi-pause'"
-                [label]="paused() ? 'Riprendi' : 'Pausa'"
-                aria-label="Sospende o riprende l'auto-refresh" (click)="togglePaused()"></button>
+                [label]="paused() ? 'Resume' : 'Pause'"
+                aria-label="Pause or resume auto-refresh" (click)="togglePaused()"></button>
         <p-tag severity="info"
-               [value]="paused() ? 'auto-refresh in pausa' : 'auto-refresh ' + pollingMs / 1000 + 's'"></p-tag>
+               [value]="paused() ? 'auto-refresh paused' : 'auto-refresh ' + pollingMs / 1000 + 's'"></p-tag>
       </ng-container>
-      <span class="nec-note" *ngIf="lastUpdated()">ultimo aggiornamento: {{ lastUpdated() }}</span>
+      <span class="nec-note" *ngIf="lastUpdated()">last update: {{ lastUpdated() }}</span>
     </div>
 
     <!-- Quota aggregata origine + localStorage, affiancati sui viewport larghi -->
     <div class="nec-grid nec-mb">
-      <p-card header="Quota origine (aggregata)">
+      <p-card header="Origin quota (aggregate)">
         <ng-container *ngIf="quota()?.available; else noQuota">
           <div class="nec-mb">
-            uso: <strong>{{ formatBytes(quota()?.usage) }}</strong> /
+            usage: <strong>{{ formatBytes(quota()?.usage) }}</strong> /
             quota: <strong>{{ formatBytes(quota()?.quota) }}</strong>
           </div>
           <p-progressBar *ngIf="quotaPercent() !== null" styleClass="nec-mb"
@@ -207,7 +209,7 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
             <ng-template pTemplate="header">
               <tr>
                 <th>area</th>
-                <th class="nec-num">uso</th>
+                <th class="nec-num">usage</th>
               </tr>
             </ng-template>
             <ng-template pTemplate="body" let-d>
@@ -218,15 +220,15 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
             </ng-template>
           </p-table>
           <div class="nec-note" *ngIf="!usageDetailEntries().length">
-            Stima per-origine: include localStorage + IndexedDB + Cache, non scorporabile.
+            Per-origin estimate: includes localStorage + IndexedDB + Cache; no per-area breakdown.
           </div>
           <div class="nec-note" *ngIf="usageDetailEntries().length">
-            Stima per-origine con dettaglio per area (usageDetails, solo Chromium).
+            Per-origin estimate with per-area breakdown (usageDetails, Chromium only).
           </div>
         </ng-container>
         <ng-template #noQuota>
           <div class="nec-message nec-message-warn">
-            <i class="pi pi-exclamation-triangle"></i>Stima quota non disponibile (Safari o contesto non sicuro).
+            <i class="pi pi-exclamation-triangle"></i>Quota estimate not available (Safari or insecure context).
           </div>
         </ng-template>
       </p-card>
@@ -234,30 +236,19 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
       <p-card header="localStorage">
         <ng-container *ngIf="storage()?.available; else noLocalStorage">
           <div class="nec-mb">
-            {{ storage()?.count }} chiavi · totale
+            {{ storage()?.count }} keys · total
             <strong>{{ formatBytes(storage()?.totalBytesUtf16) }}</strong> (UTF-16) /
             {{ formatBytes(storage()?.totalBytesUtf8) }} (UTF-8)
-          </div>
-          <div class="nec-row nec-mb" *ngIf="pythonSnippetKeys.length">
-            <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm"
-                    icon="pi pi-code" [label]="copiedPython() === 'snippet' ? 'Copiato' : 'Copia snippet Python'"
-                    aria-label="Copia negli appunti lo snippet Python completo (variabili + esempio requests)"
-                    (click)="copyPythonSnippet()"></button>
-            <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm"
-                    icon="pi pi-copy" [label]="copiedPython() === 'vars' ? 'Copiato' : 'Copia solo variabili'"
-                    aria-label="Copia negli appunti il solo blocco variabili aggiornato"
-                    (click)="copyPythonVariables()"></button>
-            <span class="nec-note">negli appunti i valori vanno in chiaro (a schermo restano nascosti)</span>
           </div>
           <p-table *ngIf="storage()!.entries.length; else noLocalStorageEntries"
                    [value]="storage()!.entries" sortField="bytesUtf16" [sortOrder]="-1"
                    styleClass="p-datatable-sm">
             <ng-template pTemplate="header">
               <tr>
-                <th pSortableColumn="key">chiave <p-sortIcon field="key"></p-sortIcon></th>
+                <th pSortableColumn="key">key <p-sortIcon field="key"></p-sortIcon></th>
                 <th class="nec-num" pSortableColumn="bytesUtf16">UTF-16 <p-sortIcon field="bytesUtf16"></p-sortIcon></th>
                 <th class="nec-num" pSortableColumn="bytesUtf8">UTF-8 <p-sortIcon field="bytesUtf8"></p-sortIcon></th>
-                <th *ngIf="allowRevealValues">valore</th>
+                <th *ngIf="allowRevealValues">value</th>
               </tr>
             </ng-template>
             <ng-template pTemplate="body" let-e>
@@ -265,7 +256,7 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
                 <td>
                   {{ e.key }}
                   <p-tag styleClass="nec-ml" severity="danger" icon="pi pi-exclamation-triangle"
-                         value="sensibile" *ngIf="isSensitive(e.key)"></p-tag>
+                         value="sensitive" *ngIf="isSensitive(e.key)"></p-tag>
                 </td>
                 <td class="nec-num">{{ formatBytes(e.bytesUtf16) }}</td>
                 <td class="nec-num">{{ formatBytes(e.bytesUtf8) }}</td>
@@ -274,7 +265,7 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
                     <code>{{ revealed()[e.key] }}</code>
                   </ng-container>
                   <ng-template #revealBtn>
-                    <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm" icon="pi pi-eye" label="mostra"
+                    <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm" icon="pi pi-eye" label="show"
                             (click)="reveal(e.key)"></button>
                   </ng-template>
                 </td>
@@ -282,14 +273,44 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
             </ng-template>
           </p-table>
           <ng-template #noLocalStorageEntries>
-            <div class="nec-message nec-message-info"><i class="pi pi-info-circle"></i>Nessuna chiave.</div>
+            <div class="nec-message nec-message-info"><i class="pi pi-info-circle"></i>No keys.</div>
           </ng-template>
         </ng-container>
         <ng-template #noLocalStorage>
           <div class="nec-message nec-message-warn">
-            <i class="pi pi-exclamation-triangle"></i>localStorage non disponibile.
+            <i class="pi pi-exclamation-triangle"></i>localStorage not available.
           </div>
         </ng-template>
+      </p-card>
+    </div>
+
+    <!-- Snippet Python: pannello dedicato, con anteprima MASCHERATA dei due codici copiabili
+         (negli appunti i valori vanno in chiaro; a schermo restano sempre mascherati). -->
+    <div class="nec-mb" *ngIf="pythonSnippetKeys.length">
+      <p-card header="Python snippet">
+        <div class="nec-note nec-mb">
+          Copying puts the PLAIN values of the configured keys in the clipboard; the previews below mask them.
+        </div>
+        <div class="nec-grid">
+          <div>
+            <div class="nec-row nec-mb">
+              <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm"
+                      icon="pi pi-code" [label]="copiedPython() === 'snippet' ? 'Copied' : 'Copy Python snippet'"
+                      aria-label="Copy the full Python snippet (variables + requests example) to the clipboard"
+                      (click)="copyPythonSnippet()"></button>
+            </div>
+            <pre class="nec-code">{{ pythonSnippetPreview() }}</pre>
+          </div>
+          <div>
+            <div class="nec-row nec-mb">
+              <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm"
+                      icon="pi pi-copy" [label]="copiedPython() === 'vars' ? 'Copied' : 'Copy variables only'"
+                      aria-label="Copy only the refreshed variables block to the clipboard"
+                      (click)="copyPythonVariables()"></button>
+            </div>
+            <pre class="nec-code">{{ pythonVariablesPreview() }}</pre>
+          </div>
+        </div>
       </p-card>
     </div>
 
@@ -309,29 +330,29 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
             <ng-template let-node pTemplate="store">
               {{ node.data.store }}
               <p-tag styleClass="nec-ml" severity="info"
-                     [value]="(node.data.count == null ? '–' : node.data.count) + ' record'"></p-tag>
+                     [value]="(node.data.count == null ? '–' : node.data.count) + (node.data.count === 1 ? ' record' : ' records')"></p-tag>
             </ng-template>
             <ng-template let-node pTemplate="record">
               <code>{{ node.label }}</code>
             </ng-template>
             <ng-template let-node pTemplate="value">
-              <pre class="nec-idb-value">{{ node.label }}</pre>
+              <pre class="nec-code">{{ node.label }}</pre>
             </ng-template>
             <ng-template let-node pTemplate="note">
               <span class="nec-note">{{ node.label }}</span>
             </ng-template>
           </p-tree>
           <ng-template #noDatabases>
-            <div class="nec-message nec-message-info"><i class="pi pi-info-circle"></i>Nessun database elencabile.</div>
+            <div class="nec-message nec-message-info"><i class="pi pi-info-circle"></i>No databases to list.</div>
           </ng-template>
           <div class="nec-note" *ngIf="!allowRevealValues">
-            I valori dei record sono nascosti: imposta <code>[allowRevealValues]="true"</code> per
-            espandere ogni record e vederne il contenuto (mascherato).
+            Record values are hidden: set <code>[allowRevealValues]="true"</code> to expand
+            each record and view its (masked) content.
           </div>
         </ng-container>
         <ng-template #noIdb>
           <div class="nec-message nec-message-warn">
-            <i class="pi pi-exclamation-triangle"></i>IndexedDB non disponibile in questo contesto.
+            <i class="pi pi-exclamation-triangle"></i>IndexedDB not available in this context.
           </div>
         </ng-template>
       </p-card>
@@ -339,29 +360,30 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
 
     <!-- Store NgRx + lazy -->
     <div class="nec-mb">
-      <p-card header="Store NgRx">
+      <p-card header="NgRx store">
         <ng-container *ngIf="storeReport()">
           <ng-container *ngIf="storeReport()!.slices.length; else noSlices">
             <div class="nec-row nec-mb">
-              <p-tag severity="info" [value]="storeReport()!.slices.length + ' slice'"></p-tag>
+              <p-tag severity="info"
+                     [value]="storeReport()!.slices.length + (storeReport()!.slices.length === 1 ? ' slice' : ' slices')"></p-tag>
               <p-tag severity="success" *ngIf="withDataCount()"
-                     [value]="withDataCount() + ' con dati'"></p-tag>
+                     [value]="withDataCount() + ' with data'"></p-tag>
               <p-tag severity="info" *ngIf="storeReport()!.loadingNames.length"
-                     [value]="storeReport()!.loadingNames.length + ' in loading'"></p-tag>
+                     [value]="storeReport()!.loadingNames.length + ' loading'"></p-tag>
               <p-tag severity="danger" *ngIf="storeReport()!.errors.length"
-                     [value]="storeReport()!.errors.length + ' in errore'"></p-tag>
+                     [value]="storeReport()!.errors.length + ' in error'"></p-tag>
               <!-- L'azione distruttiva sta a destra, lontana dai contatori (evita i misclick). -->
               <div class="nec-row nec-spacer">
                 <ng-container *ngIf="pendingResetAll(); else resetAllBtn">
-                  <span class="nec-note" role="alert">azzerare tutte le slice?</span>
-                  <button type="button" pButton class="p-button-danger p-button-sm" icon="pi pi-check" label="Sì"
-                          aria-label="Conferma azzeramento di tutte le slice" (click)="confirmResetAll()"></button>
-                  <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm" icon="pi pi-times" label="Annulla"
-                          aria-label="Annulla azzeramento" (click)="cancelPending()"></button>
+                  <span class="nec-note" role="alert">reset all slices?</span>
+                  <button type="button" pButton class="p-button-danger p-button-sm" icon="pi pi-check" label="Yes"
+                          aria-label="Confirm resetting all slices" (click)="confirmResetAll()"></button>
+                  <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm" icon="pi pi-times" label="Cancel"
+                          aria-label="Cancel reset" (click)="cancelPending()"></button>
                 </ng-container>
                 <ng-template #resetAllBtn>
                   <button type="button" pButton class="p-button-danger p-button-sm" icon="pi pi-trash"
-                          label="Azzera tutte" (click)="requestResetAll()"></button>
+                          label="Reset all" (click)="requestResetAll()"></button>
                 </ng-template>
               </div>
             </div>
@@ -377,11 +399,11 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
                 class="p-button-sm"
                 [class.p-button-outlined]="!onlyWithData()"
                 [icon]="onlyWithData() ? 'pi pi-filter-slash' : 'pi pi-filter'"
-                [label]="onlyWithData() ? 'Mostra tutte le slice' : 'Mostra solo le slice con dati'"
+                [label]="onlyWithData() ? 'Show all slices' : 'Show only slices with data'"
                 (click)="toggleOnlyWithData()"
               ></button>
               <span class="nec-note" *ngIf="onlyWithData()">
-                {{ visibleSlices().length }} di {{ storeReport()!.slices.length }} slice
+                {{ visibleSlices().length }} of {{ storeReport()!.slices.length }} slices
               </span>
             </div>
             <p-table *ngIf="visibleSlices().length; else noDataSlices"
@@ -389,11 +411,11 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
               <ng-template pTemplate="header">
                 <tr>
                   <th pSortableColumn="key">slice <p-sortIcon field="key"></p-sortIcon></th>
-                  <th pSortableColumn="kind">tipo <p-sortIcon field="kind"></p-sortIcon></th>
-                  <th class="nec-num" pSortableColumn="entityCount">entità <p-sortIcon field="entityCount"></p-sortIcon></th>
+                  <th pSortableColumn="kind">type <p-sortIcon field="kind"></p-sortIcon></th>
+                  <th class="nec-num" pSortableColumn="entityCount">entities <p-sortIcon field="entityCount"></p-sortIcon></th>
                   <th class="nec-num" pSortableColumn="responsesCount">responses <p-sortIcon field="responsesCount"></p-sortIcon></th>
-                  <th>stato</th>
-                  <th class="nec-actions">azioni</th>
+                  <th>status</th>
+                  <th class="nec-actions">actions</th>
                 </tr>
               </ng-template>
               <ng-template pTemplate="body" let-s>
@@ -408,33 +430,33 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
                       <p-tag *ngIf="s.error" severity="danger" value="error"></p-tag>
                       <p-tag *ngIf="!s.isLoading && !s.error"
                              [severity]="s.isLoaded ? 'success' : 'info'"
-                             [value]="s.isLoaded ? 'caricato' : 'idle'"></p-tag>
+                             [value]="s.isLoaded ? 'loaded' : 'idle'"></p-tag>
                     </span>
                   </td>
                   <td class="nec-actions">
                     <div class="nec-row">
                       <ng-container *ngIf="pendingResetKey() === s.key">
-                        <span class="nec-note" role="alert">azzerare la slice?</span>
-                        <button type="button" pButton class="p-button-danger p-button-sm" icon="pi pi-check" label="Sì"
-                                [attr.aria-label]="'Conferma azzeramento della slice ' + s.key"
+                        <span class="nec-note" role="alert">reset this slice?</span>
+                        <button type="button" pButton class="p-button-danger p-button-sm" icon="pi pi-check" label="Yes"
+                                [attr.aria-label]="'Confirm resetting slice ' + s.key"
                                 (click)="confirmReset(s.key)"></button>
-                        <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm" icon="pi pi-times" label="Annulla"
-                                aria-label="Annulla azzeramento" (click)="cancelPending()"></button>
+                        <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm" icon="pi pi-times" label="Cancel"
+                                aria-label="Cancel reset" (click)="cancelPending()"></button>
                       </ng-container>
                       <ng-container *ngIf="pendingResponsesKey() === s.key">
-                        <span class="nec-note" role="alert">azzerare le responses?</span>
-                        <button type="button" pButton class="p-button-danger p-button-sm" icon="pi pi-check" label="Sì"
-                                [attr.aria-label]="'Conferma azzeramento delle responses di ' + s.key"
+                        <span class="nec-note" role="alert">reset the responses?</span>
+                        <button type="button" pButton class="p-button-danger p-button-sm" icon="pi pi-check" label="Yes"
+                                [attr.aria-label]="'Confirm resetting the responses of ' + s.key"
                                 (click)="confirmResetResponses(s.key)"></button>
-                        <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm" icon="pi pi-times" label="Annulla"
-                                aria-label="Annulla azzeramento" (click)="cancelPending()"></button>
+                        <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm" icon="pi pi-times" label="Cancel"
+                                aria-label="Cancel reset" (click)="cancelPending()"></button>
                       </ng-container>
                       <ng-container *ngIf="pendingResetKey() !== s.key && pendingResponsesKey() !== s.key">
                         <button type="button" pButton class="p-button-danger p-button-outlined p-button-sm"
                                 icon="pi pi-trash" label="reset"
-                                [attr.aria-label]="'Azzera la slice ' + s.key" (click)="requestReset(s.key)"></button>
+                                [attr.aria-label]="'Reset slice ' + s.key" (click)="requestReset(s.key)"></button>
                         <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm" icon="pi pi-eraser" label="reset responses"
-                                [attr.aria-label]="'Azzera le responses di ' + s.key"
+                                [attr.aria-label]="'Reset the responses of ' + s.key"
                                 (click)="requestResetResponses(s.key)"></button>
                       </ng-container>
                     </div>
@@ -444,26 +466,26 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
             </p-table>
             <ng-template #noDataSlices>
               <div class="nec-message nec-message-info">
-                <i class="pi pi-info-circle"></i>Nessuna slice con dati caricati.
+                <i class="pi pi-info-circle"></i>No slices with loaded data.
               </div>
             </ng-template>
           </ng-container>
           <ng-template #noSlices>
-            <div class="nec-message nec-message-info"><i class="pi pi-info-circle"></i>Nessuna slice CRUD montata.</div>
+            <div class="nec-message nec-message-info"><i class="pi pi-info-circle"></i>No CRUD slices mounted.</div>
           </ng-template>
 
           <ng-container *ngIf="storeReport()!.lazy?.length; else noLazy">
-            <p-divider align="left"><b>Sezioni lazy (da lazy-report)</b></p-divider>
+            <p-divider align="left"><b>Lazy sections (from lazy-report)</b></p-divider>
             <div class="nec-note nec-mb" *ngIf="storeReport()!.lazyReportGeneratedAt">
-              snapshot generato il {{ storeReport()!.lazyReportGeneratedAt }} — rigenera con
-              <code>ng generate ngrx-entity-crud:lazy-report --format=json</code> se obsoleto.
+              snapshot generated on {{ storeReport()!.lazyReportGeneratedAt }} — regenerate with
+              <code>ng generate ngrx-entity-crud:lazy-report --format=json</code> if stale.
             </div>
             <p-table [value]="storeReport()!.lazy!" styleClass="p-datatable-sm">
               <ng-template pTemplate="header">
                 <tr>
                   <th>store</th>
-                  <th>sezioni</th>
-                  <th>verdetto</th>
+                  <th>sections</th>
+                  <th>verdict</th>
                   <th>runtime</th>
                 </tr>
               </ng-template>
@@ -482,8 +504,8 @@ const PY_VARS_END = '# --- nec-dashboard: fine variabili ---';
           </ng-container>
           <ng-template #noLazy>
             <div class="nec-message nec-message-info">
-              <i class="pi pi-info-circle"></i>Nessun lazy-report caricato: genera
-              src/assets/lazy-report.json con «ng generate ngrx-entity-crud:lazy-report --format=json».
+              <i class="pi pi-info-circle"></i>No lazy-report loaded: generate
+              src/assets/lazy-report.json with «ng generate ngrx-entity-crud:lazy-report --format=json».
             </div>
           </ng-template>
         </ng-container>
@@ -511,10 +533,10 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
   /** Numero massimo di record letti per object store nella vista ad albero IndexedDB. Default: 50. */
   @Input() idbEntryLimit = 50;
   /**
-   * Opt-in dello snippet Python nel pannello localStorage: chiavi da esportare come variabili
-   * (es. `['access_token']`). Vuoto (default) = pulsanti nascosti. ATTENZIONE: la copia mette
+   * Opt-in del pannello "Python snippet": chiavi localStorage da esportare come variabili
+   * (es. `['access_token']`). Vuoto (default) = pannello nascosto. ATTENZIONE: la copia mette
    * negli appunti i valori IN CHIARO di queste sole chiavi (servono per invocare le API da
-   * script); a schermo non vengono comunque mai mostrati.
+   * script); le anteprime a schermo restano sempre mascherate.
    */
   @Input() pythonSnippetKeys: string[] = [];
   /** Base URL delle API usata nello snippet Python; default: `location.origin`. */
@@ -536,12 +558,16 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
   readonly pendingResponsesKey = signal<string | null>(null);
   /** `true` quando è in attesa di conferma l'azzeramento globale di tutte le slice. */
   readonly pendingResetAll = signal(false);
-  /** `true` mentre l'auto-refresh è sospeso dal pulsante Pausa (il timer resta attivo). */
+  /** `true` mentre l'auto-refresh è sospeso dal pulsante Pause (il timer resta attivo). */
   readonly paused = signal(false);
-  /** Feedback transitorio del pulsante "Copia report" (label "Copiato" per 2s). */
+  /** Feedback transitorio del pulsante "Copy report" (label "Copied" per 2s). */
   readonly copied = signal(false);
   /** Feedback transitorio dei pulsanti dello snippet Python (quale copia è appena riuscita). */
   readonly copiedPython = signal<'snippet' | 'vars' | null>(null);
+  /** Anteprima MASCHERATA dello snippet Python completo (rigenerata a ogni refresh). */
+  readonly pythonSnippetPreview = signal('');
+  /** Anteprima MASCHERATA del solo blocco variabili (rigenerata a ogni refresh). */
+  readonly pythonVariablesPreview = signal('');
 
   /** `true` per mostrare solo le slice che contengono dati (filtro del pannello Store NgRx). */
   readonly onlyWithData = signal(false);
@@ -631,6 +657,11 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
       } else {
         this.storeReport.set(this.storeProbe.read(opts));
       }
+      // Anteprime del pannello Python: sempre mascherate (in chiaro solo negli appunti).
+      if (this.pythonSnippetKeys.length) {
+        this.pythonVariablesPreview.set(this.pythonVariablesBlock(true));
+        this.pythonSnippetPreview.set(this.pythonSnippet(true));
+      }
       this.lastUpdated.set(new Date().toLocaleTimeString());
     } finally {
       this.busy.set(false);
@@ -672,7 +703,7 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
     );
   }
 
-  /** Copia il report diagnostico negli appunti e mostra "Copiato" per 2s. */
+  /** Copia il report diagnostico negli appunti e mostra "Copied" per 2s. */
   async copyReport(): Promise<void> {
     try {
       await navigator.clipboard.writeText(this.diagnosticReport());
@@ -686,7 +717,7 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
     this.copiedTimer = setTimeout(() => this.copied.set(false), 2000);
   }
 
-  // --- Snippet Python (pannello localStorage) -----------------------------------------------
+  // --- Snippet Python (pannello dedicato con anteprime mascherate) ---------------------------
 
   /** Nome variabile Python derivato dalla chiave localStorage (`access_token` → `ACCESS_TOKEN`). */
   private toPythonName(key: string): string {
@@ -705,39 +736,44 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
   /**
    * Blocco variabili Python delimitato dai marcatori, coi valori localStorage ATTUALI in
    * chiaro: quando il token scade basta ricopiarlo e incollarlo sopra il blocco vecchio.
+   * Con `masked` i valori passano per `maskValue` (anteprima a schermo, mai in chiaro).
    */
-  pythonVariablesBlock(): string {
+  pythonVariablesBlock(masked = false): string {
     const baseUrl = this.apiBaseUrl ?? (typeof location === 'undefined' ? '' : location.origin);
     const lines = [
       PY_VARS_BEGIN,
-      `# generato dalla nec-dashboard il ${new Date().toISOString()}`,
+      `# generated by nec-dashboard on ${new Date().toISOString()}`,
       `BASE_URL = ${this.toPythonString(baseUrl)}`,
     ];
     for (const key of this.pythonSnippetKeys) {
       const value = this.localStorageProbe.readValue(key);
       const name = this.toPythonName(key);
+      const shown = value == null ? null : masked ? maskValue(key, value) : value;
       lines.push(
-        value == null
-          ? `${name} = ""  # chiave ${this.toPythonString(key)} assente in localStorage`
-          : `${name} = ${this.toPythonString(value)}  # localStorage[${this.toPythonString(key)}]`
+        shown == null
+          ? `${name} = ""  # key ${this.toPythonString(key)} missing from localStorage`
+          : `${name} = ${this.toPythonString(shown)}  # localStorage[${this.toPythonString(key)}]`
       );
     }
     lines.push(PY_VARS_END);
     return lines.join('\n');
   }
 
-  /** Snippet Python completo: blocco variabili + esempio `requests` pronto da adattare. */
-  pythonSnippet(): string {
+  /**
+   * Snippet Python completo: blocco variabili + esempio `requests` pronto da adattare.
+   * Con `masked` i valori delle variabili sono mascherati (anteprima a schermo).
+   */
+  pythonSnippet(masked = false): string {
     const authVar = this.pythonSnippetKeys.length
       ? this.toPythonName(this.pythonSnippetKeys[0])
       : 'ACCESS_TOKEN';
     return [
-      this.pythonVariablesBlock(),
+      this.pythonVariablesBlock(masked),
       '',
       'import requests',
       '',
       'session = requests.Session()',
-      `session.headers["Authorization"] = f"Bearer {${authVar}}"  # adatta lo schema se serve`,
+      `session.headers["Authorization"] = f"Bearer {${authVar}}"  # adjust the scheme if needed`,
       '',
       'resp = session.get(f"{BASE_URL}/api/resource")',
       'resp.raise_for_status()',
@@ -792,8 +828,8 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
       const noStores = db.stores.length === 0;
       return {
         label: noStores
-          ? `${db.name}  ·  v${db.version ?? '?'}  —  ${db.note ?? 'nessun object store'}`
-          : `${db.name}  ·  v${db.version ?? '?'}  ·  ${db.stores.length} object store`,
+          ? `${db.name}  ·  v${db.version ?? '?'}  —  ${db.note ?? 'no object stores'}`
+          : `${db.name}  ·  v${db.version ?? '?'}  ·  ${db.stores.length} object store${db.stores.length === 1 ? '' : 's'}`,
         data: {db: db.name},
         leaf: noStores,
         children: storeNodes,
@@ -832,14 +868,14 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
       return record;
     });
     if (!data.entries.length) {
-      nodes.push({label: data.note ?? 'store vuoto', type: 'note', leaf: true, selectable: false});
+      nodes.push({label: data.note ?? 'empty store', type: 'note', leaf: true, selectable: false});
     } else if (data.note) {
       nodes.push({label: data.note, type: 'note', leaf: true, selectable: false});
     }
     if (data.truncated) {
-      const of = data.total != null ? ` di ${data.total}` : '';
+      const of = data.total != null ? ` of ${data.total}` : '';
       nodes.push({
-        label: `mostrati i primi ${data.entries.length}${of} record`,
+        label: `showing the first ${data.entries.length}${of} records`,
         type: 'note',
         leaf: true,
         selectable: false,

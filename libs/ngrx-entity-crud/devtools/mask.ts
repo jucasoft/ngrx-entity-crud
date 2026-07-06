@@ -15,10 +15,10 @@ export function looksSensitiveKey(key: string): boolean {
 /** Redige nel testo i pattern sensibili comuni (JWT, email, token/hex lunghi). */
 export function redactSensitive(value: string): string {
   return (value || '')
-    .replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, '«jwt-redatto»')
-    .replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, '«email-redatta»')
-    .replace(/\b[A-Fa-f0-9]{32,}\b/g, '«hex-redatto»')
-    .replace(/\b[A-Za-z0-9_-]{40,}\b/g, '«token-redatto»');
+    .replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g, '«redacted-jwt»')
+    .replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, '«redacted-email»')
+    .replace(/\b[A-Fa-f0-9]{32,}\b/g, '«redacted-hex»')
+    .replace(/\b[A-Za-z0-9_-]{40,}\b/g, '«redacted-token»');
 }
 
 /**
@@ -27,11 +27,11 @@ export function redactSensitive(value: string): string {
  */
 export function maskValue(key: string, value: string, maxLength = 200): string {
   if (looksSensitiveKey(key)) {
-    return `«nascosto» (${(value || '').length} caratteri)`;
+    return `«hidden» (${(value || '').length} chars)`;
   }
   let out = redactSensitive(value);
   if (out.length > maxLength) {
-    out = out.slice(0, maxLength) + '… (troncato)';
+    out = out.slice(0, maxLength) + '… (truncated)';
   }
   return out;
 }

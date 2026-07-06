@@ -45,7 +45,7 @@ export class NecIndexedDbProbeService {
         enumerable: false,
         adapter: null,
         databases: [],
-        note: 'IndexedDB non disponibile in questo contesto',
+        note: 'IndexedDB not available in this context',
       };
     }
 
@@ -57,8 +57,8 @@ export class NecIndexedDbProbeService {
         adapter: 'native',
         databases: [],
         note:
-          'Impossibile elencare i database: indexedDB.databases() non supportato (es. Firefox) ' +
-          'e nessun nome fornito. Passa i nomi DB noti via input "idbDatabaseNames".',
+          'Cannot list databases: indexedDB.databases() not supported (e.g. Firefox) ' +
+          'and no names provided. Pass known DB names via the "idbDatabaseNames" input.',
       };
     }
 
@@ -99,7 +99,7 @@ export class NecIndexedDbProbeService {
       };
 
       const timer = setTimeout(
-        () => done({name, version: null, stores: [], note: 'timeout apertura DB'}),
+        () => done({name, version: null, stores: [], note: 'DB open timeout'}),
         timeoutMs
       );
 
@@ -108,7 +108,7 @@ export class NecIndexedDbProbeService {
         request = indexedDB.open(name);
       } catch {
         clearTimeout(timer);
-        done({name, version: null, stores: [], note: 'open() fallita'});
+        done({name, version: null, stores: [], note: 'open() failed'});
         return;
       }
 
@@ -118,13 +118,13 @@ export class NecIndexedDbProbeService {
           name,
           version: null,
           stores: [],
-          note: 'apertura bloccata (versionchange in un\'altra scheda)',
+          note: 'open blocked (versionchange in another tab)',
         });
       };
 
       request.onerror = () => {
         clearTimeout(timer);
-        done({name, version: null, stores: [], note: 'errore apertura DB (o DB inesistente)'});
+        done({name, version: null, stores: [], note: 'DB open error (or DB does not exist)'});
       };
 
       request.onupgradeneeded = (event) => {
@@ -212,7 +212,7 @@ export class NecIndexedDbProbeService {
     });
 
     if (typeof indexedDB === 'undefined') {
-      return empty('IndexedDB non disponibile in questo contesto');
+      return empty('IndexedDB not available in this context');
     }
 
     return new Promise<NecIdbStoreEntries>((resolve) => {
@@ -225,14 +225,14 @@ export class NecIndexedDbProbeService {
         resolve(r);
       };
 
-      const timer = setTimeout(() => done(empty('timeout lettura record')), openTimeoutMs);
+      const timer = setTimeout(() => done(empty('record read timeout')), openTimeoutMs);
 
       let request: IDBOpenDBRequest;
       try {
         request = indexedDB.open(dbName);
       } catch {
         clearTimeout(timer);
-        done(empty('open() fallita'));
+        done(empty('open() failed'));
         return;
       }
 
@@ -246,11 +246,11 @@ export class NecIndexedDbProbeService {
       };
       request.onblocked = () => {
         clearTimeout(timer);
-        done(empty('apertura bloccata (versionchange in un\'altra scheda)'));
+        done(empty('open blocked (versionchange in another tab)'));
       };
       request.onerror = () => {
         clearTimeout(timer);
-        done(empty('errore apertura DB (o DB inesistente)'));
+        done(empty('DB open error (or DB does not exist)'));
       };
 
       request.onsuccess = () => {
@@ -258,7 +258,7 @@ export class NecIndexedDbProbeService {
         if (!db.objectStoreNames.contains(storeName)) {
           clearTimeout(timer);
           db.close();
-          done(empty('object store inesistente'));
+          done(empty('object store does not exist'));
           return;
         }
 
@@ -268,7 +268,7 @@ export class NecIndexedDbProbeService {
         } catch {
           clearTimeout(timer);
           db.close();
-          done(empty('transazione fallita'));
+          done(empty('transaction failed'));
           return;
         }
 
@@ -326,7 +326,7 @@ export class NecIndexedDbProbeService {
       }
       return String(key);
     } catch {
-      return '«chiave non serializzabile»';
+      return '«key not serializable»';
     }
   }
 }

@@ -184,7 +184,7 @@ describe('NecDashboardComponent (azioni di reset)', () => {
     });
   });
 
-  describe('snippet Python (pannello localStorage)', () => {
+  describe('snippet Python (pannello dedicato)', () => {
     beforeEach(() => {
       component.pythonSnippetKeys = ['access_token', 'refresh-token'];
       component.apiBaseUrl = 'https://api.example.com';
@@ -193,11 +193,18 @@ describe('NecDashboardComponent (azioni di reset)', () => {
 
     it('pythonVariablesBlock esporta le variabili con marcatori e valori escapati', () => {
       const block = component.pythonVariablesBlock();
-      expect(block).toContain('# --- nec-dashboard: inizio variabili ---');
+      expect(block).toContain('# --- nec-dashboard: variables begin ---');
       expect(block).toContain('BASE_URL = "https://api.example.com"');
       expect(block).toContain('ACCESS_TOKEN = "tok\\"123"');
-      expect(block).toContain('REFRESH_TOKEN = ""  # chiave "refresh-token" assente in localStorage');
-      expect(block).toContain('# --- nec-dashboard: fine variabili ---');
+      expect(block).toContain('REFRESH_TOKEN = ""  # key "refresh-token" missing from localStorage');
+      expect(block).toContain('# --- nec-dashboard: variables end ---');
+    });
+
+    it('pythonVariablesBlock(true) maschera i valori per l\'anteprima a schermo', () => {
+      const preview = component.pythonVariablesBlock(true);
+      expect(preview).not.toContain('tok\\"123');
+      expect(preview).toContain('«hidden»'); // access_token è una chiave sensibile
+      expect(preview).toContain('BASE_URL = "https://api.example.com"');
     });
 
     it('pythonSnippet accoda l\'esempio requests con il Bearer della prima chiave', () => {
@@ -214,8 +221,10 @@ describe('NecDashboardComponent (azioni di reset)', () => {
       await component.copyPythonVariables();
 
       expect(writeText).toHaveBeenCalledTimes(1);
-      expect(writeText.mock.calls[0][0]).toContain('inizio variabili');
+      expect(writeText.mock.calls[0][0]).toContain('variables begin');
       expect(writeText.mock.calls[0][0]).not.toContain('import requests');
+      // La copia mette negli appunti il valore IN CHIARO (solo l'anteprima è mascherata).
+      expect(writeText.mock.calls[0][0]).toContain('tok\\"123');
       expect(component.copiedPython()).toBe('vars');
       component.ngOnDestroy(); // azzera il timer del feedback
     });
@@ -273,7 +282,7 @@ describe('NecDashboardComponent (azioni di reset)', () => {
 
     it('formatIdbValue serializza e maschera il valore', () => {
       expect(component.formatIdbValue({a: 1})).toContain('"a": 1');
-      expect(component.formatIdbValue('utente@example.com')).toContain('«email-redatta»');
+      expect(component.formatIdbValue('utente@example.com')).toContain('«redacted-email»');
     });
   });
 });

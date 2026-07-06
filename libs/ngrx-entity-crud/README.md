@@ -274,12 +274,12 @@ the sections that use it, then suggests which stores are good candidates to be r
 generated report file: you decide what to convert.
 
 How a store is classified:
-- **candidato lazy**: used by exactly one section, and that section is on a lazy route (`loadChildren`).
-- **multi-sezione**: used by more than one section (evaluate a shared lazy module).
-- **tieni eager (usato dalla shell)**: referenced by the app shell (`core/`, `main/components`, `app.component`) — must stay eager.
-- **sezione non lazy-routed**: its only section is loaded eagerly, so going lazy gives little benefit.
+- **lazy candidate**: used by exactly one section, and that section is on a lazy route (`loadChildren`).
+- **multi-section**: used by more than one section (evaluate a shared lazy module).
+- **keep eager (used by the shell)**: referenced by the app shell (`core/`, `main/components`, `app.component`) — must stay eager.
+- **section not lazy-routed**: its only section is loaded eagerly, so going lazy gives little benefit.
 - **infra (eager)**: infrastructure store (e.g. `router-store`), excluded from candidates.
-- **orfano**: not referenced by any section.
+- **orphan**: not referenced by any section.
 
 The scan is static and relies on the naming convention (`XxxStoreActions/Selectors/State/Module`).
 Paths are read from `ngrx-entity-crud.conf.json` when present, otherwise defaults are used
@@ -331,11 +331,11 @@ ng generate ngrx-entity-crud:lazy-report --output=        # solo console
 Example output (excerpt):
 
 ```md
-| store | clazz | type | sezioni | n | lazy route | shell | verdetto |
+| store | clazz | type | sections | n | lazy route | shell | verdict |
 |---|---|---|---|---|---|---|---|
-| coin-store | Coin | CRUD-PLURAL | coin | 1 | si | no | candidato lazy |
-| currency-store | Currency | CRUD-PLURAL | coin, invoice | 2 | si | no | multi-sezione (2) -> valuta modulo condiviso |
-| menu-store | Menu | CRUD-PLURAL | - | 0 | - | si | tieni eager (usato dalla shell) |
+| coin-store | Coin | CRUD-PLURAL | coin | 1 | yes | no | lazy candidate |
+| currency-store | Currency | CRUD-PLURAL | coin, invoice | 2 | yes | no | multi-section (2) -> consider a shared module |
+| menu-store | Menu | CRUD-PLURAL | - | 0 | - | yes | keep eager (used by the shell) |
 ```
 
 ## dashboard
@@ -363,9 +363,9 @@ which the dashboard reads at runtime to correlate the loaded/lazy state of each 
 The dashboard can run in **production**: by default it shows only keys, sizes and counts — never
 raw values. Value reveal is opt-in (`[allowRevealValues]="true"`) and always masks sensitive
 patterns (token/JWT/email/secret); keys that look sensitive are flagged. The only exception is
-the **Python snippet** feature (opt-in via `pythonSnippetKeys`): it copies the RAW values of the
-listed keys to the clipboard — they are needed to call the APIs from a script — but never renders
-them on screen.
+the **Python snippet** panel (opt-in via `pythonSnippetKeys`): it copies the RAW values of the
+listed keys to the clipboard — they are needed to call the APIs from a script — while the
+on-screen previews always mask them.
 
 ### Command
 
@@ -437,22 +437,23 @@ Notes:
 - The **Store NgRx** panel exposes per-row actions: **reset** dispatches the library's `Reset`
   action (`[key] Reset`), restoring the slice to its `initialState` (empty entities, selection,
   criteria and responses); **reset responses** dispatches the lighter `ResetResponses`
-  (`[key] Reset Response`). A toolbar **Azzera tutte** button resets every listed slice at once.
+  (`[key] Reset Response`). A toolbar **Reset all** button resets every listed slice at once.
   All three are destructive and require an inline two-step confirmation before dispatching.
   Because the slice key in the root state matches the action name by convention (the `store`
   schematic feeds the same `Names.NAME` to both `StoreModule.forFeature` and `createCrudActions`),
   the dashboard can target the right action from the slice key alone — no per-domain wiring needed.
   After a reset the dashboard refreshes its counts; if you persist the NgRx state (e.g. to
   IndexedDB), your persistence layer will write back the emptied state, clearing the local data.
-- The **Store NgRx** panel has a toggle button: by default it lists every mounted slice, but
-  **Mostra solo le slice con dati** filters down to slices that actually hold data (entities for
+- The **NgRx store** panel has a toggle button: by default it lists every mounted slice, but
+  **Show only slices with data** filters down to slices that actually hold data (entities for
   `plural`, an `item` for `singular`, or cached responses).
-- With `pythonSnippetKeys` set, the **localStorage** panel offers two buttons: **Copia snippet
-  Python** copies a ready-to-adapt `requests` script whose variables (`BASE_URL`, one
-  `UPPER_SNAKE` variable per listed key, e.g. `ACCESS_TOKEN`) are read from localStorage; **Copia
-  solo variabili** copies just the marker-delimited variables block, regenerated with the current
-  values — when the token rotates, paste it over the stale block without touching the rest of the
-  script.
+- With `pythonSnippetKeys` set, a dedicated **Python snippet** panel shows a masked preview of
+  both codes about to be copied, each with its copy button: **Copy Python snippet** copies a
+  ready-to-adapt `requests` script whose variables (`BASE_URL`, one `UPPER_SNAKE` variable per
+  listed key, e.g. `ACCESS_TOKEN`) are read from localStorage; **Copy variables only** copies
+  just the marker-delimited variables block, regenerated with the current values — when the token
+  rotates, paste it over the stale block without touching the rest of the script. The previews
+  always mask the values (`maskValue`); the RAW values go only to the clipboard.
 - IndexedDB is introspected **agnostically** via native APIs (`indexedDB.databases()` + `count()`),
   with an optional `NEC_IDB_ADAPTER` injection token for custom providers. Byte sizes per
   record/store are not measurable; only record counts and the aggregate origin quota

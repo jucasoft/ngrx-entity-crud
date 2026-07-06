@@ -7,11 +7,12 @@
       - [idbDatabaseNames]: nomi DB da ispezionare dove indexedDB.databases() non è supportato
         (es. Firefox/Safari), p.es. [idbDatabaseNames]="['NgRxStateStore']".
       - [pollingMs]: auto-refresh in ms (0 = solo manuale).
-      - [pythonSnippetKeys]: chiavi localStorage esportate nello snippet Python del pannello
-        localStorage (es. ['access_token']); ATTENZIONE: la copia mette i valori IN CHIARO
-        negli appunti. [apiBaseUrl]: base URL delle API nello snippet (default location.origin).
-    Il pannello "Store NgRx" espone i pulsanti "reset" / "reset responses" per riga e
-    "Azzera tutte" (con conferma a due step); l'output (sliceReset)="..." emette la key
+      - [pythonSnippetKeys]: chiavi localStorage esportate come variabili nel pannello dedicato
+        "Python snippet" (es. ['access_token']); le anteprime a schermo sono mascherate, ma
+        ATTENZIONE: la copia mette i valori IN CHIARO negli appunti.
+        [apiBaseUrl]: base URL delle API nello snippet (default location.origin).
+    Il pannello "NgRx store" espone i pulsanti "reset" / "reset responses" per riga e
+    "Reset all" (con conferma a due step); l'output (sliceReset)="..." emette la key
     della slice azzerata.
   -->
   <nec-dashboard lazyReportUrl="assets/lazy-report.json"></nec-dashboard>

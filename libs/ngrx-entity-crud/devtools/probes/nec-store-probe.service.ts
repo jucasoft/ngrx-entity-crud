@@ -154,7 +154,9 @@ export class NecStoreProbeService {
       const isLazyCandidate =
         typeof st?.isLazyCandidate === 'boolean'
           ? st.isLazyCandidate
-          : /candidato lazy/i.test(st?.verdict ?? '');
+          : // Fallback per i report vecchi senza `isLazyCandidate`: verdetto testuale
+            // in inglese (attuale) o in italiano (report generati prima della beta.14).
+            /lazy candidate|candidato lazy/i.test(st?.verdict ?? '');
       return {
         name: st?.name,
         clazz: st?.clazz,

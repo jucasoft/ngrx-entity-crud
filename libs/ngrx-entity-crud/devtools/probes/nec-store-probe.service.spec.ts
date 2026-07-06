@@ -90,7 +90,7 @@ describe('NecStoreProbeService', () => {
       generatedAt: '2026-06-19T10:00:00.000Z',
       stores: [
         {name: 'coin', isLazyCandidate: false, lazyRoute: true, sections: ['coins'], verdict: 'x'},
-        {name: 'order', isLazyCandidate: true, lazyRoute: true, sections: ['orders'], verdict: 'candidato lazy'},
+        {name: 'order', isLazyCandidate: true, lazyRoute: true, sections: ['orders'], verdict: 'lazy candidate'},
       ],
     };
     const originalFetch = (global as any).fetch;
