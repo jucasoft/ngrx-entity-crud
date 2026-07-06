@@ -296,7 +296,7 @@ ng generate ngrx-entity-crud:lazy-report [options]
 Report file to write (relative to the workspace root); empty string = console only.
 - `--output`
   - Type: `string`
-  - Default: `lazy-report.md`
+  - Default: `lazy-report.<format>` (`lazy-report.md` or `lazy-report.json`)
 
 Format of the written report.
 - `--format`
@@ -324,7 +324,7 @@ adds a `storage` object `{ providers, source }`. The `{ paths, stores }` shape i
 
 ```sh
 ng generate ngrx-entity-crud:lazy-report
-ng generate ngrx-entity-crud:lazy-report --format=json --output=lazy-report.json
+ng generate ngrx-entity-crud:lazy-report --format=json    # scrive lazy-report.json
 ng generate ngrx-entity-crud:lazy-report --output=        # solo console
 ```
 

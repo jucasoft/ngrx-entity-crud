@@ -4,7 +4,7 @@
 declare interface LazyReport {
   /**
    * Percorso del file di report da generare (relativo alla root del workspace).
-   * Stringa vuota = solo console.
+   * Se omesso: `lazy-report.<format>`. Stringa vuota = solo console.
    */
   output?: string;
   /**

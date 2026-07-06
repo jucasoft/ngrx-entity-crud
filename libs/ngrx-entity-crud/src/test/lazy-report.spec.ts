@@ -69,6 +69,23 @@ describe('lazy-report schematic (Rule)', () => {
     expect(auth.lazyRoute).toBe(false);
   });
 
+  it('senza output il default segue il formato: format=json scrive lazy-report.json', () => {
+    const tree = buildTree();
+    run(tree, {format: 'json'});
+    expect(tree.exists('/lazy-report.md')).toBe(false);
+    const json = readJson(tree, '/lazy-report.json');
+    expect(Array.isArray(json.stores)).toBe(true);
+  });
+
+  it('senza output ne formato scrive il markdown di default lazy-report.md', () => {
+    const tree = buildTree();
+    run(tree, {});
+    expect(tree.exists('/lazy-report.json')).toBe(false);
+    const raw = tree.read('/lazy-report.md');
+    expect(raw).not.toBeNull();
+    expect((raw || Buffer.from('')).toString()).toContain('# Lazy store report');
+  });
+
   it('con storage:false omette il campo storage (resta non-breaking)', () => {
     const tree = buildTree();
     run(tree, {output: 'r.json', format: 'json', storage: false});

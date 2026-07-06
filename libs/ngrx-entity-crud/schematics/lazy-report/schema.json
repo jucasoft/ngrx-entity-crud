@@ -5,9 +5,8 @@
   "type": "object",
   "properties": {
     "output": {
-      "description": "Percorso del file di report da generare (relativo alla root del workspace). Stringa vuota = solo console.",
-      "type": "string",
-      "default": "lazy-report.md"
+      "description": "Percorso del file di report da generare (relativo alla root del workspace). Se omesso: lazy-report.<format>. Stringa vuota = solo console.",
+      "type": "string"
     },
     "format": {
       "description": "Formato del report scritto su file.",

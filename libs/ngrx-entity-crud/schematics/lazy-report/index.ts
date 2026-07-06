@@ -155,8 +155,9 @@ function verdict(info: StoreInfo, lazySections: Set<string>): string {
 export function lazyReport(options: LazyReport): Rule {
   return (tree: Tree, context: SchematicContext) => {
     const paths = readPaths(tree);
-    const output = options.output === undefined ? 'lazy-report.md' : options.output;
     const format = options.format || 'md';
+    // Il default segue il formato: senza --output un --format=json produce lazy-report.json.
+    const output = options.output === undefined ? `lazy-report.${format}` : options.output;
     const infraStores =
       options.infraStores && options.infraStores.length ? options.infraStores : ['router-store'];
     const includeStorage = options.storage !== false;
