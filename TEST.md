@@ -13,6 +13,11 @@ ng generate ngrx-entity-crud:store --name=base --clazz=Base --type=BASE
 lazy-report
 ng generate ngrx-entity-crud:lazy-report --format=json --output=lazy-report.json
 
+table-report
+ng generate ngrx-entity-crud:table-report --format=json --output=table-report.json
+ng generate ngrx-entity-crud:table-report --output=
+# inventario di tutte le tabelle (ag-grid + p-table) con colonne estratte via AST
+
 dashboard
 ng generate ngrx-entity-crud:dashboard
 ng generate ngrx-entity-crud:dashboard --clazz=AdminPanel --include-lazy-report=false

@@ -1,0 +1,29 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "$id": "TableReport",
+  "title": "Table report",
+  "type": "object",
+  "properties": {
+    "output": {
+      "description": "Percorso del file di report da generare (relativo alla root del workspace). Se omesso: table-report.<format>. Stringa vuota = solo console.",
+      "type": "string"
+    },
+    "format": {
+      "description": "Formato del report scritto su file.",
+      "type": "string",
+      "enum": ["md", "json"],
+      "default": "md"
+    },
+    "columns": {
+      "description": "Includi il dettaglio per-colonna estratto via AST (field, headerName, altre proprieta').",
+      "type": "boolean",
+      "default": true
+    },
+    "pTable": {
+      "description": "Includi anche le tabelle PrimeNG p-table (quelle generate dallo schematic section).",
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": []
+}

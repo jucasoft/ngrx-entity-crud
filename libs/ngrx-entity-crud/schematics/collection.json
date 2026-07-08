@@ -26,6 +26,11 @@
       "factory": "./lazy-report/index#lazyReport",
       "schema": "./lazy-report/schema.json"
     },
+    "table-report": {
+      "description": "Scan the project and report every data table (ag-Grid / p-table) and its configuration.",
+      "factory": "./table-report/index#tableReport",
+      "schema": "./table-report/schema.json"
+    },
     "dashboard": {
       "description": "Scaffold a project dashboard view (storage + lazy diagnostics) hosting <nec-dashboard>.",
       "factory": "./dashboard/index#makeDashboard",
