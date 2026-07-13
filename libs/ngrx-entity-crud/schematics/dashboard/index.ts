@@ -54,6 +54,14 @@ export function reportAssetUrl(composition: {output: string} | null): string {
   return composition ? composition.output.replace(/^src\//, '') : '';
 }
 
+/**
+ * `true` (default) se il wrapper deve includere il pannello `<nec-scaffold>`. Passato SEMPRE
+ * esplicito al render: le opzioni possono arrivare senza i default dello schema (es. test).
+ */
+export function scaffoldEnabled(options: Dashboard): boolean {
+  return options.includeScaffold !== false;
+}
+
 export function makeDashboard(options: Dashboard): Rule {
   return (tree: Tree, _context: SchematicContext) => {
     options.clazz = strings.classify(options.clazz || 'Dashboard');
@@ -86,7 +94,12 @@ export function makeDashboard(options: Dashboard): Rule {
       // libreria (ngrx-entity-crud/devtools). MergeStrategy.Overwrite (14) confinato al chrome.
       // Gli URL runtime nel template seguono i path di output dei report (niente hard-coding).
       render(
-        {...options, lazyReportUrl: reportAssetUrl(lazy), tableReportUrl: reportAssetUrl(table)},
+        {
+          ...options,
+          lazyReportUrl: reportAssetUrl(lazy),
+          tableReportUrl: reportAssetUrl(table),
+          includeScaffold: scaffoldEnabled(options),
+        },
         './files/primeng',
         pathView
       ),

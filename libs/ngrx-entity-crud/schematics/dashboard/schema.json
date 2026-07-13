@@ -35,6 +35,11 @@
       "description": "Percorso del table-report JSON generato (se includeTableReport=true).",
       "type": "string",
       "default": "src/assets/table-report.json"
+    },
+    "includeScaffold": {
+      "description": "Include nel wrapper il pannello <nec-scaffold> (conf JSON + comandi per generare una nuova sezione).",
+      "type": "boolean",
+      "default": true
     }
   },
   "required": []

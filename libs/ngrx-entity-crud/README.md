@@ -429,7 +429,9 @@ Example output (excerpt):
 
 Scaffolds a **project dashboard** view with four runtime summaries: localStorage usage,
 IndexedDB usage (agnostic to the persistence library you use), NgRx stores + lazy-loading
-candidates, and the project's data **tables** (ag-Grid / `p-table` inventory). The generated
+candidates, and the project's data **tables** (ag-Grid / `p-table` inventory) — plus a
+**Scaffold** panel (`<nec-scaffold>`) that builds the configuration file and the
+`ng generate` commands for a new "search form + grid" section. The generated
 module hosts `<nec-dashboard>`, the standalone component exported by the secondary entry-point
 `ngrx-entity-crud/devtools`; all the diagnostic logic lives in the library (versioned and
 tested), not in generated code.
@@ -491,6 +493,11 @@ The generated wrapper wires `lazyReportUrl` / `tableReportUrl` on `<nec-dashboar
 output paths above (with the `src/` prefix stripped), so custom `--lazy-report-output` /
 `--table-report-output` values are picked up automatically; a report disabled via
 `--include-*-report=false` yields an empty URL, which turns that panel off.
+
+Include the `<nec-scaffold>` panel in the generated wrapper.
+- `--include-scaffold`
+  - Type: `boolean`
+  - Default: `true`
 
 The name of the project.
 - `--project`
@@ -571,6 +578,20 @@ Notes:
   object store → record): expanding an object store **lazily** reads up to `idbEntryLimit` records
   and lists their keys; with `[allowRevealValues]="true"` each record can be expanded further to
   show its value (serialized to JSON and masked for sensitive patterns).
+- The **Scaffold** panel (`<nec-scaffold>`, its own standalone component, included in the
+  generated wrapper unless `--include-scaffold=false`) assists the "new section" flow of the
+  consumer schematics: type the entity name (live `classify`/`dasherize` preview, mirroring
+  `@angular-devkit/core` so the file name matches what the view schematic resolves from
+  `--clazz`), paste a sample DTO JSON returned by the backend (it becomes `dtoObject` and its
+  fields are listed with the derived type), mark the key fields and the search conditions
+  (`string`/`number`/`date`), and add search-only fields that do not exist in the DTO. The
+  panel outputs the configuration JSON (`formAttributes`/`dtoObject`/`keys`/`conditionMap`)
+  with copy/download buttons — the browser cannot write to disk: save it as
+  `<confDir>/<dasherized>.json` — and the ordered `ng generate` commands with per-command copy.
+  Inputs: `confDir` (default `grm-schematics/conf`), `storeSchematic` (default
+  `ngrx-entity-crud:store`), `viewSchematic` (default `grm-schematics:view`), `apiSchematic`
+  (default empty = hidden), `checklist` (`string[]`, manual post-generation steps; `[]` hides
+  the list). An empty schematic name hides that command.
 - `<nec-dashboard>` is a standalone component that imports PrimeNG modules and uses the classic
   structural directives (`*ngIf`/`*ngFor`), so it stays compatible with Angular 16+ consumers; the
   core entry-point keeps the wider peer range and has no PrimeNG dependency.

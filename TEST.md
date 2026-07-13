@@ -21,7 +21,10 @@ ng generate ngrx-entity-crud:table-report --output=
 dashboard
 ng generate ngrx-entity-crud:dashboard
 ng generate ngrx-entity-crud:dashboard --clazz=AdminPanel --include-lazy-report=false --include-table-report=false
+ng generate ngrx-entity-crud:dashboard --include-scaffold=false
 # poi aggiungi la rotta lazy (gia inserita in app-routing.module.ts) e naviga su /dashboard
 # in alternativa, senza scaffolding, monta <nec-dashboard> da 'ngrx-entity-crud/devtools'
 # il pannello Tables legge src/assets/table-report.json (generato insieme alla dashboard)
+# il pannello Scaffold (<nec-scaffold>) genera il conf grm-schematics/conf/<entita>.json
+# e i comandi ng generate della nuova sezione: incolla un DTO, spunta key/search, scarica il JSON
 

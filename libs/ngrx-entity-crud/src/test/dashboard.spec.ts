@@ -3,6 +3,7 @@ import {
   lazyReportComposition,
   reportAssetUrl,
   resolveProjectName,
+  scaffoldEnabled,
   tableReportComposition,
 } from '../../schematics/dashboard/index';
 
@@ -85,6 +86,14 @@ describe('dashboard schematic — composizione dei report', () => {
 
   it('con includeLazyReport=false non compone nulla', () => {
     expect(lazyReportComposition({includeLazyReport: false})).toBeNull();
+  });
+
+  it('scaffoldEnabled: true di default e con true esplicito, false solo su opt-out', () => {
+    // Il default deve valere anche SENZA i default dello schema (opzioni passate a mano),
+    // perché il valore viene calcolato in index.ts e passato esplicito al template.
+    expect(scaffoldEnabled({})).toBe(true);
+    expect(scaffoldEnabled({includeScaffold: true})).toBe(true);
+    expect(scaffoldEnabled({includeScaffold: false})).toBe(false);
   });
 
   it('reportAssetUrl deriva l\'URL runtime dal path di output (strip di src/)', () => {

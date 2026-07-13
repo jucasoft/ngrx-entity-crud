@@ -22,4 +22,15 @@
   -->
   <nec-dashboard lazyReportUrl="<%= lazyReportUrl %>"
                  tableReportUrl="<%= tableReportUrl %>"></nec-dashboard>
-</p-card>
+<% if (includeScaffold) { %>
+  <!--
+    <nec-scaffold> costruisce il file di configurazione (dtoObject/keys/conditionMap) e i
+    comandi `ng generate` per scaffoldare una nuova sezione "form di ricerca + griglia".
+    Gli input qui sotto sono i default: adattali al flusso del progetto (stringa vuota
+    nasconde il comando corrispondente; apiSchematic è opt-in, es. "grm-schematics:api").
+    Altri input: [checklist]="['...']" per i passi manuali post-generazione.
+  -->
+  <nec-scaffold confDir="grm-schematics/conf"
+                storeSchematic="ngrx-entity-crud:store"
+                viewSchematic="grm-schematics:view"></nec-scaffold>
+<% } %></p-card>

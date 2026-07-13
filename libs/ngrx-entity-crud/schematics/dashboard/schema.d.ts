@@ -26,4 +26,8 @@ declare interface Dashboard {
    * Percorso del table-report JSON generato (se includeTableReport=true).
    */
   tableReportOutput?: string;
+  /**
+   * Include nel wrapper il pannello <nec-scaffold>. Default: true.
+   */
+  includeScaffold?: boolean;
 }
