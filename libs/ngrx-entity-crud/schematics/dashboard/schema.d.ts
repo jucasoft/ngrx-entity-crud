@@ -18,4 +18,12 @@ declare interface Dashboard {
    * Percorso del lazy-report JSON generato (se includeLazyReport=true).
    */
   lazyReportOutput?: string;
+  /**
+   * Genera anche il table-report JSON letto dal pannello Tables. Default: true.
+   */
+  includeTableReport?: boolean;
+  /**
+   * Percorso del table-report JSON generato (se includeTableReport=true).
+   */
+  tableReportOutput?: string;
 }

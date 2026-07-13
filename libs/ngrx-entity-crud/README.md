@@ -427,11 +427,12 @@ Example output (excerpt):
 
 ### Overview
 
-Scaffolds a **project dashboard** view with three runtime summaries: localStorage usage,
-IndexedDB usage (agnostic to the persistence library you use), and NgRx stores + lazy-loading
-candidates. The generated module hosts `<nec-dashboard>`, the standalone component exported by the
-secondary entry-point `ngrx-entity-crud/devtools`; all the diagnostic logic lives in the library
-(versioned and tested), not in generated code.
+Scaffolds a **project dashboard** view with four runtime summaries: localStorage usage,
+IndexedDB usage (agnostic to the persistence library you use), NgRx stores + lazy-loading
+candidates, and the project's data **tables** (ag-Grid / `p-table` inventory). The generated
+module hosts `<nec-dashboard>`, the standalone component exported by the secondary entry-point
+`ngrx-entity-crud/devtools`; all the diagnostic logic lives in the library (versioned and
+tested), not in generated code.
 
 `<nec-dashboard>` is built on **PrimeNG** components (`p-card`, `p-table`, `p-tag`, `p-tree`, the
 `pButton` directive), so the `ngrx-entity-crud/devtools` entry-point requires `primeng` and
@@ -441,7 +442,10 @@ not need them). The component uses the `pButton` severity *classes* and the `suc
 later majors.
 
 By default it also generates `src/assets/lazy-report.json` (reusing `lazy-report --format=json`),
-which the dashboard reads at runtime to correlate the loaded/lazy state of each store.
+which the dashboard reads at runtime to correlate the loaded/lazy state of each store, and
+`src/assets/table-report.json` (reusing `table-report --format=json`), which feeds the **Tables**
+panel: every grid in the project with its columns, the stores it references and whether those
+slices are currently mounted.
 
 The dashboard can run in **production**: by default it shows only keys, sizes and counts — never
 raw values. Value reveal is opt-in (`[allowRevealValues]="true"`) and always masks sensitive
@@ -472,6 +476,21 @@ Path of the generated lazy-report JSON.
 - `--lazy-report-output`
   - Type: `string`
   - Default: `src/assets/lazy-report.json`
+
+Generate the table-report JSON read by the Tables panel.
+- `--include-table-report`
+  - Type: `boolean`
+  - Default: `true`
+
+Path of the generated table-report JSON.
+- `--table-report-output`
+  - Type: `string`
+  - Default: `src/assets/table-report.json`
+
+The generated wrapper wires `lazyReportUrl` / `tableReportUrl` on `<nec-dashboard>` to the
+output paths above (with the `src/` prefix stripped), so custom `--lazy-report-output` /
+`--table-report-output` values are picked up automatically; a report disabled via
+`--include-*-report=false` yields an empty URL, which turns that panel off.
 
 The name of the project.
 - `--project`
@@ -504,6 +523,7 @@ export class DevPanelComponent {
 
 Inputs: `blacklist` / `whitelist` (`string[]`, filter store slices), `lazyReportUrl`
 (default `assets/lazy-report.json`; empty string disables the static correlation),
+`tableReportUrl` (default `assets/table-report.json`; empty string hides the Tables panel),
 `idbDatabaseNames` (`string[]`, DB names to inspect where `indexedDB.databases()` is unsupported —
 Firefox / older Safari), `pollingMs` (`number`, auto-refresh; `0` = manual), `allowRevealValues`
 (`boolean`, opt-in masked value reveal — gates both localStorage values and IndexedDB record
@@ -514,7 +534,7 @@ contains their RAW values), `apiBaseUrl` (`string`, base URL used in the Python 
 to `location.origin`).
 
 Outputs: `sliceReset` (`EventEmitter<string>`) emits the slice key whenever a full `Reset` is
-dispatched (including via the global **Azzera tutte** button).
+dispatched (including via the global **Reset all** button).
 
 Notes:
 - The **Store NgRx** panel exposes per-row actions: **reset** dispatches the library's `Reset`
@@ -537,6 +557,13 @@ Notes:
   just the marker-delimited variables block, regenerated with the current values — when the token
   rotates, paste it over the stale block without touching the rest of the script. The previews
   always mask the values (`maskValue`); the RAW values go only to the clipboard.
+- The **Tables** panel reads the static inventory produced by
+  `ng generate ngrx-entity-crud:table-report --format=json --output=src/assets/table-report.json`:
+  one row per grid (component, kind ag-Grid/p-table, location, referenced stores, statically
+  extracted column count, verdict), with an `orphan` tag on grids not referenced by any used
+  template/module. The **runtime** column correlates each grid's stores with the slices currently
+  mounted (`loaded` / `partial` / `not-loaded`). Like the lazy report, the JSON is a snapshot:
+  the panel shows its `generatedAt` and the command to regenerate it when stale.
 - IndexedDB is introspected **agnostically** via native APIs (`indexedDB.databases()` + `count()`),
   with an optional `NEC_IDB_ADAPTER` injection token for custom providers. Byte sizes per
   record/store are not measurable; only record counts and the aggregate origin quota

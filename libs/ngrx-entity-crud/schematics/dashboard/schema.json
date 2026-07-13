@@ -25,6 +25,16 @@
       "description": "Percorso del lazy-report JSON generato (se includeLazyReport=true).",
       "type": "string",
       "default": "src/assets/lazy-report.json"
+    },
+    "includeTableReport": {
+      "description": "Genera anche il table-report JSON (riuso di table-report --format=json) letto dal pannello Tables della dashboard.",
+      "type": "boolean",
+      "default": true
+    },
+    "tableReportOutput": {
+      "description": "Percorso del table-report JSON generato (se includeTableReport=true).",
+      "type": "string",
+      "default": "src/assets/table-report.json"
     }
   },
   "required": []

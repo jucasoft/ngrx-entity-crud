@@ -3,7 +3,10 @@
     <nec-dashboard> introspeziona localStorage, IndexedDB (in modo agnostico) e gli store NgRx.
     Input opzionali:
       - [blacklist] / [whitelist]: filtra le slice dello store.
-      - lazyReportUrl: percorso del lazy-report JSON (default 'assets/lazy-report.json').
+      - lazyReportUrl: percorso del lazy-report JSON (segue --lazy-report-output dello
+        schematic; stringa vuota per disattivare la correlazione statica).
+      - tableReportUrl: percorso del table-report JSON del pannello Tables (segue
+        --table-report-output dello schematic; stringa vuota per nascondere il pannello).
       - [idbDatabaseNames]: nomi DB da ispezionare dove indexedDB.databases() non è supportato
         (es. Firefox/Safari), p.es. [idbDatabaseNames]="['NgRxStateStore']".
       - [pollingMs]: auto-refresh in ms (0 = solo manuale).
@@ -13,7 +16,10 @@
         [apiBaseUrl]: base URL delle API nello snippet (default location.origin).
     Il pannello "NgRx store" espone i pulsanti "reset" / "reset responses" per riga e
     "Reset all" (con conferma a due step); l'output (sliceReset)="..." emette la key
-    della slice azzerata.
+    della slice azzerata. Il pannello "Tables" mostra l'inventario delle griglie
+    (ag-Grid / p-table) generato da ngrx-entity-crud:table-report, correlato a runtime
+    con le slice montate.
   -->
-  <nec-dashboard lazyReportUrl="assets/lazy-report.json"></nec-dashboard>
+  <nec-dashboard lazyReportUrl="<%= lazyReportUrl %>"
+                 tableReportUrl="<%= tableReportUrl %>"></nec-dashboard>
 </p-card>

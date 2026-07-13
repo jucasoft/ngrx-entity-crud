@@ -19,10 +19,18 @@ import {TableModule} from 'primeng/table';
 import {TagModule} from 'primeng/tag';
 import {TreeModule} from 'primeng/tree';
 import {TreeNode} from 'primeng/api';
-import {NecIdbReport, NecIdbStoreEntries, NecQuotaEstimate, NecStorageReport, NecStoreReport} from './models';
+import {
+  NecIdbReport,
+  NecIdbStoreEntries,
+  NecQuotaEstimate,
+  NecStorageReport,
+  NecStoreReport,
+  NecTableReport,
+} from './models';
 import {NecLocalStorageProbeService} from './probes/nec-local-storage-probe.service';
 import {NecIndexedDbProbeService} from './probes/nec-indexeddb-probe.service';
 import {NecStoreProbeService} from './probes/nec-store-probe.service';
+import {NecTableReportProbeService} from './probes/nec-table-report-probe.service';
 import {looksSensitiveKey, maskValue} from './mask';
 
 /**
@@ -43,7 +51,9 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
  * bar + dettaglio `usageDetails` su Chromium) e localStorage affiancati in griglia responsive,
  * snippet Python (pannello dedicato, opt-in), IndexedDB (agnostico, con `p-tree` espandibile
  * e lazy-load dei record), store NgRx + sezioni lazy (contatori, riepilogo errori e "Reset all"
- * DENTRO il pannello, perché agisce solo sulle slice; tabelle ordinabili). Per privacy mostra
+ * DENTRO il pannello, perché agisce solo sulle slice; tabelle ordinabili), inventario Tables
+ * (griglie ag-Grid/p-table da `table-report.json`, con colonne estratte via AST e correlazione
+ * runtime con le slice montate). Per privacy mostra
  * di default SOLO chiavi/dimensioni/conteggi; i valori (localStorage e record IndexedDB) sono
  * rivelabili solo con `allowRevealValues` e comunque mascherati. Unica eccezione, con opt-in
  * dedicato: lo snippet Python (`pythonSnippetKeys`) copia negli appunti i valori IN CHIARO
@@ -511,12 +521,86 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
         </ng-container>
       </p-card>
     </div>
+
+    <!-- Tabelle: inventario statico da table-report.json + correlazione runtime con le slice -->
+    <div class="nec-mb" *ngIf="tableReportUrl">
+      <p-card header="Tables">
+        <ng-container *ngIf="tableReport(); else noTableReport">
+          <div class="nec-row nec-mb">
+            <p-tag severity="info"
+                   [value]="tableReport()!.grids.length + (tableReport()!.grids.length === 1 ? ' grid' : ' grids')"></p-tag>
+            <p-tag severity="info" *ngIf="agGridCount()" [value]="agGridCount() + ' ag-grid'"></p-tag>
+            <p-tag severity="info" *ngIf="pTableCount()" [value]="pTableCount() + ' p-table'"></p-tag>
+            <p-tag severity="danger" *ngIf="orphanGridsCount()"
+                   [value]="orphanGridsCount() + (orphanGridsCount() === 1 ? ' orphan' : ' orphans')"></p-tag>
+            <p-tag severity="info" *ngIf="tableReport()!.summary?.agGridEnterprise"
+                   value="ag-grid enterprise"></p-tag>
+          </div>
+          <div class="nec-note nec-mb" *ngIf="tableReport()!.generatedAt">
+            snapshot generated on {{ tableReport()!.generatedAt }} — regenerate with
+            <code>ng generate ngrx-entity-crud:table-report --format=json --output=src/assets/table-report.json</code> if stale.
+          </div>
+          <p-table *ngIf="tableReport()!.grids.length; else noGrids"
+                   [value]="tableReport()!.grids" styleClass="p-datatable-sm">
+            <ng-template pTemplate="header">
+              <tr>
+                <th pSortableColumn="component">component <p-sortIcon field="component"></p-sortIcon></th>
+                <th pSortableColumn="kind">kind <p-sortIcon field="kind"></p-sortIcon></th>
+                <th pSortableColumn="where">where <p-sortIcon field="where"></p-sortIcon></th>
+                <th>stores</th>
+                <th class="nec-num" pSortableColumn="columnsCount">columns <p-sortIcon field="columnsCount"></p-sortIcon></th>
+                <th>runtime</th>
+                <th>verdict</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-g>
+              <tr>
+                <td>
+                  <span [title]="g.file">{{ g.component }}</span>
+                  <p-tag styleClass="nec-ml" severity="danger" icon="pi pi-exclamation-triangle"
+                         value="orphan" *ngIf="g.isOrphan"></p-tag>
+                </td>
+                <td>{{ g.kind }}<span class="nec-note" *ngIf="g.inlineTemplate"> (inline)</span></td>
+                <td>{{ g.where || '–' }}</td>
+                <td>{{ g.stores.join(', ') || '–' }}</td>
+                <td class="nec-num">
+                  <span [title]="g.columnFields.join(', ')">{{ formatGridColumns(g) }}</span>
+                </td>
+                <td>
+                  <!-- Il title elenca quali store della griglia sono montati e quali no. -->
+                  <span [title]="gridRuntimeTitle(g)">
+                    <p-tag *ngIf="g.runtimeStatus !== 'no-store'"
+                           [severity]="g.runtimeStatus === 'loaded' ? 'success' : 'info'"
+                           [value]="g.runtimeStatus"></p-tag>
+                    <span class="nec-note" *ngIf="g.runtimeStatus === 'no-store'">–</span>
+                  </span>
+                </td>
+                <td>{{ g.verdict || '–' }}</td>
+              </tr>
+            </ng-template>
+          </p-table>
+          <ng-template #noGrids>
+            <div class="nec-message nec-message-info">
+              <i class="pi pi-info-circle"></i>The table-report found no grids in the project.
+            </div>
+          </ng-template>
+        </ng-container>
+        <ng-template #noTableReport>
+          <div class="nec-message nec-message-info">
+            <i class="pi pi-info-circle"></i>No table-report loaded: generate
+            src/assets/table-report.json with «ng generate ngrx-entity-crud:table-report
+            --format=json --output=src/assets/table-report.json».
+          </div>
+        </ng-template>
+      </p-card>
+    </div>
   `,
 })
 export class NecDashboardComponent implements OnInit, OnDestroy {
   private readonly localStorageProbe = inject(NecLocalStorageProbeService);
   private readonly indexedDbProbe = inject(NecIndexedDbProbeService);
   private readonly storeProbe = inject(NecStoreProbeService);
+  private readonly tableReportProbe = inject(NecTableReportProbeService);
 
   /** Chiavi di slice da escludere dallo scan dello store. */
   @Input() blacklist: string[] = [];
@@ -524,6 +608,8 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
   @Input() whitelist: string[] = [];
   /** URL del report statico (`lazy-report --format=json`); `null`/'' per disattivarlo. */
   @Input() lazyReportUrl: string | null = 'assets/lazy-report.json';
+  /** URL dell'inventario tabelle (`table-report --format=json`); `null`/'' nasconde il pannello. */
+  @Input() tableReportUrl: string | null = 'assets/table-report.json';
   /** Nomi DB IndexedDB da ispezionare dove `databases()` non è supportato (es. Firefox). */
   @Input() idbDatabaseNames: string[] = [];
   /** Intervallo di auto-refresh in ms; 0 = solo manuale (default). Sospendibile dalla toolbar. */
@@ -551,6 +637,7 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
   readonly quota = signal<NecQuotaEstimate | null>(null);
   readonly idb = signal<NecIdbReport | null>(null);
   readonly storeReport = signal<NecStoreReport | null>(null);
+  readonly tableReport = signal<NecTableReport | null>(null);
   readonly revealed = signal<Record<string, string>>({});
   /** Slice in attesa di conferma per il `Reset` completo (conferma a due step). */
   readonly pendingResetKey = signal<string | null>(null);
@@ -595,6 +682,17 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
       .map(([key, value]) => ({key, value}))
       .sort((a, b) => b.value - a.value);
   });
+
+  /** Contatori del pannello Tables (dalle griglie caricate, non dal summary: robusto ai report parziali). */
+  readonly agGridCount = computed(
+    () => (this.tableReport()?.grids ?? []).filter((g) => g.kind === 'ag-grid').length
+  );
+  readonly pTableCount = computed(
+    () => (this.tableReport()?.grids ?? []).filter((g) => g.kind === 'p-table').length
+  );
+  readonly orphanGridsCount = computed(
+    () => (this.tableReport()?.grids ?? []).filter((g) => g.isOrphan).length
+  );
 
   /** Nodi `p-tree` della vista IndexedDB (DB → object store; i record sono lazy-load). */
   readonly idbTreeNodes = signal<TreeNode[]>([]);
@@ -657,6 +755,16 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
       } else {
         this.storeReport.set(this.storeProbe.read(opts));
       }
+      // Inventario tabelle: correlato con le chiavi root lette QUI sopra (stesso refresh).
+      // Si usa mountedKeys (verità non filtrata dello stato root), NON slices: le slice
+      // non-CRUD (es. `router`) e quelle in blacklist sono comunque montate.
+      if (this.tableReportUrl) {
+        const report = this.storeReport();
+        const mounted = report?.mountedKeys ?? report?.slices.map((s) => s.key) ?? [];
+        this.tableReport.set(await this.tableReportProbe.read(this.tableReportUrl, mounted));
+      } else {
+        this.tableReport.set(null);
+      }
       // Anteprime del pannello Python: sempre mascherate (in chiaro solo negli appunti).
       if (this.pythonSnippetKeys.length) {
         this.pythonVariablesPreview.set(this.pythonVariablesBlock(true));
@@ -697,6 +805,7 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
         localStorage: this.storage(),
         indexedDb: this.idb(),
         store: this.storeReport(),
+        tables: this.tableReport(),
       },
       null,
       2
@@ -951,6 +1060,34 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
 
   isSensitive(key: string): boolean {
     return looksSensitiveKey(key);
+  }
+
+  /** Tooltip della colonna "runtime": quali store della griglia risultano montati e quali no. */
+  gridRuntimeTitle(g: {stores: string[]; mountedStores: string[]}): string {
+    if (!g.stores.length) {
+      return 'the grid component references no store';
+    }
+    const missing = g.stores.filter((s) => g.mountedStores.indexOf(s) === -1);
+    const parts: string[] = [];
+    if (g.mountedStores.length) {
+      parts.push(`mounted: ${g.mountedStores.join(', ')}`);
+    }
+    if (missing.length) {
+      parts.push(`not mounted: ${missing.join(', ')}`);
+    }
+    return parts.join(' — ');
+  }
+
+  /** Cella "columns" del pannello Tables: conteggio statico, entry dinamiche, colonne runtime. */
+  formatGridColumns(g: {kind: string; columnsCount: number; columnsDynamicEntries: number; columnsSource: string | null}): string {
+    if (g.columnsSource === 'runtime-keys') {
+      return 'runtime';
+    }
+    if (g.kind !== 'ag-grid') {
+      return '–';
+    }
+    const dynamic = g.columnsDynamicEntries > 0 ? ` (+${g.columnsDynamicEntries} dynamic)` : '';
+    return `${g.columnsCount}${dynamic}`;
   }
 
   formatBytes(n: number | undefined | null): string {

@@ -32,6 +32,15 @@ describe('NecStoreProbeService', () => {
     expect(r.slices.map((s) => s.key)).toEqual(['coin', 'profile', 'settings']);
   });
 
+  it('mountedKeys espone TUTTE le chiavi root, incluse le non-CRUD e le escluse dai filtri', () => {
+    // `router` non è una slice CRUD (niente isLoading) ma È montata: serve alle correlazioni.
+    expect(probe.read().mountedKeys).toEqual(['coin', 'profile', 'router', 'settings']);
+    // blacklist/whitelist filtrano solo la vista `slices`, non la verità dello stato root.
+    const filtered = probe.read({blacklist: ['coin']});
+    expect(filtered.slices.map((s) => s.key)).toEqual(['profile', 'settings']);
+    expect(filtered.mountedKeys).toContain('coin');
+  });
+
   it('classifica kind e conteggi (plural/singular/unknown)', () => {
     const r = probe.read();
 

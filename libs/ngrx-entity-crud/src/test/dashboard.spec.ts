@@ -1,4 +1,10 @@
-import {dashboardRouteLiteral, resolveProjectName} from '../../schematics/dashboard/index';
+import {
+  dashboardRouteLiteral,
+  lazyReportComposition,
+  reportAssetUrl,
+  resolveProjectName,
+  tableReportComposition,
+} from '../../schematics/dashboard/index';
 
 /**
  * Test della logica pura dello schematic `dashboard`. Il render dei template richiede l'engine
@@ -43,5 +49,51 @@ describe('dashboard schematic — dashboardRouteLiteral', () => {
     expect(literal).toContain('path: \'admin-panel\'');
     expect(literal).toContain('views/admin-panel/admin-panel.module');
     expect(literal).toContain('m.AdminPanelModule');
+  });
+});
+
+/**
+ * Le composizioni sono il contratto cross-subsystem schematic -> asset generato -> probe
+ * runtime: `format: 'json'` e i path di default DEVONO combaciare con gli URL letti da
+ * `<nec-dashboard>` (default `assets/lazy-report.json` / `assets/table-report.json`).
+ */
+describe('dashboard schematic — composizione dei report', () => {
+  it('di default compone il table-report in JSON su src/assets/table-report.json', () => {
+    expect(tableReportComposition({})).toEqual({
+      output: 'src/assets/table-report.json',
+      format: 'json',
+    });
+  });
+
+  it('rispetta tableReportOutput custom mantenendo il formato JSON', () => {
+    expect(tableReportComposition({tableReportOutput: 'src/assets/reports/tables.json'})).toEqual({
+      output: 'src/assets/reports/tables.json',
+      format: 'json',
+    });
+  });
+
+  it('con includeTableReport=false non compone nulla', () => {
+    expect(tableReportComposition({includeTableReport: false})).toBeNull();
+  });
+
+  it('di default compone il lazy-report in JSON su src/assets/lazy-report.json', () => {
+    expect(lazyReportComposition({})).toEqual({
+      output: 'src/assets/lazy-report.json',
+      format: 'json',
+    });
+  });
+
+  it('con includeLazyReport=false non compone nulla', () => {
+    expect(lazyReportComposition({includeLazyReport: false})).toBeNull();
+  });
+
+  it('reportAssetUrl deriva l\'URL runtime dal path di output (strip di src/)', () => {
+    expect(reportAssetUrl(tableReportComposition({}))).toBe('assets/table-report.json');
+    expect(reportAssetUrl(lazyReportComposition({}))).toBe('assets/lazy-report.json');
+    expect(reportAssetUrl(tableReportComposition({tableReportOutput: 'src/assets/reports/t.json'}))).toBe(
+      'assets/reports/t.json'
+    );
+    // report disattivato -> stringa vuota: per il componente '' nasconde/disattiva il pannello
+    expect(reportAssetUrl(null)).toBe('');
   });
 });

@@ -131,8 +131,70 @@ export interface NecStoreReport {
   slices: NecStoreSlice[];
   loadingNames: string[];
   errors: string[];
+  /**
+   * TUTTE le chiavi top-level dello stato root, incluse le slice non-CRUD (es. `router`) e
+   * quelle escluse da blacklist/whitelist: `slices` è la vista FILTRATA per il pannello store,
+   * `mountedKeys` è la verità dello stato root per le correlazioni (es. pannello Tables).
+   * Opzionale per retro-compatibilità dei report costruiti a mano nei test dei consumer.
+   */
+  mountedKeys?: string[];
   /** Presente solo se è stato fornito un `lazyReportUrl` e il fetch è riuscito. */
   lazy?: NecLazyEntry[];
   /** Timestamp ISO di generazione del `lazy-report.json` (per segnalare snapshot stantii). */
   lazyReportGeneratedAt?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Tabelle (inventario statico da `table-report.json` + correlazione runtime)
+// ---------------------------------------------------------------------------
+
+/**
+ * Stato runtime degli store referenziati da una griglia: `loaded` se tutte le slice sono
+ * montate, `partial` se solo alcune, `not-loaded` se nessuna, `no-store` se il componente
+ * della griglia non referenzia alcuno store.
+ */
+export type NecGridRuntimeStatus = 'loaded' | 'partial' | 'not-loaded' | 'no-store';
+
+/** Una griglia censita da `ngrx-entity-crud:table-report` (ag-Grid o PrimeNG `p-table`). */
+export interface NecTableGridEntry {
+  component: string;
+  selector: string | null;
+  file: string;
+  /** `'ag-grid'` | `'p-table'` (stringa aperta: il report può evolvere). */
+  kind: string;
+  /** Etichetta di posizione dal report (es. `views/product-browser`, `core/components/log`). */
+  where: string;
+  section: string | null;
+  inlineTemplate: boolean;
+  /** Chiavi (dasherizzate) degli store referenziati dal componente della griglia. */
+  stores: string[];
+  /** Sottoinsieme di `stores` le cui slice risultano montate nello stato root. */
+  mountedStores: string[];
+  columnsCount: number;
+  /** Entry di colonna non analizzabili staticamente (spread/factory), contate dal report. */
+  columnsDynamicEntries: number;
+  columnsSource: string | null;
+  colDefType: string | null;
+  /** `field` delle colonne estratte via AST (solo se il report include `columns`). */
+  columnFields: string[];
+  isOrphan: boolean;
+  verdict: string | null;
+  /** Correlazione runtime con le slice montate (vedi {@link NecGridRuntimeStatus}). */
+  runtimeStatus: NecGridRuntimeStatus;
+}
+
+export interface NecTableSummary {
+  grids: number;
+  agGrid: number;
+  pTable: number;
+  orphans: number;
+  agGridEnterprise: boolean;
+}
+
+/** Inventario tabelle prodotto da `table-report --format=json`, arricchito a runtime. */
+export interface NecTableReport {
+  /** Timestamp ISO di generazione del `table-report.json` (per segnalare snapshot stantii). */
+  generatedAt?: string;
+  summary?: NecTableSummary;
+  grids: NecTableGridEntry[];
 }

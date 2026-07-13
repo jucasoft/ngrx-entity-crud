@@ -83,7 +83,11 @@ export class NecStoreProbeService {
     }
 
     slices.sort((a, b) => a.key.localeCompare(b.key));
-    return {slices, loadingNames, errors};
+    // Verità dello stato root, NON filtrata: blacklist/whitelist scopano solo la vista `slices`
+    // del pannello store, mentre le correlazioni (es. pannello Tables) devono vedere anche le
+    // slice non-CRUD montate (es. `router`) e quelle nascoste dai filtri.
+    const mountedKeys = Object.keys(root).sort();
+    return {slices, loadingNames, errors, mountedKeys};
   }
 
   /**

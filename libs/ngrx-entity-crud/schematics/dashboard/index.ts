@@ -2,6 +2,7 @@ import {chain, Rule, SchematicContext, SchematicsException, Tree} from '@angular
 import {strings} from '@angular-devkit/core';
 import {addRouteDeclarationToNgModule, render} from '../my-utility';
 import {lazyReport} from '../lazy-report/index';
+import {tableReport} from '../table-report/index';
 
 /**
  * Risolve il nome del progetto Angular.
@@ -28,6 +29,31 @@ export function dashboardRouteLiteral(clazz: string): string {
   return `{path: '${dash}', loadChildren: () => import('./main/views/${dash}/${dash}.module').then(m => m.${clazz}Module)}`;
 }
 
+/** Opzioni con cui comporre `lazyReport`; `null` se disattivato (`--include-lazy-report=false`). */
+export function lazyReportComposition(options: Dashboard): {output: string; format: 'json'} | null {
+  if (options.includeLazyReport === false) {
+    return null;
+  }
+  return {output: options.lazyReportOutput || 'src/assets/lazy-report.json', format: 'json'};
+}
+
+/** Opzioni con cui comporre `tableReport`; `null` se disattivato (`--include-table-report=false`). */
+export function tableReportComposition(options: Dashboard): {output: string; format: 'json'} | null {
+  if (options.includeTableReport === false) {
+    return null;
+  }
+  return {output: options.tableReportOutput || 'src/assets/table-report.json', format: 'json'};
+}
+
+/**
+ * URL runtime dell'asset generato (path filesystem senza il prefisso `src/`), passato al
+ * template del wrapper così `<nec-dashboard>` legge il report DOVE lo schematic lo scrive.
+ * Stringa vuota se il report è disattivato: per il componente '' disattiva/nasconde il pannello.
+ */
+export function reportAssetUrl(composition: {output: string} | null): string {
+  return composition ? composition.output.replace(/^src\//, '') : '';
+}
+
 export function makeDashboard(options: Dashboard): Rule {
   return (tree: Tree, _context: SchematicContext) => {
     options.clazz = strings.classify(options.clazz || 'Dashboard');
@@ -52,24 +78,42 @@ export function makeDashboard(options: Dashboard): Rule {
       }
     }
 
+    const lazy = lazyReportComposition(options);
+    const table = tableReportComposition(options);
+
     const _chain: Rule[] = [
       // Genera SOLO un thin wrapper PrimeNG che ospita <nec-dashboard>: la logica vive nella
       // libreria (ngrx-entity-crud/devtools). MergeStrategy.Overwrite (14) confinato al chrome.
-      render(options, './files/primeng', pathView),
-      addRouteDeclarationToNgModule({
-        module: `${pathApp}/app-routing.module.ts`,
-        routeLiteral: dashboardRouteLiteral(options.clazz),
-      }),
+      // Gli URL runtime nel template seguono i path di output dei report (niente hard-coding).
+      render(
+        {...options, lazyReportUrl: reportAssetUrl(lazy), tableReportUrl: reportAssetUrl(table)},
+        './files/primeng',
+        pathView
+      ),
     ];
 
-    // Riuso (non duplicazione): genera anche l'inventario statico letto a runtime dalla dashboard.
-    if (options.includeLazyReport !== false) {
+    // Idempotenza sul re-run (--force): addRouteDeclarationToNgModule non deduplica, quindi
+    // la rotta si aggiunge solo se il routing non referenzia già il modulo generato.
+    const routingPath = `/${pathApp}/app-routing.module.ts`;
+    const routingBuf = tree.read(routingPath);
+    const dash = strings.dasherize(options.clazz);
+    const alreadyRouted =
+      routingBuf !== null && routingBuf.toString().indexOf(`views/${dash}/${dash}.module`) !== -1;
+    if (!alreadyRouted) {
       _chain.push(
-        lazyReport({
-          output: options.lazyReportOutput || 'src/assets/lazy-report.json',
-          format: 'json',
+        addRouteDeclarationToNgModule({
+          module: `${pathApp}/app-routing.module.ts`,
+          routeLiteral: dashboardRouteLiteral(options.clazz),
         })
       );
+    }
+
+    // Riuso (non duplicazione): genera anche gli inventari statici letti a runtime dalla dashboard.
+    if (lazy) {
+      _chain.push(lazyReport(lazy));
+    }
+    if (table) {
+      _chain.push(tableReport(table));
     }
 
     return chain(_chain);

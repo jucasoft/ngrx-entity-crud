@@ -3,7 +3,8 @@ import {NecDashboardComponent} from './nec-dashboard.component';
 import {NecLocalStorageProbeService} from './probes/nec-local-storage-probe.service';
 import {NecIndexedDbProbeService} from './probes/nec-indexeddb-probe.service';
 import {NecStoreProbeService} from './probes/nec-store-probe.service';
-import {NecStoreReport} from './models';
+import {NecTableReportProbeService} from './probes/nec-table-report-probe.service';
+import {NecStoreReport, NecTableReport} from './models';
 
 describe('NecDashboardComponent (azioni di reset)', () => {
   const report: NecStoreReport = {
@@ -13,6 +14,8 @@ describe('NecDashboardComponent (azioni di reset)', () => {
     ],
     loadingNames: [],
     errors: [],
+    // verità dello stato root: include anche la slice non-CRUD `router`, assente da `slices`
+    mountedKeys: ['coin', 'profile', 'router'],
   };
 
   let fixture: ComponentFixture<NecDashboardComponent>;
@@ -20,6 +23,7 @@ describe('NecDashboardComponent (azioni di reset)', () => {
   let storeProbe: {reset: jest.Mock; resetResponses: jest.Mock; read: jest.Mock; readWithLazyReport: jest.Mock};
   let idbProbe: {read: jest.Mock; readStoreEntries: jest.Mock};
   let localProbe: {read: jest.Mock; estimate: jest.Mock; readValue: jest.Mock};
+  let tableProbe: {read: jest.Mock};
 
   beforeEach(() => {
     storeProbe = {
@@ -43,6 +47,9 @@ describe('NecDashboardComponent (azioni di reset)', () => {
         truncated: false,
       }),
     };
+    tableProbe = {
+      read: jest.fn().mockResolvedValue(null),
+    };
 
     TestBed.configureTestingModule({
       imports: [NecDashboardComponent],
@@ -50,6 +57,7 @@ describe('NecDashboardComponent (azioni di reset)', () => {
         {provide: NecLocalStorageProbeService, useValue: localProbe},
         {provide: NecIndexedDbProbeService, useValue: idbProbe},
         {provide: NecStoreProbeService, useValue: storeProbe},
+        {provide: NecTableReportProbeService, useValue: tableProbe},
       ],
     });
 
@@ -169,6 +177,7 @@ describe('NecDashboardComponent (azioni di reset)', () => {
       expect(parsed).toHaveProperty('quota');
       expect(parsed).toHaveProperty('localStorage');
       expect(parsed).toHaveProperty('indexedDb');
+      expect(parsed).toHaveProperty('tables');
     });
 
     it('copyReport scrive negli appunti e attiva il feedback "Copiato"', async () => {
@@ -227,6 +236,114 @@ describe('NecDashboardComponent (azioni di reset)', () => {
       expect(writeText.mock.calls[0][0]).toContain('tok\\"123');
       expect(component.copiedPython()).toBe('vars');
       component.ngOnDestroy(); // azzera il timer del feedback
+    });
+  });
+
+  describe('pannello Tables (inventario da table-report)', () => {
+    const tables: NecTableReport = {
+      generatedAt: '2026-07-10T10:00:00.000Z',
+      summary: {grids: 3, agGrid: 2, pTable: 1, orphans: 1, agGridEnterprise: true},
+      grids: [
+        {
+          component: 'CoinListComponent', selector: 'app-coin-list', file: 'src/app/x.ts',
+          kind: 'ag-grid', where: 'views/coin', section: 'coin', inlineTemplate: false,
+          stores: ['coin'], mountedStores: ['coin'], columnsCount: 4, columnsDynamicEntries: 1,
+          columnsSource: 'class-property', colDefType: 'CustomColDef',
+          columnFields: ['id', 'name'], isOrphan: false, verdict: 'ok', runtimeStatus: 'loaded',
+        },
+        {
+          component: 'LogListComponent', selector: 'app-log-list', file: 'src/app/y.ts',
+          kind: 'ag-grid', where: 'core/log', section: null, inlineTemplate: true,
+          stores: [], mountedStores: [], columnsCount: 6, columnsDynamicEntries: 0,
+          columnsSource: 'assignment', colDefType: null,
+          columnFields: [], isOrphan: true, verdict: 'orphan?', runtimeStatus: 'no-store',
+        },
+        {
+          component: 'DogListComponent', selector: 'app-dog-list', file: 'src/app/z.ts',
+          kind: 'p-table', where: 'views/dog', section: 'dog', inlineTemplate: false,
+          stores: ['dog'], mountedStores: [], columnsCount: 0, columnsDynamicEntries: 0,
+          columnsSource: 'runtime-keys', colDefType: null,
+          columnFields: [], isOrphan: false, verdict: 'ok (runtime columns)', runtimeStatus: 'not-loaded',
+        },
+      ],
+    };
+
+    it('i contatori derivano dalle griglie caricate', () => {
+      component.tableReport.set(tables);
+      expect(component.agGridCount()).toBe(2);
+      expect(component.pTableCount()).toBe(1);
+      expect(component.orphanGridsCount()).toBe(1);
+    });
+
+    it('i contatori valgono 0 senza report', () => {
+      component.tableReport.set(null);
+      expect(component.agGridCount()).toBe(0);
+      expect(component.pTableCount()).toBe(0);
+      expect(component.orphanGridsCount()).toBe(0);
+    });
+
+    it('gridRuntimeTitle spiega i partial (store non montati o non-CRUD)', () => {
+      expect(component.gridRuntimeTitle(tables.grids[0])).toBe('mounted: coin');
+      expect(component.gridRuntimeTitle(tables.grids[1])).toBe('the grid component references no store');
+      expect(component.gridRuntimeTitle(tables.grids[2])).toBe('not mounted: dog');
+      expect(component.gridRuntimeTitle({stores: ['a', 'b'], mountedStores: ['a']})).toBe(
+        'mounted: a — not mounted: b'
+      );
+    });
+
+    it('formatGridColumns distingue statiche, dinamiche e runtime', () => {
+      expect(component.formatGridColumns(tables.grids[0])).toBe('4 (+1 dynamic)');
+      expect(component.formatGridColumns(tables.grids[1])).toBe('6');
+      expect(component.formatGridColumns(tables.grids[2])).toBe('runtime');
+      expect(
+        component.formatGridColumns({kind: 'p-table', columnsCount: 0, columnsDynamicEntries: 0, columnsSource: null})
+      ).toBe('–');
+    });
+
+    it('refresh interroga il probe con le chiavi root NON filtrate (mountedKeys) e salva il report', async () => {
+      (component.refresh as jest.Mock).mockRestore();
+      tableProbe.read.mockResolvedValue(tables);
+
+      await component.refresh();
+
+      // mountedKeys include anche `router` (slice non-CRUD, esclusa dalla vista `slices`)
+      expect(tableProbe.read).toHaveBeenCalledWith('assets/table-report.json', ['coin', 'profile', 'router']);
+      expect(component.tableReport()).toEqual(tables);
+    });
+
+    it('senza mountedKeys (report costruito a mano) ripiega sulle chiavi delle slice', async () => {
+      (component.refresh as jest.Mock).mockRestore();
+      const legacy: NecStoreReport = {...report};
+      delete legacy.mountedKeys;
+      storeProbe.readWithLazyReport.mockResolvedValue(legacy);
+      tableProbe.read.mockResolvedValue(tables);
+
+      await component.refresh();
+
+      expect(tableProbe.read).toHaveBeenCalledWith('assets/table-report.json', ['coin', 'profile']);
+    });
+
+    it('refresh sovrascrive con null un report precedente quando il probe non trova più il file', async () => {
+      (component.refresh as jest.Mock).mockRestore();
+      component.tableReport.set(tables); // report "buono" da un refresh precedente
+      tableProbe.read.mockResolvedValue(null); // es. 404 dopo un deploy senza table-report.json
+
+      await component.refresh();
+
+      // niente snapshot stantio: il pannello torna all'empty state col comando di rigenerazione
+      expect(tableProbe.read).toHaveBeenCalled();
+      expect(component.tableReport()).toBeNull();
+    });
+
+    it('con tableReportUrl vuoto il probe non viene interrogato e il report resta null', async () => {
+      (component.refresh as jest.Mock).mockRestore();
+      component.tableReportUrl = '';
+      component.tableReport.set(tables);
+
+      await component.refresh();
+
+      expect(tableProbe.read).not.toHaveBeenCalled();
+      expect(component.tableReport()).toBeNull();
     });
   });
 
