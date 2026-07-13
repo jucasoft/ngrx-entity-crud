@@ -578,6 +578,31 @@ Notes:
   object store → record): expanding an object store **lazily** reads up to `idbEntryLimit` records
   and lists their keys; with `[allowRevealValues]="true"` each record can be expanded further to
   show its value (serialized to JSON and masked for sensitive patterns).
+- The **Live grids** panel shows the ag-Grid instances that registered themselves at runtime —
+  grid instances are not enumerable from the outside, so registration is explicit and opt-in
+  (same principle as `NEC_IDB_ADAPTER`). Two lines in the consumer component:
+
+  ```ts
+  import { NecGridRegistryService } from 'ngrx-entity-crud/devtools';
+
+  constructor(private gridRegistry: NecGridRegistryService) {}
+  private gridUnregister?: () => void;
+
+  onGridReady(params: GridReadyEvent): void {
+    this.gridUnregister = this.gridRegistry.register('product-browser', params.api,
+      { store: 'product_browser', component: 'ProductBrowserListComponent' });
+  }
+  ngOnDestroy(): void { this.gridUnregister?.(); }
+  ```
+
+  `register` takes any object structurally compatible with `NecGridHandle` (the `GridApi` of
+  ag-Grid 31+ is; the library does NOT depend on ag-grid). The panel appears only when at least
+  one grid is registered and shows, per grid: displayed rows vs the entities of the correlated
+  slice (via the optional `store` meta — displayed < entities means filters are hiding rows),
+  selected rows, active filter count, sorted columns, plus **autosize** / **clear filters** /
+  **deselect** row actions. Every handle call is defensive: a missing or throwing method
+  degrades to `–`, a destroyed grid (`isDestroyed()`) is evicted automatically even without
+  unregister. Values refresh with the dashboard (manual or `pollingMs`).
 - The **Scaffold** panel (`<nec-scaffold>`, its own standalone component, included in the
   generated wrapper unless `--include-scaffold=false`) assists the "new section" flow of the
   consumer schematics: type the entity name (live `classify`/`dasherize` preview, mirroring

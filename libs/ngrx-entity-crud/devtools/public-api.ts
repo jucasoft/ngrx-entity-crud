@@ -14,5 +14,6 @@ export * from './probes/nec-local-storage-probe.service';
 export * from './probes/nec-indexeddb-probe.service';
 export * from './probes/nec-store-probe.service';
 export * from './probes/nec-table-report-probe.service';
+export * from './nec-grid-registry.service';
 export * from './nec-dashboard.component';
 export * from './nec-scaffold.component';

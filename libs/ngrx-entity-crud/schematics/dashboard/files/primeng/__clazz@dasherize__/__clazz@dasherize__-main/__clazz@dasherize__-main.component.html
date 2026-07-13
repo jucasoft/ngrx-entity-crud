@@ -19,6 +19,12 @@
     della slice azzerata. Il pannello "Tables" mostra l'inventario delle griglie
     (ag-Grid / p-table) generato da ngrx-entity-crud:table-report, correlato a runtime
     con le slice montate.
+    Il pannello "Live grids" è opt-in e compare solo se una griglia si registra nel
+    NecGridRegistryService (da 'ngrx-entity-crud/devtools'), tipicamente in onGridReady:
+      this.gridUnregister = this.gridRegistry.register('product-browser', params.api,
+        {store: 'product_browser', component: 'ProductBrowserListComponent'});
+    e in ngOnDestroy: this.gridUnregister?.(); — mostra righe visualizzate vs entità
+    della slice, selezione, filtri e sort, con azioni autosize / clear filters / deselect.
   -->
   <nec-dashboard lazyReportUrl="<%= lazyReportUrl %>"
                  tableReportUrl="<%= tableReportUrl %>"></nec-dashboard>

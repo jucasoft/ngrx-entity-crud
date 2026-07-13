@@ -41,6 +41,16 @@ describe('NecStoreProbeService', () => {
     expect(filtered.mountedKeys).toContain('coin');
   });
 
+  it('mountedEntityCounts espone i conteggi delle plural anche se escluse dai filtri', () => {
+    // Sorgente della colonna "entities" del pannello Live grids: una slice in blacklist è
+    // comunque montata, quindi il suo conteggio deve restare visibile alle correlazioni.
+    const filtered = probe.read({blacklist: ['coin']});
+    expect(filtered.slices.map((s) => s.key)).toEqual(['profile', 'settings']);
+    expect(filtered.mountedEntityCounts?.['coin']).toBe(2);
+    // le singular non hanno entityCount: assenti dalla mappa, non 0
+    expect(filtered.mountedEntityCounts).not.toHaveProperty('profile');
+  });
+
   it('classifica kind e conteggi (plural/singular/unknown)', () => {
     const r = probe.read();
 

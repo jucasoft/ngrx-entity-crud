@@ -36,11 +36,11 @@ export class NecStoreProbeService {
     const slices: NecStoreSlice[] = [];
     const loadingNames: string[] = [];
     const errors: string[] = [];
+    // Conteggi NON filtrati: come mountedKeys, servono alle correlazioni (es. pannello
+    // Live grids) che devono vedere anche le slice nascoste da blacklist/whitelist.
+    const mountedEntityCounts: Record<string, number> = {};
 
     for (const [key, value] of Object.entries(root)) {
-      if (!isEligible(key)) {
-        continue;
-      }
       if (!value || typeof value !== 'object' || typeof value.isLoading !== 'boolean') {
         continue;
       }
@@ -59,6 +59,12 @@ export class NecStoreProbeService {
             ? v['ids'].length
             : Object.keys(v['entities'] ?? {}).length
           : undefined;
+      if (entityCount !== undefined) {
+        mountedEntityCounts[key] = entityCount;
+      }
+      if (!isEligible(key)) {
+        continue; // esclusa dalla vista `slices`, ma il conteggio qui sopra resta
+      }
       const responsesCount = Array.isArray(v['responses']) ? v['responses'].length : 0;
       const hasData =
         (entityCount ?? 0) > 0 || (kind === 'singular' && v['item'] != null) || responsesCount > 0;
@@ -87,7 +93,7 @@ export class NecStoreProbeService {
     // del pannello store, mentre le correlazioni (es. pannello Tables) devono vedere anche le
     // slice non-CRUD montate (es. `router`) e quelle nascoste dai filtri.
     const mountedKeys = Object.keys(root).sort();
-    return {slices, loadingNames, errors, mountedKeys};
+    return {slices, loadingNames, errors, mountedKeys, mountedEntityCounts};
   }
 
   /**

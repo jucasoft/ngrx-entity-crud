@@ -22,6 +22,7 @@ import {TreeNode} from 'primeng/api';
 import {
   NecIdbReport,
   NecIdbStoreEntries,
+  NecLiveGridEntry,
   NecQuotaEstimate,
   NecStorageReport,
   NecStoreReport,
@@ -31,6 +32,7 @@ import {NecLocalStorageProbeService} from './probes/nec-local-storage-probe.serv
 import {NecIndexedDbProbeService} from './probes/nec-indexeddb-probe.service';
 import {NecStoreProbeService} from './probes/nec-store-probe.service';
 import {NecTableReportProbeService} from './probes/nec-table-report-probe.service';
+import {NecGridRegistryService} from './nec-grid-registry.service';
 import {looksSensitiveKey, maskValue} from './mask';
 
 /**
@@ -53,7 +55,10 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
  * e lazy-load dei record), store NgRx + sezioni lazy (contatori, riepilogo errori e "Reset all"
  * DENTRO il pannello, perché agisce solo sulle slice; tabelle ordinabili), inventario Tables
  * (griglie ag-Grid/p-table da `table-report.json`, con colonne estratte via AST e correlazione
- * runtime con le slice montate). Per privacy mostra
+ * runtime con le slice montate) e griglie Live (registry runtime OPT-IN via
+ * `NecGridRegistryService`: righe visualizzate vs entità della slice, selezione, filtri, sort,
+ * azioni autosize/clear — il pannello compare solo se almeno una griglia si registra in
+ * `onGridReady`). Per privacy mostra
  * di default SOLO chiavi/dimensioni/conteggi; i valori (localStorage e record IndexedDB) sono
  * rivelabili solo con `allowRevealValues` e comunque mascherati. Unica eccezione, con opt-in
  * dedicato: lo snippet Python (`pythonSnippetKeys`) copia negli appunti i valori IN CHIARO
@@ -594,6 +599,65 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
         </ng-template>
       </p-card>
     </div>
+
+    <!-- Griglie live: registry runtime OPT-IN (NecGridRegistryService). Il pannello compare
+         solo se almeno una griglia si è registrata in onGridReady: niente rumore altrove. -->
+    <div class="nec-mb" *ngIf="liveGrids().length">
+      <p-card header="Live grids">
+        <div class="nec-note nec-mb">
+          Grids registered at runtime via <code>NecGridRegistryService</code> (opt-in:
+          <code>register</code> in <code>onGridReady</code>, unregister in
+          <code>ngOnDestroy</code>); values are read at each refresh.
+        </div>
+        <p-table [value]="liveGrids()" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header">
+            <tr>
+              <th pSortableColumn="key">grid <p-sortIcon field="key"></p-sortIcon></th>
+              <th pSortableColumn="store">store <p-sortIcon field="store"></p-sortIcon></th>
+              <th class="nec-num" pSortableColumn="displayedRows">displayed <p-sortIcon field="displayedRows"></p-sortIcon></th>
+              <th class="nec-num">entities</th>
+              <th class="nec-num" pSortableColumn="selectedCount">selected <p-sortIcon field="selectedCount"></p-sortIcon></th>
+              <th class="nec-num" pSortableColumn="filterCount">filters <p-sortIcon field="filterCount"></p-sortIcon></th>
+              <th>sort</th>
+              <th class="nec-actions">actions</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-g>
+            <tr>
+              <td><span [title]="g.component || ''">{{ g.key }}</span></td>
+              <td>{{ g.store || '–' }}</td>
+              <td class="nec-num">{{ g.displayedRows ?? '–' }}</td>
+              <!-- Entità della slice associata: displayed < entities segnala filtri attivi. -->
+              <td class="nec-num">{{ liveGridEntityCount(g) ?? '–' }}</td>
+              <td class="nec-num">{{ g.selectedCount ?? '–' }}</td>
+              <td class="nec-num">{{ g.filterCount ?? '–' }}</td>
+              <td>{{ g.sortedColumns?.join(', ') || '–' }}</td>
+              <td class="nec-actions">
+                <div class="nec-row">
+                  <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm"
+                          icon="pi pi-arrows-h" label="autosize"
+                          [attr.aria-label]="'Autosize the columns of grid ' + g.key"
+                          (click)="autoSizeLiveGrid(g)"></button>
+                  <!-- Disabilitati SOLO a contatore 0 certo: null = non leggibile, e l'azione
+                       di scrittura potrebbe comunque funzionare (letture e scritture degradano
+                       in modo indipendente sull'handle). -->
+                  <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm"
+                          icon="pi pi-filter-slash" label="clear filters"
+                          [disabled]="g.filterCount === 0"
+                          [attr.aria-label]="'Clear the filters of grid ' + g.key"
+                          (click)="clearLiveGridFilters(g)"></button>
+                  <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm"
+                          icon="pi pi-minus-circle" label="deselect"
+                          [disabled]="g.selectedCount === 0"
+                          [attr.aria-label]="'Deselect all rows of grid ' + g.key"
+                          (click)="clearLiveGridSelection(g)"></button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-card>
+    </div>
   `,
 })
 export class NecDashboardComponent implements OnInit, OnDestroy {
@@ -601,6 +665,7 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
   private readonly indexedDbProbe = inject(NecIndexedDbProbeService);
   private readonly storeProbe = inject(NecStoreProbeService);
   private readonly tableReportProbe = inject(NecTableReportProbeService);
+  private readonly gridRegistry = inject(NecGridRegistryService);
 
   /** Chiavi di slice da escludere dallo scan dello store. */
   @Input() blacklist: string[] = [];
@@ -638,6 +703,8 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
   readonly idb = signal<NecIdbReport | null>(null);
   readonly storeReport = signal<NecStoreReport | null>(null);
   readonly tableReport = signal<NecTableReport | null>(null);
+  /** Griglie registrate a runtime nel NecGridRegistryService, lette a ogni refresh. */
+  readonly liveGrids = signal<NecLiveGridEntry[]>([]);
   readonly revealed = signal<Record<string, string>>({});
   /** Slice in attesa di conferma per il `Reset` completo (conferma a due step). */
   readonly pendingResetKey = signal<string | null>(null);
@@ -765,6 +832,8 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
       } else {
         this.tableReport.set(null);
       }
+      // Griglie live: snapshot del registry opt-in (vuoto se nessuna griglia si è registrata).
+      this.liveGrids.set(this.gridRegistry.read());
       // Anteprime del pannello Python: sempre mascherate (in chiaro solo negli appunti).
       if (this.pythonSnippetKeys.length) {
         this.pythonVariablesPreview.set(this.pythonVariablesBlock(true));
@@ -806,6 +875,7 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
         indexedDb: this.idb(),
         store: this.storeReport(),
         tables: this.tableReport(),
+        liveGrids: this.liveGrids(),
       },
       null,
       2
@@ -1076,6 +1146,59 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
       parts.push(`not mounted: ${missing.join(', ')}`);
     }
     return parts.join(' — ');
+  }
+
+  // --- Pannello Live grids (registry runtime opt-in) ------------------------------------------
+
+  /**
+   * Entità della slice associata alla griglia live (correlazione via meta `store`).
+   * Usa `mountedEntityCounts` (verità NON filtrata, stessa regola di `mountedKeys`: una slice
+   * in blacklist è comunque montata), con tolleranza per il nome dasherizzato come le altre
+   * correlazioni; fallback sulla vista `slices` per i report legacy senza conteggi.
+   */
+  liveGridEntityCount(g: NecLiveGridEntry): number | null {
+    if (!g.store) {
+      return null;
+    }
+    const report = this.storeReport();
+    if (!report) {
+      return null;
+    }
+    const counts = report.mountedEntityCounts;
+    if (counts) {
+      return counts[g.store] ?? counts[g.store.replace(/-/g, '_')] ?? null;
+    }
+    const slice = report.slices.find((s) => s.key === g.store);
+    return slice?.entityCount ?? null;
+  }
+
+  /**
+   * Rilegge il SOLO snapshot del registry: le azioni di griglia cambiano stato di vista della
+   * griglia, non gli store — il refresh completo (fetch dei report, enumerazione IndexedDB,
+   * albero collassato, valori rivelati azzerati, conferme pendenti annullate) sarebbe
+   * sproporzionato e distruttivo per il resto della dashboard. `read()` evice anche gli handle
+   * distrutti, quindi un click su una riga zombie la fa sparire.
+   */
+  private reloadLiveGrids(): void {
+    this.liveGrids.set(this.gridRegistry.read());
+  }
+
+  /** Autosize delle colonne della griglia (i conteggi non cambiano; si rilegge per l'eviction). */
+  autoSizeLiveGrid(g: NecLiveGridEntry): void {
+    this.gridRegistry.autoSizeColumns(g.id);
+    this.reloadLiveGrids();
+  }
+
+  /** Azzera i filtri della griglia e rilegge lo snapshot (displayed torna al totale). */
+  clearLiveGridFilters(g: NecLiveGridEntry): void {
+    this.gridRegistry.clearFilters(g.id);
+    this.reloadLiveGrids();
+  }
+
+  /** Deseleziona tutte le righe della griglia e rilegge lo snapshot. */
+  clearLiveGridSelection(g: NecLiveGridEntry): void {
+    this.gridRegistry.clearSelection(g.id);
+    this.reloadLiveGrids();
   }
 
   /** Cella "columns" del pannello Tables: conteggio statico, entry dinamiche, colonne runtime. */

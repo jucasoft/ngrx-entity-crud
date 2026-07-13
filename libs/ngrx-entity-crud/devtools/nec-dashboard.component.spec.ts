@@ -4,7 +4,8 @@ import {NecLocalStorageProbeService} from './probes/nec-local-storage-probe.serv
 import {NecIndexedDbProbeService} from './probes/nec-indexeddb-probe.service';
 import {NecStoreProbeService} from './probes/nec-store-probe.service';
 import {NecTableReportProbeService} from './probes/nec-table-report-probe.service';
-import {NecStoreReport, NecTableReport} from './models';
+import {NecGridRegistryService} from './nec-grid-registry.service';
+import {NecLiveGridEntry, NecStoreReport, NecTableReport} from './models';
 
 describe('NecDashboardComponent (azioni di reset)', () => {
   const report: NecStoreReport = {
@@ -16,6 +17,10 @@ describe('NecDashboardComponent (azioni di reset)', () => {
     errors: [],
     // verità dello stato root: include anche la slice non-CRUD `router`, assente da `slices`
     mountedKeys: ['coin', 'profile', 'router'],
+    // conteggi NON filtrati: `product_browser` è montata ma esclusa dalla vista `slices`
+    // (es. blacklist) — le correlazioni devono vederla comunque
+    // eslint-disable-next-line camelcase -- le chiavi root reali sono underscore (convenzione Names.NAME)
+    mountedEntityCounts: {coin: 2, product_browser: 5},
   };
 
   let fixture: ComponentFixture<NecDashboardComponent>;
@@ -24,6 +29,7 @@ describe('NecDashboardComponent (azioni di reset)', () => {
   let idbProbe: {read: jest.Mock; readStoreEntries: jest.Mock};
   let localProbe: {read: jest.Mock; estimate: jest.Mock; readValue: jest.Mock};
   let tableProbe: {read: jest.Mock};
+  let gridRegistry: {read: jest.Mock; autoSizeColumns: jest.Mock; clearFilters: jest.Mock; clearSelection: jest.Mock};
 
   beforeEach(() => {
     storeProbe = {
@@ -50,6 +56,12 @@ describe('NecDashboardComponent (azioni di reset)', () => {
     tableProbe = {
       read: jest.fn().mockResolvedValue(null),
     };
+    gridRegistry = {
+      read: jest.fn().mockReturnValue([]),
+      autoSizeColumns: jest.fn().mockReturnValue(true),
+      clearFilters: jest.fn().mockReturnValue(true),
+      clearSelection: jest.fn().mockReturnValue(true),
+    };
 
     TestBed.configureTestingModule({
       imports: [NecDashboardComponent],
@@ -58,6 +70,7 @@ describe('NecDashboardComponent (azioni di reset)', () => {
         {provide: NecIndexedDbProbeService, useValue: idbProbe},
         {provide: NecStoreProbeService, useValue: storeProbe},
         {provide: NecTableReportProbeService, useValue: tableProbe},
+        {provide: NecGridRegistryService, useValue: gridRegistry},
       ],
     });
 
@@ -344,6 +357,67 @@ describe('NecDashboardComponent (azioni di reset)', () => {
 
       expect(tableProbe.read).not.toHaveBeenCalled();
       expect(component.tableReport()).toBeNull();
+    });
+  });
+
+  describe('pannello Live grids (registry runtime opt-in)', () => {
+    const grid: NecLiveGridEntry = {
+      id: 7,
+      key: 'coin-list',
+      store: 'coin',
+      component: 'CoinListComponent',
+      displayedRows: 1,
+      selectedCount: 0,
+      filterCount: 1,
+      sortedColumns: ['name asc'],
+      registeredAt: '2026-07-13T10:00:00.000Z',
+    };
+
+    it('refresh legge lo snapshot del registry e lo salva in liveGrids', async () => {
+      (component.refresh as jest.Mock).mockRestore();
+      gridRegistry.read.mockReturnValue([grid]);
+
+      await component.refresh();
+
+      expect(component.liveGrids()).toEqual([grid]);
+      expect(JSON.parse(component.diagnosticReport()).liveGrids.length).toBe(1);
+    });
+
+    it('liveGridEntityCount usa i conteggi NON filtrati (mountedEntityCounts)', () => {
+      expect(component.liveGridEntityCount(grid)).toBe(2); // coin
+      // slice montata ma esclusa dalla vista `slices` (blacklist): il conteggio c'è comunque
+      expect(component.liveGridEntityCount({...grid, store: 'product_browser'})).toBe(5);
+      // tolleranza per il nome dasherizzato, come le correlazioni dei report statici
+      expect(component.liveGridEntityCount({...grid, store: 'product-browser'})).toBe(5);
+      expect(component.liveGridEntityCount({...grid, store: null})).toBeNull();
+      expect(component.liveGridEntityCount({...grid, store: 'not-mounted'})).toBeNull();
+      // slice singular senza entityCount -> null, non 0
+      expect(component.liveGridEntityCount({...grid, store: 'profile'})).toBeNull();
+    });
+
+    it('report legacy senza mountedEntityCounts: fallback sulla vista slices', () => {
+      const legacy: NecStoreReport = {...report};
+      delete legacy.mountedEntityCounts;
+      component.storeReport.set(legacy);
+      expect(component.liveGridEntityCount(grid)).toBe(2); // slice `coin` del fixture
+    });
+
+    it('le azioni rileggono SOLO lo snapshot del registry, senza refresh completo', () => {
+      gridRegistry.read.mockReturnValue([grid]);
+
+      component.clearLiveGridFilters(grid);
+      expect(gridRegistry.clearFilters).toHaveBeenCalledWith(7);
+
+      component.clearLiveGridSelection(grid);
+      expect(gridRegistry.clearSelection).toHaveBeenCalledWith(7);
+
+      component.autoSizeLiveGrid(grid);
+      expect(gridRegistry.autoSizeColumns).toHaveBeenCalledWith(7);
+
+      // il click su un'azione non deve costare fetch/IndexedDB né azzerare lo stato UI
+      expect(component.refresh).not.toHaveBeenCalled();
+      expect(gridRegistry.read).toHaveBeenCalledTimes(3); // eviction/conteggi aggiornati
+      expect(component.liveGrids()).toEqual([grid]);
     });
   });
 

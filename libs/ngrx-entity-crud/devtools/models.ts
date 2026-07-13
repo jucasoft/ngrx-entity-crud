@@ -138,6 +138,12 @@ export interface NecStoreReport {
    * Opzionale per retro-compatibilità dei report costruiti a mano nei test dei consumer.
    */
   mountedKeys?: string[];
+  /**
+   * Conteggio entità per OGNI slice CRUD plural montata, NON filtrato da blacklist/whitelist
+   * (stessa regola di `mountedKeys`): è la sorgente della colonna "entities" del pannello
+   * Live grids. Opzionale per retro-compatibilità dei report costruiti a mano.
+   */
+  mountedEntityCounts?: Record<string, number>;
   /** Presente solo se è stato fornito un `lazyReportUrl` e il fetch è riuscito. */
   lazy?: NecLazyEntry[];
   /** Timestamp ISO di generazione del `lazy-report.json` (per segnalare snapshot stantii). */
@@ -197,4 +203,59 @@ export interface NecTableReport {
   generatedAt?: string;
   summary?: NecTableSummary;
   grids: NecTableGridEntry[];
+}
+
+// ---------------------------------------------------------------------------
+// Registry runtime delle griglie (opt-in, vedi NecGridRegistryService)
+// ---------------------------------------------------------------------------
+
+/**
+ * Sottoinsieme STRUTTURALE delle `GridApi` di ag-Grid usato dal registry: il consumer passa
+ * `params.api` in `onGridReady` e il typing combacia per struttura, senza che la libreria
+ * dipenda da ag-grid (le istanze non sono enumerabili dall'esterno: serve la registrazione
+ * esplicita, stesso principio di `NEC_IDB_ADAPTER`). Tutti i metodi sono opzionali e letti
+ * in modo difensivo: con versioni di ag-Grid che non li espongono (o li espongono sulla
+ * vecchia `columnApi`) il dato corrispondente risulta `null`, nessun errore.
+ */
+export interface NecGridHandle {
+  getDisplayedRowCount?(): number;
+  getSelectedRows?(): unknown[];
+  getFilterModel?(): Record<string, unknown> | null;
+  getColumnState?(): Array<{colId: string; sort?: 'asc' | 'desc' | null; sortIndex?: number | null}>;
+  setFilterModel?(model: null): void;
+  deselectAll?(): void;
+  autoSizeAllColumns?(): void;
+  isDestroyed?(): boolean;
+}
+
+/** Metadati opzionali della registrazione: correlano la griglia a slice e componente. */
+export interface NecGridHandleMeta {
+  /** Chiave della slice NgRx nello stato root (es. `product_browser`): abilita la colonna "entities". */
+  store?: string;
+  /** Nome del componente che ospita la griglia (solo informativo). */
+  component?: string;
+}
+
+/** Snapshot di una griglia registrata, letto dal registry a ogni refresh della dashboard. */
+export interface NecLiveGridEntry {
+  /** Id della registrazione: bersaglio delle azioni (autosize / clear filters / clear selection). */
+  id: number;
+  key: string;
+  store: string | null;
+  component: string | null;
+  /** Righe attualmente visualizzate (post filtri); `null` se l'handle non lo espone. */
+  displayedRows: number | null;
+  selectedCount: number | null;
+  /**
+   * Numero di colonne con un filtro attivo; `null` se il filter model non è leggibile
+   * (un ritorno `null` dell'handle vale come "nessun filtro" → `0`).
+   */
+  filterCount: number | null;
+  /**
+   * Colonne ordinate, in ordine di `sortIndex`, come `"<colId> <asc|desc>"`;
+   * `null` se il column state non è leggibile (diverso da `[]`: nessun sort attivo).
+   */
+  sortedColumns: string[] | null;
+  /** Timestamp ISO della registrazione (`onGridReady`). */
+  registeredAt: string;
 }

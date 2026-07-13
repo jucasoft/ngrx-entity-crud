@@ -27,4 +27,7 @@ ng generate ngrx-entity-crud:dashboard --include-scaffold=false
 # il pannello Tables legge src/assets/table-report.json (generato insieme alla dashboard)
 # il pannello Scaffold (<nec-scaffold>) genera il conf grm-schematics/conf/<entita>.json
 # e i comandi ng generate della nuova sezione: incolla un DTO, spunta key/search, scarica il JSON
+# il pannello Live grids compare solo se una griglia si registra a runtime:
+# NecGridRegistryService.register('<key>', params.api, {store: '<slice>'}) in onGridReady
+# (verifica: displayed vs entities, filtri/sort/selezione, azioni autosize/clear/deselect)
 
