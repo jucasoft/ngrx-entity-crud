@@ -22,12 +22,14 @@ import {TreeNode} from 'primeng/api';
 import {
   NecIdbReport,
   NecIdbStoreEntries,
+  NecLazyEntry,
   NecLiveGridEntry,
   NecQuotaEstimate,
   NecStorageReport,
   NecStoreReport,
   NecTableReport,
 } from './models';
+import {necClassify} from './nec-scaffold.component';
 import {NecLocalStorageProbeService} from './probes/nec-local-storage-probe.service';
 import {NecIndexedDbProbeService} from './probes/nec-indexeddb-probe.service';
 import {NecStoreProbeService} from './probes/nec-store-probe.service';
@@ -53,7 +55,9 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
  * bar + dettaglio `usageDetails` su Chromium) e localStorage affiancati in griglia responsive,
  * snippet Python (pannello dedicato, opt-in), IndexedDB (agnostico, con `p-tree` espandibile
  * e lazy-load dei record), store NgRx + sezioni lazy (contatori, riepilogo errori e "Reset all"
- * DENTRO il pannello, perché agisce solo sulle slice; tabelle ordinabili), inventario Tables
+ * DENTRO il pannello, perché agisce solo sulle slice; tabelle ordinabili; per gli store
+ * promovibili un pulsante copia il comando `store --registration=lazy` di promozione,
+ * lo stesso del report Markdown di `lazy-report`), inventario Tables
  * (griglie ag-Grid/p-table da `table-report.json`, con colonne estratte via AST e correlazione
  * runtime con le slice montate) e griglie Live (registry runtime OPT-IN via
  * `NecGridRegistryService`: righe visualizzate vs entità della slice, selezione, filtri, sort,
@@ -495,6 +499,10 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
               snapshot generated on {{ storeReport()!.lazyReportGeneratedAt }} — regenerate with
               <code>ng generate ngrx-entity-crud:lazy-report --format=json</code> if stale.
             </div>
+            <div class="nec-note nec-mb" *ngIf="lazyCandidatesCount()">
+              Copy gives the promote command for the store; after generating, import the
+              <code>&lt;Clazz&gt;StoreModule</code> in the section's module.
+            </div>
             <p-table [value]="storeReport()!.lazy!" styleClass="p-datatable-sm">
               <ng-template pTemplate="header">
                 <tr>
@@ -502,6 +510,7 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
                   <th>sections</th>
                   <th>verdict</th>
                   <th>runtime</th>
+                  <th>command</th>
                 </tr>
               </ng-template>
               <ng-template pTemplate="body" let-l>
@@ -512,6 +521,19 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
                   <td>
                     <p-tag [severity]="l.runtimeStatus === 'loaded' ? 'success' : 'info'"
                            [value]="l.runtimeStatus"></p-tag>
+                  </td>
+                  <td>
+                    <!-- Solo per i lazy candidate: sulle altre righe il comando non ha senso
+                         (shell, multi-section, orfani). Il title mostra cosa verrà copiato. -->
+                    <button type="button" pButton
+                            class="p-button-secondary p-button-outlined p-button-sm"
+                            icon="pi pi-copy"
+                            *ngIf="l.isLazyCandidate"
+                            [label]="copiedLazy() === l.name ? 'Copied' : 'Copy'"
+                            [title]="lazyStoreCommand(l)"
+                            [attr.aria-label]="'Copy the promote command for store ' + l.name"
+                            (click)="copyLazyCommand(l)"></button>
+                    <span class="nec-note" *ngIf="!l.isLazyCandidate">–</span>
                   </td>
                 </tr>
               </ng-template>
@@ -718,6 +740,8 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
   readonly copied = signal(false);
   /** Feedback transitorio dei pulsanti dello snippet Python (quale copia è appena riuscita). */
   readonly copiedPython = signal<'snippet' | 'vars' | null>(null);
+  /** Feedback transitorio del pulsante copia-comando del pannello Lazy (nome dello store copiato). */
+  readonly copiedLazy = signal<string | null>(null);
   /** Anteprima MASCHERATA dello snippet Python completo (rigenerata a ogni refresh). */
   readonly pythonSnippetPreview = signal('');
   /** Anteprima MASCHERATA del solo blocco variabili (rigenerata a ogni refresh). */
@@ -733,6 +757,10 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
   /** Numero di slice con dati (contatore in testa al pannello Store NgRx). */
   readonly withDataCount = computed(
     () => (this.storeReport()?.slices ?? []).filter((s) => s.hasData).length
+  );
+  /** Store del lazy-report promovibili (campo strutturato `isLazyCandidate`, non il verdict). */
+  readonly lazyCandidatesCount = computed(
+    () => (this.storeReport()?.lazy ?? []).filter((l) => l.isLazyCandidate).length
   );
   /** Percentuale di quota origine usata (0–100, arrotondata); `null` se non stimabile. */
   readonly quotaPercent = computed(() => {
@@ -769,6 +797,7 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
   private timer: ReturnType<typeof setInterval> | null = null;
   private copiedTimer: ReturnType<typeof setTimeout> | null = null;
   private copiedPythonTimer: ReturnType<typeof setTimeout> | null = null;
+  private copiedLazyTimer: ReturnType<typeof setTimeout> | null = null;
   /** Un refresh richiesto mentre un altro è già in corso: viene ri-eseguito al termine. */
   private pendingRefresh = false;
 
@@ -795,6 +824,10 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
     if (this.copiedPythonTimer != null) {
       clearTimeout(this.copiedPythonTimer);
       this.copiedPythonTimer = null;
+    }
+    if (this.copiedLazyTimer != null) {
+      clearTimeout(this.copiedLazyTimer);
+      this.copiedLazyTimer = null;
     }
   }
 
@@ -1130,6 +1163,35 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
 
   isSensitive(key: string): boolean {
     return looksSensitiveKey(key);
+  }
+
+  // --- Pannello Lazy sections: comando di promozione copiabile -------------------------------
+
+  /**
+   * Comando di promozione dello store a registrazione lazy: lo STESSO emesso dalla sezione
+   * "Lazy candidates" del report Markdown dello schematic `lazy-report`, così dashboard e
+   * report restano allineati. Per i report legacy senza `clazz` lo si rideriva dal nome
+   * cartella (`coin-store` → `Coin`, stessa `classify` di @angular-devkit replicata da
+   * `necClassify`); `type` sconosciuto ripiega su CRUD-PLURAL come nel report.
+   */
+  lazyStoreCommand(l: NecLazyEntry): string {
+    const clazz = l.clazz || necClassify(l.name.replace(/-store$/, ''));
+    const type = l.type && l.type !== 'unknown' ? l.type : 'CRUD-PLURAL';
+    return `ng generate ngrx-entity-crud:store --clazz=${clazz} --type=${type} --registration=lazy`;
+  }
+
+  /** Copia il comando di promozione negli appunti e mostra "Copied" sulla riga per 2s. */
+  async copyLazyCommand(l: NecLazyEntry): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(this.lazyStoreCommand(l));
+    } catch {
+      return; // appunti non disponibili (permessi/contesto non sicuro): nessun feedback
+    }
+    this.copiedLazy.set(l.name);
+    if (this.copiedLazyTimer != null) {
+      clearTimeout(this.copiedLazyTimer);
+    }
+    this.copiedLazyTimer = setTimeout(() => this.copiedLazy.set(null), 2000);
   }
 
   /** Tooltip della colonna "runtime": quali store della griglia risultano montati e quali no. */

@@ -5,7 +5,7 @@ import {NecIndexedDbProbeService} from './probes/nec-indexeddb-probe.service';
 import {NecStoreProbeService} from './probes/nec-store-probe.service';
 import {NecTableReportProbeService} from './probes/nec-table-report-probe.service';
 import {NecGridRegistryService} from './nec-grid-registry.service';
-import {NecLiveGridEntry, NecStoreReport, NecTableReport} from './models';
+import {NecLazyEntry, NecLiveGridEntry, NecStoreReport, NecTableReport} from './models';
 
 describe('NecDashboardComponent (azioni di reset)', () => {
   const report: NecStoreReport = {
@@ -418,6 +418,68 @@ describe('NecDashboardComponent (azioni di reset)', () => {
       expect(component.refresh).not.toHaveBeenCalled();
       expect(gridRegistry.read).toHaveBeenCalledTimes(3); // eviction/conteggi aggiornati
       expect(component.liveGrids()).toEqual([grid]);
+    });
+  });
+
+  describe('pannello Lazy sections (comando di promozione)', () => {
+    const candidate: NecLazyEntry = {
+      name: 'coin-store',
+      clazz: 'Coin',
+      type: 'CRUD-PLURAL',
+      verdict: 'lazy candidate',
+      isLazyCandidate: true,
+      lazyRoute: true,
+      sections: ['coin'],
+      usedByShell: false,
+      runtimeStatus: 'lazy-not-loaded',
+    };
+
+    it('lazyStoreCommand replica il comando del report Markdown', () => {
+      expect(component.lazyStoreCommand(candidate)).toBe(
+        'ng generate ngrx-entity-crud:store --clazz=Coin --type=CRUD-PLURAL --registration=lazy'
+      );
+    });
+
+    it('lazyStoreCommand preserva il tipo CRUD-SINGULAR', () => {
+      expect(component.lazyStoreCommand({...candidate, type: 'CRUD-SINGULAR'})).toContain(
+        '--type=CRUD-SINGULAR'
+      );
+    });
+
+    it('report legacy: clazz riderivato dal nome cartella e type unknown -> CRUD-PLURAL', () => {
+      const legacy: NecLazyEntry = {
+        ...candidate,
+        name: 'product-browser-store',
+        clazz: undefined,
+        type: 'unknown',
+      };
+      expect(component.lazyStoreCommand(legacy)).toBe(
+        'ng generate ngrx-entity-crud:store --clazz=ProductBrowser --type=CRUD-PLURAL --registration=lazy'
+      );
+    });
+
+    it('lazyCandidatesCount conta solo le entry promovibili', () => {
+      component.storeReport.set({
+        ...report,
+        lazy: [candidate, {...candidate, name: 'log-store', isLazyCandidate: false}],
+      });
+      expect(component.lazyCandidatesCount()).toBe(1);
+
+      component.storeReport.set(report); // report senza sezione lazy
+      expect(component.lazyCandidatesCount()).toBe(0);
+    });
+
+    it('copyLazyCommand copia il comando e attiva il feedback sulla riga', async () => {
+      const writeText = jest.fn().mockResolvedValue(undefined);
+      Object.defineProperty(navigator, 'clipboard', {value: {writeText}, configurable: true});
+
+      await component.copyLazyCommand(candidate);
+
+      expect(writeText).toHaveBeenCalledWith(
+        'ng generate ngrx-entity-crud:store --clazz=Coin --type=CRUD-PLURAL --registration=lazy'
+      );
+      expect(component.copiedLazy()).toBe('coin-store');
+      component.ngOnDestroy(); // azzera il timer del feedback
     });
   });
 
