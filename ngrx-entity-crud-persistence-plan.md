@@ -1,7 +1,7 @@
 # ngrx-entity-crud — Persistenza locale ricerche + bozze (piano)
 
-> Stato: **IN CORSO — Fasi 0-1 completate** (`persistence/`: entry-point + servizio IDB; `Restore*` nel core).
-> Fasi 2-5 ancora da fare. Branch `19.4.0-beta`.
+> Stato: **IN CORSO — Fasi 0-2 completate** (`persistence/`: entry-point + servizio IDB + effect factory;
+> `Restore*` nel core). Fasi 3-5 ancora da fare. Branch `19.4.0-beta`.
 > Companion di `ngrx-entity-crud-dashboard-plan.md` (che ne riapre la "Fase 4 — meta-reducer di persistenza",
 > lì dichiarata non necessaria perché il consumer usava `ngrx-store-idb`).
 
@@ -266,7 +266,7 @@ registrare gli effects.
 
 ### API pubblica dell'entry-point
 
-`libs/ngrx-entity-crud/persistence/` — cartella con `ng-package.json` + `public-api.ts` (Fase 0 ✅ FATTO,
+`libs/ngrx-entity-crud/persistence/` — cartella con `ng-package.json` + `public-api.ts` (Fasi 0-2 ✅ FATTO,
 vedi *Fasi*):
 
 - `NecPersistenceModule.forRoot(config)` — compatibilità Angular 16; `provideNecPersistence(config)` come
@@ -396,9 +396,32 @@ handler, e allineato il confronto `idSelected` vs id dell'action al confronto st
   `src/test/reducer-restore.spec.ts` (isLoading/isLoaded/error nei tre casi, ripopolamento di entities +
   entitiesSelected + idsSelected + lastCriteria, sostituzione e non merge di entities). `npm run testLibs`
   verde (279 test, 21 suite), `npm run lint` senza errori, `npm run build` + `build:schematics` integri.
-- **Fase 2 — effect factory.** `createPersistenceEffects` con la tabella del ciclo di vita, il debounce, il
-  check leggero `stats(feature)` alla creazione con eventuale auto-restore (`autoRestore`), e la traduzione di
-  `RestoreRequest` in lettura. Test sul comportamento delle azioni, non sull'I/O.
+- **Fase 2 — effect factory. ✅ FATTO** `createPersistenceEffects<T>({feature, selectId, actions, autoRestore?})`
+  in `persistence/nec-persistence-effects.ts`: genera dinamicamente una classe `@Injectable()` Effects, pronta
+  per `EffectsModule.forFeature([createPersistenceEffects({...})])`. Copre l'intera tabella "Ciclo di vita per
+  sezione" con effect `{dispatch: false}`, più `restoreRequestOn$` (traduce `RestoreRequest` in
+  `readSection` + `RestoreSuccess`/`Failure`) e `autoRestoreCheckOn$` (il check leggero: gira una sola volta,
+  perché `createEffect` sottoscrive l'observable non appena la classe viene istanziata da `EffectsModule` —
+  stesso istante della creazione della sezione, eager o lazy — e dispatcha da sé `RestoreRequest` se
+  `stats(feature)` rientra in `autoRestore`, di sezione o dal default globale). L'esito del check è esposto
+  anche su `sectionCheck$` (`ReplaySubject`), cosi' il componente (Fase 3) lo legge senza ripetere la query.
+  `draftsPutOn$` accumula in una `Map` gli item toccati durante la finestra di debounce e scrive un solo
+  `putDrafts` con l'unione: un `debounceTime` semplice sull'azione avrebbe perso le righe intermedie quando
+  due righe diverse vengono modificate nella stessa finestra.
+  **Vincolo tecnico emerso implementando**: un secondary entry-point ng-packagr compila con `rootDir`
+  ristretto alla propria cartella — un import relativo `../src/lib/models` fallisce (`TS6059`). L'unico modo
+  per `persistence/` di referenziare `Actions<T>`/`ICriteria` del core è importarli tramite il **nome del
+  pacchetto** (`from 'ngrx-entity-crud'`), risolto in build locale dal path-mapping già presente in
+  `tsconfig.base.json` (`"ngrx-entity-crud": ["dist/ngrx-entity-crud"]` — per questo `persistence/` ora
+  compila DOPO l'entry-point primario nell'ordine di ng-packagr). Sotto Jest, che non passa da `dist/`, serve
+  lo stesso alias come `moduleNameMapper` in `jest.config.ts`, puntato però alla sorgente
+  (`src/public-api.ts`) cosi' i test non dipendono da una build precedente. Questo è anche il motivo preciso
+  per cui Fase 0 doveva restare agnostica dal core: non è (solo) una scelta di stile, è un vincolo del
+  meccanismo di compilazione multi-entry-point.
+  17 nuovi test in `persistence/nec-persistence-effects.spec.ts` (ogni riga della tabella del ciclo di vita,
+  il merge nella finestra di debounce, i tre esiti di `RestoreRequest`, sette casi di soglia/precedenza per
+  l'auto-restore). `npm run testLibs` verde (296 test, 22 suite), `npm run lint` senza errori, `npm run build`
+  + `build:schematics` integri.
 - **Fase 3 — componente.** `<nec-restore-search>` con i cinque stati (incluso il ripristino automatico).
 - **Fase 4 — integrazione.** `provideNecIdbAdapterFromPersistence()` per la dashboard, pannello sezioni con
   purge esplicito in `<nec-dashboard>`, opzione `--persist` negli schematics `store`/`section` per generare

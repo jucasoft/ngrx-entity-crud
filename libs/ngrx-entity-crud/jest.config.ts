@@ -28,6 +28,12 @@ const config: Config = {
   transformIgnorePatterns: [
     'node_modules/(?!(@angular|@ngrx|rxjs|tslib|primeng|@primeuix)/)',
   ],
+  moduleNameMapper: {
+    // `persistence/` importa il core tramite il nome del pacchetto (unico modo per un secondary
+    // entry-point ng-packagr di referenziare `src/lib`, il cui rootDir e' ristretto alla propria
+    // cartella): sotto Jest, che non passa da `dist/`, va risolto contro la sorgente.
+    '^ngrx-entity-crud$': '<rootDir>/src/public-api.ts',
+  },
   moduleFileExtensions: ['ts', 'html', 'js', 'json', 'mjs'],
   resolver: 'jest-preset-angular/build/resolvers/ng-jest-resolver.js',
   testMatch: ['**/*.spec.ts'],
