@@ -100,9 +100,13 @@ export function addImport(file: string, importString: string): Rule {
 
 /**
  * Aggiunge il modulo del nuovo store creato, come dipendenza del modulo Root
+ * (o di un qualsiasi altro NgModule, es. il feature module della view in modalita' lazy).
+ *
+ * `optional: true` evita l'eccezione se il modulo target non esiste ancora (es. store lazy
+ * generato prima della view) e si limita ad avvisare: la registrazione andra' fatta a mano.
  */
-export function addDeclarationToNgModule(options: ModuleOptions): Rule {
-  return (host: Tree) => {
+export function addDeclarationToNgModule(options: ModuleOptions, opts: { optional?: boolean } = {}): Rule {
+  return (host: Tree, context: SchematicContext) => {
     if (!options.module) {
       return host;
     }
@@ -111,6 +115,13 @@ export function addDeclarationToNgModule(options: ModuleOptions): Rule {
 
     const text = host.read(modulePath);
     if (text === null) {
+      if (opts.optional) {
+        context.logger.warn(
+          `${modulePath} non esiste ancora: salto la registrazione automatica di ${strings.classify(`${options.name}Module`)}. ` +
+          `Importa manualmente "${strings.classify(`${options.name}Module`)}" da '${options.path}' in quel modulo.`
+        );
+        return host;
+      }
       throw new SchematicsException(`File ${modulePath} does not exist.`);
     }
     const sourceText = text.toString();

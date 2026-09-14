@@ -52,23 +52,28 @@ export function makeStore(options: CrudStore): Rule {
     // Il selectors.ts del progetto e' agnostico (scandisce lo stato root sfruttando la
     // convenzione EntityCrudBaseState), quindi NON va piu' accoppiato ai domini: nessun
     // import/iniezione di XxxStoreSelectors nell'aggregatore, in nessuna delle due modalita'.
-    // In lazy mode, in piu', lo store non viene registrato nel RootStoreModule e la slice e'
-    // opzionale nello state root, perche' a runtime non esiste finche' il feature module non
-    // e' caricato.
+    // In lazy mode, in piu', lo store non viene registrato nel RootStoreModule (va invece nel
+    // feature module della view, vedi registerStoreModuleRule) e la slice e' opzionale nello
+    // state root, perche' a runtime non esiste finche' il feature module non e' caricato.
     const sliceSep = lazy ? '?:' : ':';
+
+    // Modulo della view generato da `ngrx-entity-crud:section` (stesso path convention: pathView/<clazz-dasherize>/<clazz-dasherize>.module.ts).
+    // In lazy mode e' li' che deve finire l'import di <Clazz>StoreModule, non in root-store.module.ts.
+    const featureModule = normalize(`${pathView}/${strings.dasherize(options.clazz)}/${strings.dasherize(options.clazz)}.module.ts`);
+
+    const registerStoreModuleRule = (): Rule => addDeclarationToNgModule(
+      lazy
+        ? {module: featureModule, name: `${options.clazz}Store`, path: `@root-store/${strings.dasherize(options.clazz)}-store`}
+        : {module: `${pathStore}/root-store.module.ts`, name: `${options.clazz}Store`, path: `@root-store/${strings.dasherize(options.clazz)}-store`},
+      {optional: lazy}
+    );
 
     const crudRules: Rule[] = [
       addImport(normalize(`${pathStore}/state.ts`), `import {${options.clazz}StoreState} from '@root-store/${strings.dasherize(options.clazz)}-store';`),
       updateState(`${strings.underscore(options.name)}${sliceSep}${options.clazz}StoreState.State;`, normalize(`${pathStore}/state.ts`)),
       // render(options, './files/crud-store/plural', pathStore),
       render(options, './files/crud-model', pathVo),
-      ...(lazy ? [] : [
-        addDeclarationToNgModule({
-          module: `${pathStore}/root-store.module.ts`,
-          name: `${options.clazz}Store`,
-          path: `@root-store/${strings.dasherize(options.clazz)}-store`
-        })
-      ])
+      registerStoreModuleRule(),
     ];
 
     const baseRules: Rule[] = [
@@ -76,13 +81,7 @@ export function makeStore(options: CrudStore): Rule {
       updateState(`${strings.underscore(options.name)}${sliceSep}${options.clazz};`, normalize(`${pathStore}/state.ts`)),
       render(options, './files/base-store', pathStore),
       render(options, './files/base-model', pathVo),
-      ...(lazy ? [] : [
-        addDeclarationToNgModule({
-          module: `${pathStore}/root-store.module.ts`,
-          name: `${options.clazz}Store`,
-          path: `@root-store/${strings.dasherize(options.clazz)}-store`
-        })
-      ])
+      registerStoreModuleRule(),
     ];
 
     if (options.type === 'CRUD+GRAPHQL') {
