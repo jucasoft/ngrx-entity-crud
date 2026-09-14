@@ -15,6 +15,7 @@ import {PipesModule} from '@core/pipe/pipes.module';
 import {ButtonDelete<%= clazz %>Component} from './components/button-delete-<%= dasherize(clazz) %>.component';
 import {ButtonEditManyTest<%= clazz %>Component} from './components/button-edit-many-test-<%= dasherize(clazz) %>.component';
 import {ButtonCreateManyTest<%= clazz %>Component} from './components/button-create-many-test-<%= dasherize(clazz) %>.component';
+import {DraftsToolbar<%= clazz %>Component} from './components/drafts-toolbar-<%= dasherize(clazz) %>.component';
 import {NgLetModule} from '@core/directive/ng-let.directive';
 import {ToolbarModule} from 'primeng/toolbar';
 import {HttpClientModule} from "@angular/common/http";
@@ -29,7 +30,8 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
     ButtonNew<%= clazz %>Component,
     ButtonDelete<%= clazz %>Component,
     ButtonEditManyTest<%= clazz %>Component,
-    ButtonCreateManyTest<%= clazz %>Component
+    ButtonCreateManyTest<%= clazz %>Component,
+    DraftsToolbar<%= clazz %>Component
   ],
   imports: [
     CommonModule,

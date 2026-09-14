@@ -10,4 +10,12 @@
     <app-button-create-many-test-<%= dasherize(clazz) %>></app-button-create-many-test-<%= dasherize(clazz) %>>
   </ng-template>
 </p-toolbar>
+<p-toolbar styleClass="mb-4">
+  <ng-template pTemplate="left">
+    <span class="text-sm">Modifica le celle della tabella: le righe modificate restano in bozza locale (entitiesSelected).</span>
+  </ng-template>
+  <ng-template pTemplate="right">
+    <app-drafts-toolbar-<%= dasherize(clazz) %>></app-drafts-toolbar-<%= dasherize(clazz) %>>
+  </ng-template>
+</p-toolbar>
 <app-<%= dasherize(clazz) %>-list></app-<%= dasherize(clazz) %>-list>

@@ -471,7 +471,7 @@ export interface Actions<T> extends SingularActions<T> {
   // TODO: doc
   RemoveManySelected: ActionCreator<string, (props: { ids: string[]; }) => { ids: string[]; } & TypedAction<string>>;
   // TODO: doc
-  RemoveAllSelected: ActionCreator<string>;
+  RemoveAllSelected: ActionCreator<string, () => { type: string; }>;
 
   /**
    * - action used to create an item on the store

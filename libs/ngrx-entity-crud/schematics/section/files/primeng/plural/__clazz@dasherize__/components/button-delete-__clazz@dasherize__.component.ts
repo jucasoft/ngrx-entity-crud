@@ -23,8 +23,10 @@ export class ButtonDelete<%= clazz %>Component implements OnInit {
   }
 
   ngOnInit(): void {
+    // "Origin" = gli elementi selezionati letti dallo store (entities + idsSelected):
+    // la cancellazione non deve mai partire dalla bozza locale, che puo' essere stata modificata.
     this.itemsSelected$ = this.store$.pipe(
-      select(<%= clazz %>StoreSelectors.selectItemsSelected)
+      select(<%= clazz %>StoreSelectors.selectItemsSelectedOrigin)
     );
   }
 

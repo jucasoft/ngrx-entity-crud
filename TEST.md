@@ -6,6 +6,18 @@ ng generate ngrx-entity-crud:auth
 section
 ng generate ngrx-entity-crud:section --clazz=Coin --lib=primeng
 ng generate ngrx-entity-crud:section --clazz=Base --lib=no-libs
+
+# la sezione primeng/plural include l'editing inline con bozze locali (entitiesSelected).
+# giro di test dello store, in ordine:
+# 1. modifica una cella: la riga si evidenzia (bozza) e la checkbox si accende -> AddManySelected
+# 2. modifica una seconda riga: il contatore "Save drafts (N)" segue le sole righe sporche
+# 3. "annulla bozza" sulla riga (icona pi-undo) -> RemoveManySelected, la riga torna al dato dello store
+# 4. rilancia la ricerca: le bozze restano (SearchSuccess non azzera entitiesSelected)
+#    con mode 'updateMany-selected' le bozze vengono riallineate ai dati freschi
+# 5. "Save drafts" -> EditManyRequest con le sole righe modificate; a EditManySuccess lo stato si allinea
+# 6. "Discard drafts" -> RemoveAllSelected, entitiesSelected e idsSelected tornano vuoti
+# 7. "Delete (N)" lavora su selectItemsSelectedOrigin: cancella il dato dello store, non la bozza;
+#    dopo DeleteManySuccess verifica che idsSelected/entitiesSelected non contengano id orfani
 store
 ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=CRUD
 ng generate ngrx-entity-crud:store --name=base --clazz=Base --type=BASE

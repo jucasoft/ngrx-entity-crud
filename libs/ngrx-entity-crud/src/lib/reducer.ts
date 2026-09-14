@@ -3,6 +3,12 @@ import {EntityAdapter} from '@ngrx/entity';
 import {ActionCreator, ActionReducer, createReducer, on, ReducerTypes} from '@ngrx/store';
 import {selectIdValue, toDictionary} from './utils';
 
+/**
+ * true se l'id e' valorizzato.
+ * `0` e `''` sono id validi: `!!id` li scarterebbe insieme a null/undefined.
+ */
+const hasId = (value: any): boolean => value !== null && value !== undefined;
+
 export function evalData<T>(fn: () => T, def: any = null): T {
   try {
     return fn();
@@ -135,15 +141,15 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
   const deleteSuccessOn = on(actions.DeleteSuccess, (state: S, {type, id}) => {
 
       // tolgo dallo store.idsSelected l'elemento cancellato
-      const idsSelected = (state.idsSelected as any[]).filter((idA) => idA === id);
+      const idsSelected = (state.idsSelected as any[]).filter((idA) => String(idA) !== String(id));
       const entitiesSelected = idsSelected.reduce((prev, curr) => {
         prev[curr] = state.entitiesSelected[curr];
         return prev;
       }, {});
 
       // se ho cancellato l'id seezionato, lo tolgo dallo store.
-      const idSelected = !!state.idSelected && state.idSelected === id ? null : state.idSelected;
-      const itemSelected = !idSelected ? null : state.itemSelected;
+      const idSelected = hasId(state.idSelected) && String(state.idSelected) === String(id) ? null : state.idSelected;
+      const itemSelected = !hasId(idSelected) ? null : state.itemSelected;
 
       return adapter.removeOne(id,
         Object.assign(
@@ -164,15 +170,17 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
   const deleteManySuccessOn = on(actions.DeleteManySuccess, (state: S, {type, ids}) => {
 
     // tolgo dallo store.idsSelected gli elementi che sono stati cancellati.
-    const idsSelected: string[] = (state.idsSelected as any[]).filter((id) => !(id in ids));
+    // NB: `id in ids` su un array verifica gli INDICI, non i valori: serve un confronto sui valori.
+    const deletedIds = ((ids || []) as any[]).map((value) => String(value));
+    const idsSelected: string[] = (state.idsSelected as any[]).filter((id) => !deletedIds.includes(String(id)));
     const entitiesSelected = idsSelected.reduce((prev, curr) => {
       prev[curr] = state.entitiesSelected[curr];
       return prev;
     }, {});
 
     // se ho cancellato l'id seezionato, lo tolgo dallo store.
-    const idSelected = !!state.idSelected && state.idSelected in ids ? null : state.idSelected;
-    const itemSelected = !idSelected ? null : state.itemSelected;
+    const idSelected = hasId(state.idSelected) && deletedIds.includes(String(state.idSelected)) ? null : state.idSelected;
+    const itemSelected = !hasId(idSelected) ? null : state.itemSelected;
     return adapter.removeMany(ids,
       Object.assign(
         {}, state,
@@ -190,10 +198,15 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
 
   const deleteOn = on(actions.Delete, (state: S, {type, id}) => {
       // tolgo dallo store.idsSelected l'elemento cancellato
-      const idsSelected = (state.idsSelected as any[]).filter((idA) => idA === id);
+      const idsSelected = (state.idsSelected as any[]).filter((idA) => String(idA) !== String(id));
+      // ...e lo tolgo anche da entitiesSelected, altrimenti le due strutture restano disallineate.
+      const entitiesSelected = idsSelected.reduce((prev, curr) => {
+        prev[curr] = state.entitiesSelected[curr];
+        return prev;
+      }, {});
 
       // se ho cancellato l'id seezionato, lo tolgo dallo store.
-      const idSelected = !!state.idSelected && state.idSelected === id ? null : state.idSelected;
+      const idSelected = hasId(state.idSelected) && String(state.idSelected) === String(id) ? null : state.idSelected;
 
       return adapter.removeOne(id,
         Object.assign(
@@ -203,7 +216,8 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
             isLoading: false,
             error: null,
             idSelected,
-            idsSelected
+            idsSelected,
+            entitiesSelected
           }
         ));
     }
