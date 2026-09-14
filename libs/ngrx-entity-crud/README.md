@@ -621,6 +621,85 @@ Notes:
   structural directives (`*ngIf`/`*ngFor`), so it stays compatible with Angular 16+ consumers; the
   core entry-point keeps the wider peer range and has no PrimeNG dependency.
 
+# Secondary entry-point: `ngrx-entity-crud/ui`
+
+---
+
+### `<nec-defrag-loader>`
+
+A busy indicator that replays the **Windows 98 Disk Defragmenter**: a map of clusters that
+compacts towards the start of the disk, a blocky progress bar and the classic system chrome.
+It is a plain presentational component — no NgRx, no PrimeNG, no dependency on the rest of
+the library — so the entry-point stays tree-shakable and theme-independent.
+
+The look is reconstructed from the original bitmaps, not from memory: 7x9 px boxes with a 1px
+black frame and a 5x7 core, 1-pixel checkerboards where the original dithered, and the 16-colour
+VGA palette. Note the colour semantics, which most remakes get backwards: the *before* map is
+cyan/teal (unoptimized data, coloured by the part of the volume it belongs to), blue is what is
+**already optimized**, green is a read and red is a write.
+
+```ts
+import { NecDefragLoaderComponent } from 'ngrx-entity-crud/ui';
+```
+
+**Indeterminate** (default) — the pass loops for as long as the operation runs:
+
+```html
+<nec-defrag-loader *ngIf="isLoading$ | async"></nec-defrag-loader>
+```
+
+**Determinate** — the real percentage drives the consolidation, so the grid is a faithful
+reading of the progress:
+
+```html
+<nec-defrag-loader
+  [title]="'Importing archive'"
+  [status]="'Reading drive information...'"
+  [progress]="uploadedPercent$ | async"
+  [showLegend]="true"
+></nec-defrag-loader>
+```
+
+**Full-page overlay** while a blocking operation runs:
+
+```html
+<nec-defrag-loader *ngIf="busy" [overlay]="true"></nec-defrag-loader>
+```
+
+| Input | Type | Default | Notes |
+| --- | --- | --- | --- |
+| `title` | `string` | `'Defragmenting Drive C'` | Title bar text, also the accessible label. |
+| `status` | `string` | `''` | Status line under the grid; hidden when empty. |
+| `progress` | `number \| null` | `null` | `0..100` switches to determinate mode; `null` loops. |
+| `running` | `boolean` | `true` | Freezes the animation without unmounting. |
+| `cols` / `rows` | `number` | `48` / `12` | Map size in clusters. |
+| `cellWidth` / `cellHeight` | `number` | `7` / `9` | Native box size in px, black frame included — the original bitmap is taller than wide. |
+| `scale` | `number` | `2` | Integer zoom; pixels stay crisp (no smoothing). |
+| `density` | `number` | `0.62` | Share of the disk that starts out occupied. |
+| `seed` | `number` | `1` | Same seed, same fragmentation (deterministic). |
+| `clustersPerSecond` | `number` | `30` | Animation speed. |
+| `showChrome` | `boolean` | `true` | Windows 98 window frame and title bar. |
+| `showProgress` | `boolean` | `true` | Blocky progress bar and `xx% Complete`. |
+| `showLegend` | `boolean` | `false` | Colour legend, like the original *Legend* window. |
+| `loop` | `boolean` | `true` | Indeterminate mode: restart after each pass. |
+| `overlay` | `boolean` | `false` | Covers the page and centres the window. |
+| `palette` | `Partial<NecDefragPalette>` | `null` | Overrides single colours; missing ones stay Win98. |
+
+| Output | Payload | Notes |
+| --- | --- | --- |
+| `passCompleted` | `number` | Emitted at the end of each pass, with its progressive number. |
+
+The animation runs on a `<canvas>` **outside the Angular zone** — no change detection per
+frame, only when the whole percentage changes — and it is cancelled in `ngOnDestroy`. The host
+exposes `role="progressbar"` with `aria-valuenow` (determinate only) and `aria-busy`. With
+`prefers-reduced-motion: reduce` the disk advances at a crawl and the read/write head stops
+blinking. Angular 16+ compatible: classic `@Input`/`@Output`, `*ngIf`/`*ngFor`, no API newer
+than 16.2.
+
+The simulation is exported on its own (`necCreateDefragField`, `necDefragStep`,
+`necDefragProgress`, `necDefragAdvanceTo`, `necDefragComplete`, `NecDefragCluster`) if you want
+to drive a different renderer with it.
+
 ## Running unit tests
 Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
 

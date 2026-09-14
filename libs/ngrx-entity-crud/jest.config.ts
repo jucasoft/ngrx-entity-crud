@@ -8,8 +8,10 @@ const config: Config = {
   collectCoverageFrom: [
     'src/**/*.ts',
     'devtools/**/*.ts',
+    'ui/**/*.ts',
     '!src/**/*.spec.ts',
     '!devtools/**/*.spec.ts',
+    '!ui/**/*.spec.ts',
     '!src/test-setup.ts',
   ],
   transform: {
@@ -21,7 +23,9 @@ const config: Config = {
       },
     ],
   },
-  transformIgnorePatterns: ['node_modules/(?!(@angular|@ngrx|rxjs|tslib|primeng|@primeuix)/)'],
+  transformIgnorePatterns: [
+    'node_modules/(?!(@angular|@ngrx|rxjs|tslib|primeng|@primeuix)/)',
+  ],
   moduleFileExtensions: ['ts', 'html', 'js', 'json', 'mjs'],
   resolver: 'jest-preset-angular/build/resolvers/ng-jest-resolver.js',
   testMatch: ['**/*.spec.ts'],
