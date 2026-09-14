@@ -17,3 +17,4 @@ export * from './nec-persistence.service';
 export * from './nec-persistence.module';
 export * from './nec-persistence-effects';
 export * from './nec-restore-search.component';
+export * from './nec-persistence-idb-adapter';

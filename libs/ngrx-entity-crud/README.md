@@ -63,12 +63,33 @@ Store registration strategy:
 > - The generated slice is declared as **optional** in `root-store/state.ts`, because it does not exist in the runtime state until the section is loaded.
 > - `root-store/selectors.ts` exposes the global loading/error selectors (`selectIsLoading`, `selectError`, `selectLoadingNames`) in a **store-agnostic** way: they scan the root state using the `EntityCrudBaseState` convention (every CRUD slice exposes `isLoading`/`error` at the top level), so lazily-registered stores contribute to the global loading/error state without coupling the root to any specific domain.
 
+Local persistence (search results + drafts saved to IndexedDB, see the
+[`ngrx-entity-crud/persistence`](#secondary-entry-point-ngrx-entity-crudpersistence) section below):
+  - generates the `createPersistenceEffects` registration in `<clazz>-store.module.ts` and exports
+    `<Clazz>PersistenceEffects`, so `EffectsModule.forFeature` picks it up automatically — same
+    registration point for eager and lazy stores.
+  - only meaningful for `--type=CRUD-PLURAL` (the other types don't have `entitiesSelected`/`Restore*`);
+    passing it with another type is silently ignored, with a warning in the schematic log.
+
+- `--persist`
+  - Type: `boolean`
+  - Default: `false`
+  - Opt-in: with the flag omitted, nothing changes — no new import, no new dependency.
+
 #### Examples
 
 ```sh
 ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=CRUD-PLURAL --registration=lazy
 ```
 With `--registration=lazy` the store is not added to `RootStoreModule`; remember to import `CoinStoreModule` in the view feature module.
+
+```sh
+ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=CRUD-PLURAL --persist=true
+```
+Generates `CoinPersistenceEffects` in `coin-store.module.ts` and registers it alongside
+`CoinStoreEffects`. Nothing else is required for the effects to work; to also show the local-data
+status to the user, wrap the existing search button (see
+[`ngrx-entity-crud/persistence`](#secondary-entry-point-ngrx-entity-crudpersistence) below).
 
 
 ```sh
@@ -620,6 +641,121 @@ Notes:
 - `<nec-dashboard>` is a standalone component that imports PrimeNG modules and uses the classic
   structural directives (`*ngIf`/`*ngFor`), so it stays compatible with Angular 16+ consumers; the
   core entry-point keeps the wider peer range and has no PrimeNG dependency.
+
+# Secondary entry-point: `ngrx-entity-crud/persistence`
+
+---
+
+Local persistence for CRUD sections, backed by IndexedDB: search results are saved as one block,
+drafts (rows edited but not yet sent, stored in `entitiesSelected`) one record per entity — the two
+have very different write profiles, so they're never rewritten together. Full design rationale in
+[`ngrx-entity-crud-persistence-plan.md`](https://github.com/jucasoft/ngrx-entity-crud/blob/master/ngrx-entity-crud-persistence-plan.md)
+at the repository root. Tree-shakable: importing it costs nothing to consumers who don't.
+
+### Setup
+
+```ts
+import {NecPersistenceModule} from 'ngrx-entity-crud/persistence';
+
+@NgModule({
+  imports: [
+    NecPersistenceModule.forRoot({
+      // tutti i campi sono opzionali; questi sono i default.
+      dbName: 'nec-persistence',
+      dbVersion: 1,
+      debounceMs: 200,
+      enabled: true,
+      // autoRestore e' assente di default: il ripristino resta sempre un gesto esplicito
+      // finche' non lo abiliti, qui (default globale) o per sezione (vedi sotto).
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+On Angular 15+ you can use the functional variant instead: `provideNecPersistence({...})` in your
+`ApplicationConfig`/`providers` array.
+
+### Per-section wiring
+
+Generated automatically by `ng generate ngrx-entity-crud:store --persist=true` (see the
+[`store`](#store) section above). To wire it by hand into an existing `<Clazz>StoreModule`:
+
+```ts
+import {createPersistenceEffects} from 'ngrx-entity-crud/persistence';
+import {actions} from './coin.actions';
+import {Coin} from '@models/vo/coin';
+import {Names} from './coin.names';
+
+export const CoinPersistenceEffects = createPersistenceEffects<Coin>({
+  feature: Names.NAME,
+  selectId: Coin.selectId,
+  actions,
+  // opzionale, sovrascrive il default globale di NecPersistenceModule.forRoot per QUESTA sezione:
+  // autoRestore: {maxAgeMs: 60 * 60 * 1000},
+});
+```
+
+```ts
+@NgModule({
+  imports: [
+    // ...
+    EffectsModule.forFeature([CoinStoreEffects, CoinPersistenceEffects]),
+  ],
+  providers: [CoinStoreEffects /* CoinPersistenceEffects non va in providers: e' gia' un Effects class */],
+})
+export class CoinStoreModule {}
+```
+
+Once registered, the effects write on their own following the CRUD action lifecycle
+(`SearchRequest` purges, `SearchSuccess` saves the block, `AddManySelected`/`SelectItems` save
+drafts debounced, deletions clean up the matching drafts) — no further action dispatches needed.
+The moment the section is created (same instant for eager and lazy stores) it also runs a
+lightweight freshness check (`stats(feature)`, metadata only) and, if `autoRestore` applies,
+dispatches `RestoreRequest` on its own.
+
+### `<nec-restore-search>`
+
+Wraps the section's existing search button — pass it as projected content, it's left completely
+untouched, building the search criteria is your form's job:
+
+```ts
+import {NecRestoreSearchComponent} from 'ngrx-entity-crud/persistence';
+import {CoinPersistenceEffects} from '@root-store/coin-store';
+```
+
+```html
+<nec-restore-search feature="coin" [effects]="CoinPersistenceEffects" [actions]="actions">
+  <button pButton label="Search" icon="pi pi-search" (click)="search()"></button>
+</nec-restore-search>
+```
+
+| Input | Type | Notes |
+| --- | --- | --- |
+| `feature` | `string` | Only used for display; must match the `feature` passed to `createPersistenceEffects`. |
+| `effects` | `Type<NecPersistenceEffects>` | The class exported by `createPersistenceEffects` (`CoinPersistenceEffects` above), resolved via `Injector` — same one `EffectsModule.forFeature` registered, so no extra `stats()` query. |
+| `actions` | `Actions<T>` | The section's action group (`actions` from `<clazz>.actions.ts`). |
+| `quotaWarningThreshold` | `number` | Default `0.9`. Fraction of `storage.estimate()` above which the "storage almost full" tag appears. |
+
+Only `p-button`/`p-tag` (identical classes across PrimeNG v16→v19; `primeng` stays an optional peer
+dependency). When there's nothing saved locally it just renders the projected button; with local
+data present it shows a summary (`"100 results saved, 12 unsent changes, 340 KB — yesterday 18:42"`)
+with `Restore`/`New search` (inline Yes/Cancel confirmation, since it discards unsent work); if
+`autoRestore` applies, the restore starts on its own with a spinner, no confirmation asked.
+
+### Dashboard integration (optional)
+
+If you also use [`<nec-dashboard>`](#dashboard), this makes its IndexedDB panel show your sections
+(names, saved/drafts counts) instead of relying only on the native fallback:
+
+```ts
+import {provideNecIdbAdapterFromPersistence} from 'ngrx-entity-crud/persistence';
+
+@NgModule({
+  providers: [provideNecIdbAdapterFromPersistence()],
+})
+export class AppModule {}
+```
 
 # Secondary entry-point: `ngrx-entity-crud/ui`
 

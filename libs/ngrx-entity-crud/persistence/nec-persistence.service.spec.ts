@@ -118,6 +118,22 @@ describe('NecPersistenceService', () => {
     expect(ordersStats?.count).toBe(1);
   });
 
+  it('listSections elenca tutte le sezioni con dati locali', async () => {
+    expect(await service.listSections()).toEqual([]);
+
+    await service.writeSearch('coins', {}, [{id: '1', name: 'BTC'}], selectId);
+    await service.writeSearch('orders', {}, [{id: '9', name: 'Order9'}], selectId);
+    await service.putDrafts('coins', [{id: '1', name: 'BTC-edited'}], selectId);
+
+    const sections = await service.listSections();
+    const byFeature = new Map(sections.map((s) => [s.feature, s]));
+    expect(byFeature.size).toBe(2);
+    expect(byFeature.get('coins')?.count).toBe(1);
+    expect(byFeature.get('coins')?.draftCount).toBe(1);
+    expect(byFeature.get('orders')?.count).toBe(1);
+    expect(byFeature.get('orders')?.draftCount).toBe(0);
+  });
+
   it('pendingWrites$ sale durante una scrittura e torna a zero alla fine', async () => {
     const values: number[] = [];
     const sub = service.pendingWrites$.subscribe((v) => values.push(v));
@@ -151,6 +167,7 @@ describe('NecPersistenceService', () => {
 
     expect(await disabled.stats('coins')).toBeNull();
     expect(await disabled.readSection('coins')).toBeNull();
+    expect(await disabled.listSections()).toEqual([]);
 
     disabled.ngOnDestroy();
   });

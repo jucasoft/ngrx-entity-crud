@@ -1,7 +1,9 @@
 # ngrx-entity-crud — Persistenza locale ricerche + bozze (piano)
 
-> Stato: **IN CORSO — Fasi 0-3 completate** (`persistence/`: entry-point + servizio IDB + effect factory +
-> componente `<nec-restore-search>`; `Restore*` nel core). Fasi 4-5 ancora da fare. Branch `19.4.0-beta`.
+> Stato: **IN CORSO — Fasi 0-4 completate** (`persistence/`: entry-point + servizio IDB + effect factory +
+> componente `<nec-restore-search>` + integrazione dashboard/schematics/doc; `Restore*` nel core). Due
+> riduzioni di scope deliberate in Fase 4 (vedi sotto). Fase 5 resta per dopo la validazione sul campo.
+> Branch `19.4.0-beta`.
 > Companion di `ngrx-entity-crud-dashboard-plan.md` (che ne riapre la "Fase 4 — meta-reducer di persistenza",
 > lì dichiarata non necessaria perché il consumer usava `ngrx-store-idb`).
 
@@ -266,7 +268,7 @@ registrare gli effects.
 
 ### API pubblica dell'entry-point
 
-`libs/ngrx-entity-crud/persistence/` — cartella con `ng-package.json` + `public-api.ts` (Fasi 0-3 ✅ FATTO,
+`libs/ngrx-entity-crud/persistence/` — cartella con `ng-package.json` + `public-api.ts` (Fasi 0-4 ✅ FATTO,
 vedi *Fasi*):
 
 - `NecPersistenceModule.forRoot(config)` — compatibilità Angular 16; `provideNecPersistence(config)` come
@@ -279,9 +281,10 @@ vedi *Fasi*):
   `writeSearch(feature, criteria, items, selectId)`, `purgeSection(feature)`,
   `putDrafts(feature, items, selectId)`, `deleteDrafts(feature, ids)`, `deleteAllDrafts(feature)`,
   `readSection(feature)` (blocco + bozze, per la traduzione di `RestoreRequest`), `stats(feature)` (solo
-  `meta`, la lettura leggera del check di freschezza), `pendingWrites$`, `estimateStorage()`. `enabled: false`
-  rende ogni operazione un no-op. Ogni scrittura registra/deregistra da sé il listener `beforeunload` in base
-  al contatore (decisione 8) e invoca `navigator.storage.persist()` una volta all'istanziazione.
+  `meta`, la lettura leggera del check di freschezza), `listSections()` (tutte le sezioni con dati locali,
+  per il pannello dashboard), `pendingWrites$`, `estimateStorage()`. `enabled: false` rende ogni operazione
+  un no-op. Ogni scrittura registra/deregistra da sé il listener `beforeunload` in base al contatore
+  (decisione 8) e invoca `navigator.storage.persist()` una volta all'istanziazione.
 - `createPersistenceEffects<T>({feature, selectId, actions, autoRestore?})` — la effect factory: scrive sugli
   eventi della tabella del ciclo di vita; alla creazione esegue il check leggero `stats(feature)` e, se rientra
   in `autoRestore` (parametro di sezione, prevale sul default globale di `NEC_PERSISTENCE_CONFIG`), dispatcha da
@@ -289,9 +292,9 @@ vedi *Fasi*):
   lettura da IndexedDB + `RestoreSuccess`/`Failure`.
 - `NecRestoreSearchComponent` (`<nec-restore-search [feature]="..." [effects]="..." [actions]="...">`) — vedi
   sotto.
-- `provideNecIdbAdapterFromPersistence()` — implementa `NecIdbAdapter` (`devtools/idb-adapter.token.ts`) sul
-  DB della persistenza, così la dashboard esistente smette di essere solo agnostica e mostra le sezioni con
-  nomi e conteggi veri.
+- `provideNecIdbAdapterFromPersistence()` — implementa `NecIdbAdapter` (`devtools/idb-adapter.token.ts`) sopra
+  `listSections()`, così la dashboard esistente smette di essere solo agnostica e mostra le sezioni con nomi
+  e conteggi veri (un "database" virtuale per sezione, non il DB fisico unico — vedi *Fasi*).
 
 Il `package.json` della libreria resta con `dependencies: {}`.
 
@@ -468,9 +471,40 @@ handler, e allineato il confronto `idSelected` vs id dell'action al confronto st
   `BehaviorSubject` come lo è per davvero in `NecPersistenceService` (Fase 0), non un `Subject` semplice.
   `npm run testLibs` verde (312 test, 23 suite), `npm run lint` senza errori, `npm run build` +
   `build:schematics` integri.
-- **Fase 4 — integrazione.** `provideNecIdbAdapterFromPersistence()` per la dashboard, pannello sezioni con
-  purge esplicito in `<nec-dashboard>`, opzione `--persist` negli schematics `store`/`section` per generare
-  la registrazione degli effects, README + ricetta in `TEST.md`.
+- **Fase 4 — integrazione. ✅ FATTO (con due riduzioni di scope deliberate, vedi sotto)**
+  - `NecPersistenceService.listSections()` — nuovo metodo (estensione di Fase 0): un cursore leggero
+    sull'intero object store `meta`, per elencare tutte le sezioni con dati locali senza conoscerne i nomi
+    in anticipo (a differenza di `stats(feature)`, mirato a una sezione).
+  - `provideNecIdbAdapterFromPersistence()` — implementa `NecIdbAdapter` di `devtools/` sopra
+    `NecPersistenceService.listSections()`: ogni sezione persistita diventa un "database" virtuale nel
+    report di `<nec-dashboard>` (store `search`/`drafts` con i conteggi da `meta`), non il vero DB fisico
+    unico. `devtools/` resta agnostico com'è: zero modifiche li', l'adapter vive in `persistence/` e importa
+    `NEC_IDB_ADAPTER`/i tipi da `devtools/` tramite il nome del pacchetto (stesso meccanismo di Fase 2,
+    `moduleNameMapper` aggiunto anche per `ngrx-entity-crud/devtools`).
+  - Opzione **`--persist`** sullo schematic `store` (solo `--type=CRUD-PLURAL`: gli altri tipi non hanno
+    `Restore*`/`entitiesSelected`; passata comunque viene ignorata con un warning nel log dello schematic,
+    non un errore). Genera `createPersistenceEffects` nel modulo dello store, esportando
+    `<Clazz>PersistenceEffects` — lo stesso pattern EJS (`<% if (persist) { %>`) già in uso nel resto degli
+    schematics, verificato contro un template esistente che fa la stessa cosa
+    (`schematics/dashboard/.../<clazz>.module.ts`).
+  - README (`libs/ngrx-entity-crud/README.md`): nuova sezione "Secondary entry-point:
+    `ngrx-entity-crud/persistence`" (setup, wiring per sezione, `<nec-restore-search>`, integrazione
+    dashboard) più la documentazione di `--persist` nella sezione `store`. Ricetta aggiunta a `TEST.md`.
+
+  **Riduzioni di scope deliberate rispetto alla formulazione originale** (rischio/complessità non
+  giustificati per questo giro, senza un requisito esplicito a spingere oltre):
+  - **Pannello sezioni con purge esplicito in `<nec-dashboard>`**: non implementato. `NecIdbAdapter` oggi
+    espone solo lettura (`listDatabases`); aggiungere un'azione di purge avrebbe richiesto estendere
+    quell'interfaccia pubblica (fattibile in modo additivo, un metodo opzionale) E modificare
+    `nec-dashboard.component.ts` — un file già grande e ben collaudato — per un pulsante che duplica una
+    funzionalità già raggiungibile (la sezione si svuota da sola alla prossima ricerca reale, per design).
+    Il pannello mostra comunque le sezioni (nomi/conteggi) via `provideNecIdbAdapterFromPersistence()`.
+  - **Opzione `--persist` sullo schematic `section`**: non implementata. La `section` non sa nulla del nome
+    generato dalla `store` per la classe degli effects (le due schematics girano in invocazioni separate),
+    quindi l'unico automatismo sensato sarebbe stato incollare `<nec-restore-search>` nel template HTML già
+    in modifica per le bozze locali (`__clazz@dasherize__-main.component.html`, rischio di conflitto con
+    lavoro in corso) — il README documenta il wiring manuale (poche righe, vedi sopra), preferito a un
+    automatismo fragile.
 - **Fase 5 — dopo la validazione sul campo.** Rimozione del fork di `ngrx-store-idb` dalle app; valutazione
   se assorbire anche `ngrx-store-localstorage`; eventuale Web Locks per il multi-tab.
 

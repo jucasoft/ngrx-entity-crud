@@ -3,11 +3,21 @@ import {normalize, strings} from '@angular-devkit/core';
 import {addDeclarationToNgModule, addExport, addImport, render, updateState} from '../my-utility';
 
 export function makeStore(options: CrudStore): Rule {
-  return (tree: Tree, _context: SchematicContext) => {
+  return (tree: Tree, context: SchematicContext) => {
     console.log('makeStore(options: CrudStore): Rule');
     options.clazz = strings.classify(options.clazz);
     options.name = options.name ? strings.underscore(options.name) : strings.underscore(options.clazz);
     const lazy = options.registration === 'lazy';
+    options.persist = !!options.persist;
+    // createPersistenceEffects si aggancia a Actions<T> (Restore*, entitiesSelected): esiste solo
+    // per il tipo plurale. Per gli altri tipi il flag viene silenziosamente ignorato dai template
+    // (nessuno di essi referenzia `persist`), ma avvisiamo: e' piu' probabile un refuso che una
+    // scelta voluta.
+    if (options.persist && options.type !== 'CRUD-PLURAL') {
+      context.logger.warn(
+        `--persist e' supportato solo per --type=CRUD-PLURAL: ignorato per --type=${options.type}.`
+      );
+    }
     const workspaceConfig = tree.read('/angular.json');
     if (!workspaceConfig) {
       throw new SchematicsException('Could not find Angular workspace configuration');

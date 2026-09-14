@@ -31,4 +31,11 @@ declare interface CrudStore {
    * in modalità non interattiva resta undefined e viene trattato come 'eager'.
    */
   registration?: 'eager' | 'lazy';
+
+  /**
+   * Genera anche la registrazione di `createPersistenceEffects` (persistenza locale IndexedDB,
+   * vedi `ngrx-entity-crud/persistence` e `ngrx-entity-crud-persistence-plan.md`) nel modulo
+   * dello store. Opt-in: default `false`, nessuna dipendenza aggiunta se non richiesto.
+   */
+  persist?: boolean;
 }

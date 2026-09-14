@@ -29,9 +29,11 @@ const config: Config = {
     'node_modules/(?!(@angular|@ngrx|rxjs|tslib|primeng|@primeuix)/)',
   ],
   moduleNameMapper: {
-    // `persistence/` importa il core tramite il nome del pacchetto (unico modo per un secondary
-    // entry-point ng-packagr di referenziare `src/lib`, il cui rootDir e' ristretto alla propria
-    // cartella): sotto Jest, che non passa da `dist/`, va risolto contro la sorgente.
+    // `persistence/` importa il core e `devtools/` tramite il nome del pacchetto (unico modo per
+    // un secondary entry-point ng-packagr di referenziare un altro entry-point, il cui rootDir e'
+    // ristretto alla propria cartella): sotto Jest, che non passa da `dist/`, va risolto contro
+    // la sorgente.
+    '^ngrx-entity-crud/devtools$': '<rootDir>/devtools/public-api.ts',
     '^ngrx-entity-crud$': '<rootDir>/src/public-api.ts',
   },
   moduleFileExtensions: ['ts', 'html', 'js', 'json', 'mjs'],

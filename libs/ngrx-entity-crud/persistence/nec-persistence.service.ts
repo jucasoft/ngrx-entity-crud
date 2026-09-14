@@ -162,6 +162,33 @@ export class NecPersistenceService implements OnDestroy {
     });
   }
 
+  /**
+   * Tutte le sezioni con dati locali: un cursore sull'intero object store `meta` (piccolo per
+   * costruzione, decisione 4 del piano: una sezione contiene al più l'ultima ricerca). Usato dal
+   * pannello sezioni della dashboard (`provideNecIdbAdapterFromPersistence`), mai dal check di
+   * freschezza di una singola sezione (quello resta `stats(feature)`, mirato).
+   */
+  async listSections(): Promise<NecSectionStats[]> {
+    if (!this.isEnabled()) {
+      return [];
+    }
+    const db = await this.open();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction([META_STORE], 'readonly');
+      const sections: NecSectionStats[] = [];
+      const cursorRequest = tx.objectStore(META_STORE).openCursor();
+      cursorRequest.onsuccess = () => {
+        const cursor = cursorRequest.result;
+        if (cursor) {
+          sections.push(cursor.value as NecSectionStats);
+          cursor.continue();
+        }
+      };
+      tx.oncomplete = () => resolve(sections);
+      tx.onerror = () => reject(tx.error ?? new Error('lettura sezioni fallita'));
+    });
+  }
+
   /** Lettura completa: blocco di ricerca + bozze, per la traduzione di `RestoreRequest`. */
   async readSection<T, C = unknown>(feature: string): Promise<NecSectionData<T, C> | null> {
     if (!this.isEnabled()) {

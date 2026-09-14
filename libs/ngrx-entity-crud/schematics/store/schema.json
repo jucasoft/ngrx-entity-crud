@@ -54,6 +54,12 @@
           { "value": "lazy",  "label": "lazy  - nel feature module della view" }
         ]
       }
+    },
+    "persist": {
+      "description": "Genera anche la registrazione di createPersistenceEffects (persistenza locale IndexedDB, solo per CRUD-PLURAL). Opt-in, default false.",
+      "type": "boolean",
+      "default": false,
+      "x-prompt": "Vuoi generare anche il wiring della persistenza locale (createPersistenceEffects, solo CRUD-PLURAL)?"
     }
   },
   "required": [
