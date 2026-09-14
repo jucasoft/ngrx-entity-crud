@@ -61,6 +61,7 @@ export enum CrudEnum {
   EDIT = 'Edit',
   SELECT = 'Select',
   RESET = 'Reset',
+  RESTORE = 'Restore',
 }
 
 export enum ActionEnum {
@@ -386,6 +387,15 @@ export interface Actions<T> extends SingularActions<T> {
   SearchRequest: ActionCreator<string, (props: ICriteria) => ICriteria & TypedAction<string>>;
   SearchFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
   SearchSuccess: ActionCreator<string, (props: { items: T[], request: ICriteria }) => { items: T[], request: ICriteria } & TypedAction<string>>;
+
+  /**
+   * - action used to restore a previously persisted section (search results + drafts) from a
+   *   local source (see `ngrx-entity-crud/persistence`), without contacting the server
+   * @example store.dispatch(actions.RestoreRequest());
+   */
+  RestoreRequest: ActionCreator<string, () => { type: string; }>;
+  RestoreFailure: ActionCreator<string, (props: { error: string; }) => { error: string; } & TypedAction<string>>;
+  RestoreSuccess: ActionCreator<string, (props: { items: T[], selected: T[], criteria: ICriteria }) => { items: T[], selected: T[], criteria: ICriteria } & TypedAction<string>>;
 
   /**
    * - action used to execute a request to remove an item

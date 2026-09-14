@@ -17,6 +17,10 @@ export function createCrudActionsFactory<T>() {
     const SearchFailure = createAction(`[${name}] ${CrudEnum.SEARCH} ${ActionEnum.FAILURE}`, props<{ error: string }>());
     const SearchSuccess = createAction(`[${name}] ${CrudEnum.SEARCH} ${ActionEnum.SUCCESS}`, props<{ items: T[], request: ICriteria }>());
 
+    const RestoreRequest = createAction(`[${name}] ${CrudEnum.RESTORE} ${ActionEnum.REQUEST}`);
+    const RestoreFailure = createAction(`[${name}] ${CrudEnum.RESTORE} ${ActionEnum.FAILURE}`, props<{ error: string }>());
+    const RestoreSuccess = createAction(`[${name}] ${CrudEnum.RESTORE} ${ActionEnum.SUCCESS}`, props<{ items: T[], selected: T[], criteria: ICriteria }>());
+
     const DeleteRequest = createAction(`[${name}] ${CrudEnum.DELETE} ${ActionEnum.REQUEST}`, props<OptRequest>());
     const DeleteFailure = createAction(`[${name}] ${CrudEnum.DELETE} ${ActionEnum.FAILURE}`, props<{ error: string }>());
     const DeleteSuccess = createAction(`[${name}] ${CrudEnum.DELETE} ${ActionEnum.SUCCESS}`, props<{ id: string, request: OptRequest }>());
@@ -65,6 +69,10 @@ export function createCrudActionsFactory<T>() {
       SearchRequest,
       SearchFailure,
       SearchSuccess,
+
+      RestoreRequest,
+      RestoreFailure,
+      RestoreSuccess,
 
       DeleteRequest,
       DeleteFailure,

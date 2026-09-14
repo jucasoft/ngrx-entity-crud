@@ -138,6 +138,39 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
       }
     );
   });
+
+  const restoreRequestOn = on(actions.RestoreRequest, (state: S) => ({
+    ...state,
+    isLoading: true,
+    isLoaded: false,
+    error: initialState.error
+  }));
+
+  // Ripristino da una fonte locale (vedi ngrx-entity-crud/persistence): sempre una sostituzione
+  // completa di entities + entitiesSelected, a differenza di searchSuccessOn non esiste un `mode`
+  // da interpretare, perche' quello che arriva e' gia' esattamente lo stato salvato.
+  const restoreSuccessOn = on(actions.RestoreSuccess, (state: S, {items, selected, criteria}) => {
+    const entitiesSelected = toDictionary(selected, adapter);
+    const idsSelected = Object.keys(entitiesSelected);
+
+    return adapter.setAll(items, {
+      ...state,
+      entitiesSelected,
+      idsSelected,
+      lastCriteria: criteria,
+      isLoaded: true,
+      isLoading: false,
+      error: null
+    });
+  });
+
+  const restoreFailureOn = on(actions.RestoreFailure, (state: S, {error}) => ({
+    ...state,
+    isLoaded: false,
+    isLoading: false,
+    error
+  }));
+
   const deleteSuccessOn = on(actions.DeleteSuccess, (state: S, {type, id}) => {
 
       // tolgo dallo store.idsSelected l'elemento cancellato
@@ -466,6 +499,9 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
     createManyRequestOn,
     selectRequestOn,
     searchSuccessOn,
+    restoreRequestOn,
+    restoreSuccessOn,
+    restoreFailureOn,
     deleteSuccessOn,
     deleteManySuccessOn,
     createSuccessOn,

@@ -1,7 +1,7 @@
 # ngrx-entity-crud — Persistenza locale ricerche + bozze (piano)
 
-> Stato: **IN CORSO — Fase 0 completata** (`persistence/`: entry-point + servizio IDB). Fasi 1-5 ancora da
-> fare. Branch `19.4.0-beta`.
+> Stato: **IN CORSO — Fasi 0-1 completate** (`persistence/`: entry-point + servizio IDB; `Restore*` nel core).
+> Fasi 2-5 ancora da fare. Branch `19.4.0-beta`.
 > Companion di `ngrx-entity-crud-dashboard-plan.md` (che ne riapre la "Fase 4 — meta-reducer di persistenza",
 > lì dichiarata non necessaria perché il consumer usava `ngrx-store-idb`).
 
@@ -242,15 +242,21 @@ tabella in stato di caricamento.
   transazione viene abortita — si perde al più l'ultima modifica, senza dati corrotti (atomicità di IDB).
 - `navigator.storage.persist()` invocato una volta all'inizializzazione, per ridurre il rischio di eviction.
 
-### Modifiche al core (`src/`)
+### Modifiche al core (`src/`) — Fase 1 ✅ FATTO
 
 Additive, nessuna rottura di comportamento esistente:
 
-- `actions.ts` — `createCrudActions` produce anche `RestoreRequest` / `RestoreSuccess` / `RestoreFailure`.
-- `models.ts` — i tre membri corrispondenti in `Actions<T>` (nota di versioning: chi implementasse
+- `actions.ts` — `createCrudActions` produce anche `RestoreRequest` / `RestoreSuccess` / `RestoreFailure`
+  (nuovo `CrudEnum.RESTORE = 'Restore'`, stesso schema di tipo `[name] Restore Request/Success/Failure`).
+- `models.ts` — i tre membri corrispondenti in `Actions<T>`, non in `SingularActions<T>` (il ripristino
+  riguarda solo lo stato collezione, non ha senso per il singular) (nota di versioning: chi implementasse
   `Actions<T>` a mano dovrebbe aggiungerli; per chi usa `createCrudActions`, cioè tutti, è trasparente).
-- `reducer.ts` — `createCrudOns` include `restoreRequestOn` / `restoreSuccessOn` / `restoreFailureOn`, con
-  `restoreSuccessOn` che riusa la logica di `searchSuccessOn` estendendola alle bozze.
+- `reducer.ts` — `createCrudOns` include `restoreRequestOn` / `restoreSuccessOn` / `restoreFailureOn`.
+  **Non** è codice condiviso con `searchSuccessOn` (la formulazione originale del piano qui era imprecisa):
+  `restoreSuccessOn` è più semplice, perché non deve interpretare nessun `mode` di `ICriteria` — quello che
+  arriva da IndexedDB è già lo stato salvato per intero, sempre `adapter.setAll(items)` +
+  `entitiesSelected`/`idsSelected` ricostruiti da `selected` via lo stesso `toDictionary` già usato da
+  `selectItemsOn`/`addManySelectedOn`.
 - `public-api.ts` — invariato: esporta già questi moduli.
 
 Le action vivono nel core perché sono generiche ("ripristina uno stato da una fonte esterna", come `Reset`) e
@@ -382,8 +388,14 @@ handler, e allineato il confronto `idSelected` vs id dell'action al confronto st
   request in ordine di *creazione*, non di completamento, quindi il conteggio veniva letto a cancellazione
   ancora in corso. Corretto azzerando `draftCount` direttamente (è cancellazione totale, il valore finale è
   noto a priori) invece di ricontare.
-- **Fase 1 — action e reducer nel core.** `Restore*` in `actions.ts`/`models.ts`/`reducer.ts`, con test sul
-  reducer (isLoading, ripopolamento di entities + entitiesSelected + lastCriteria).
+- **Fase 1 — action e reducer nel core. ✅ FATTO** `Restore*` in `actions.ts` (nuovo `CrudEnum.RESTORE`),
+  `models.ts` (i tre membri in `Actions<T>`, non in `SingularActions<T>`: il ripristino riguarda solo lo
+  stato collezione) e `reducer.ts` (`restoreRequestOn`/`restoreSuccessOn`/`restoreFailureOn`).
+  `restoreSuccessOn` è sempre una sostituzione completa — niente `mode` da interpretare come in
+  `searchSuccessOn`, perché quello che arriva da IndexedDB è già lo stato salvato per intero. 5 nuovi test in
+  `src/test/reducer-restore.spec.ts` (isLoading/isLoaded/error nei tre casi, ripopolamento di entities +
+  entitiesSelected + idsSelected + lastCriteria, sostituzione e non merge di entities). `npm run testLibs`
+  verde (279 test, 21 suite), `npm run lint` senza errori, `npm run build` + `build:schematics` integri.
 - **Fase 2 — effect factory.** `createPersistenceEffects` con la tabella del ciclo di vita, il debounce, il
   check leggero `stats(feature)` alla creazione con eventuale auto-restore (`autoRestore`), e la traduzione di
   `RestoreRequest` in lettura. Test sul comportamento delle azioni, non sull'I/O.
