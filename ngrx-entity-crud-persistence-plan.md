@@ -1,6 +1,7 @@
 # ngrx-entity-crud — Persistenza locale ricerche + bozze (piano)
 
-> Stato: **PIANO — nessuna implementazione**. Branch `19.4.0-beta`.
+> Stato: **IN CORSO — Fase 0 completata** (`persistence/`: entry-point + servizio IDB). Fasi 1-5 ancora da
+> fare. Branch `19.4.0-beta`.
 > Companion di `ngrx-entity-crud-dashboard-plan.md` (che ne riapre la "Fase 4 — meta-reducer di persistenza",
 > lì dichiarata non necessaria perché il consumer usava `ngrx-store-idb`).
 
@@ -103,7 +104,8 @@ riserializza e riscrive l'intero stato 1.000 volte.
 
 ### Modello dati IndexedDB
 
-Un database `nec-persistence` (nome configurabile), versione 1, due object store.
+Un database `nec-persistence` (nome configurabile), versione 1, **tre** object store (la terza, `meta`, è
+emersa implementando la Fase 0 — vedi nota sotto).
 
 **`search`** — un record per sezione, chiave = nome della feature:
 
@@ -114,6 +116,22 @@ key: "orders"
 
 Scritto una sola volta per ricerca, su `SearchSuccess`, sempre e per intero. `bytes` viene calcolato lì (una
 sola `JSON.stringify().length`) così il pulsante può dichiarare lo spazio occupato senza rileggere nulla.
+
+**`meta`** — un record per sezione, chiave = nome della feature, **separato** dal blob `search`:
+
+```
+key: "orders"
+{ feature: "orders", count: 100, bytes: 84210, draftCount: 3, at: 1737980522 }
+```
+
+> **Nota (emersa in Fase 0)**: la decisione 11 chiede che il check di freschezza sia una lettura *leggera*,
+> "non il blob". Ma IndexedDB non supporta letture parziali di un record: una `get()` su `search[feature]`
+> forza comunque la deserializzazione dell'intero `entities`, qualunque sia la dimensione — esattamente il
+> costo che il check dovrebbe evitare (vedi *Rischi*, "simmetrico in lettura"). `meta` risolve la
+> contraddizione: `stats(feature)` legge solo questo record (quattro numeri), mai `search`. Scritto nella
+> stessa transazione di `search` su `SearchSuccess`; `draftCount` si aggiorna in scrittura ad ogni
+> put/delete di bozza via `index('feature').count()` su `drafts` (economico, non tocca `entities`), non
+> ricalcolato ad ogni lettura.
 
 **`drafts`** — un record per entità modificata, chiave composta, indice su `feature`:
 
@@ -129,11 +147,11 @@ Modificare una riga scrive **un solo record**. L'indice `feature` serve a contar
 
 | Evento | Effetto su IndexedDB |
 |---|---|
-| `SearchRequest` | cancella `search[feature]` e tutti i `drafts` della feature |
-| `SearchSuccess` | scrive il blocco completo |
-| `AddManySelected`, `SelectItems` | `put` dei record toccati (debounce breve) |
-| `RemoveManySelected`, `RemoveAllSelected` | `delete` dei record corrispondenti |
-| `DeleteSuccess`, `DeleteManySuccess` | `delete` delle bozze degli id cancellati |
+| `SearchRequest` | cancella `search[feature]`, `meta[feature]` e tutti i `drafts` della feature |
+| `SearchSuccess` | scrive il blocco completo (`search[feature]` + `meta[feature]`, stessa transazione) |
+| `AddManySelected`, `SelectItems` | `put` dei record toccati in `drafts` (debounce breve) + `draftCount` in `meta` |
+| `RemoveManySelected`, `RemoveAllSelected` | `delete` dei record corrispondenti in `drafts` + `draftCount` in `meta` |
+| `DeleteSuccess`, `DeleteManySuccess` | `delete` delle bozze degli id cancellati + `draftCount` in `meta` |
 | `Restore*` | **nessuno** — il ripristino legge, non scrive |
 
 A questi eventi si aggiunge, alla creazione della sezione (non un'action, un side-effect della registrazione
@@ -242,7 +260,8 @@ registrare gli effects.
 
 ### API pubblica dell'entry-point
 
-`libs/ngrx-entity-crud/persistence/` — NUOVA cartella, con `ng-package.json` + `public-api.ts`:
+`libs/ngrx-entity-crud/persistence/` — cartella con `ng-package.json` + `public-api.ts` (Fase 0 ✅ FATTO,
+vedi *Fasi*):
 
 - `NecPersistenceModule.forRoot(config)` — compatibilità Angular 16; `provideNecPersistence(config)` come
   variante funzionale per chi è su Angular 15+.
@@ -250,8 +269,13 @@ registrare gli effects.
   `autoRestore?: {maxAgeMs: number, maxBytes?: number}` come default globale. Opt-in: se assente, nessun
   ripristino automatico da nessuna parte — comportamento di default invariato rispetto alla versione
   precedente del piano.
-- `NecPersistenceService` — apertura DB e schema, `readSection(feature)`, `purgeSection(feature)`,
-  `stats(feature)`, `pendingWrites$`.
+- `NecPersistenceService` — apertura DB e schema (tre object store, vedi *Modello dati*):
+  `writeSearch(feature, criteria, items, selectId)`, `purgeSection(feature)`,
+  `putDrafts(feature, items, selectId)`, `deleteDrafts(feature, ids)`, `deleteAllDrafts(feature)`,
+  `readSection(feature)` (blocco + bozze, per la traduzione di `RestoreRequest`), `stats(feature)` (solo
+  `meta`, la lettura leggera del check di freschezza), `pendingWrites$`, `estimateStorage()`. `enabled: false`
+  rende ogni operazione un no-op. Ogni scrittura registra/deregistra da sé il listener `beforeunload` in base
+  al contatore (decisione 8) e invoca `navigator.storage.persist()` una volta all'istanziazione.
 - `createPersistenceEffects<T>({feature, selectId, actions, autoRestore?})` — la effect factory: scrive sugli
   eventi della tabella del ciclo di vita; alla creazione esegue il check leggero `stats(feature)` e, se rientra
   in `autoRestore` (parametro di sezione, prevale sul default globale di `NEC_PERSISTENCE_CONFIG`), dispatcha da
@@ -284,8 +308,9 @@ La scelta tra gli stati 1-3 è già decisa quando il componente si monta: legge 
 da `createPersistenceEffects` alla creazione della sezione, non ripete la query `stats(feature)`.
 
 Solo `p-button` e `p-tag` (classi identiche tra PrimeNG v16 e v19), `primeng` è già `peerDependency`
-opzionale. Le cifre vengono da `stats(feature)`: `count` e `bytes` dal record `search`, numero bozze da
-`index('feature').count()`. Nessuna lettura integrale degli store per disegnare il pulsante.
+opzionale. Le cifre vengono da `stats(feature)`: `count`, `bytes` e `draftCount` dal record `meta` (object
+store separato dal blob `search`, introdotto in Fase 0 — vedi nota sotto). Nessuna lettura integrale degli
+store per disegnare il pulsante.
 
 ## Cosa questo piano NON fa
 
@@ -340,10 +365,23 @@ handler, e allineato il confronto `idSelected` vs id dell'action al confronto st
 
 ## Fasi
 
-- **Fase 0 — entry-point + servizio IDB.** `persistence/` con `ng-package.json`, apertura DB, schema a due
-  object store, `put`/`get`/`delete`/purge per feature, contatore scritture, `beforeunload` condizionale.
-  Test Jest con `fake-indexeddb` (da aggiungere alle devDependencies). De-risk: verificare che ng-packagr
-  emetta `dist/ngrx-entity-crud/persistence` e che `npm run build` + `build:schematics` restino integri.
+- **Fase 0 — entry-point + servizio IDB. ✅ FATTO** `persistence/` (`ng-package.json` + `public-api.ts`),
+  `NecPersistenceService` con apertura/schema DB a **tre** object store (`search`, `meta`, `drafts` — la
+  terza emersa in questa fase, vedi nota in *Modello dati*), `writeSearch`/`purgeSection`/`putDrafts`/
+  `deleteDrafts`/`deleteAllDrafts`/`readSection`/`stats`/`estimateStorage`, contatore `pendingWrites$`,
+  `beforeunload` condizionale, `enabled: false` come no-op globale, `NecPersistenceModule.forRoot` +
+  `provideNecPersistence`. Test Jest con `fake-indexeddb` (aggiunto alle devDependencies: richiede anche un
+  polyfill di `structuredClone` in `src/test-setup.ts`, assente nel global scope di
+  `jest-environment-jsdom` anche su Node recenti — non un problema di questa libreria, ma dell'ambiente di
+  test). `npm run testLibs` verde (274 test, 20 suite — 8 nuovi in più rispetto al prerequisito), `npm run
+  lint` senza errori (0 warning nei file nuovi). De-risk verificato: `npm run build` emette
+  `dist/ngrx-entity-crud/persistence` (ng-packagr lo scopre da sé, stesso meccanismo di `devtools`/`ui`) e
+  `build:schematics` resta integro.
+  **Bug reale intercettato dai test**: `deleteAllDrafts` inizialmente ricontava le bozze rimaste con
+  `index('feature').count()` nella stessa transazione del cursore di cancellazione — ma IndexedDB esegue le
+  request in ordine di *creazione*, non di completamento, quindi il conteggio veniva letto a cancellazione
+  ancora in corso. Corretto azzerando `draftCount` direttamente (è cancellazione totale, il valore finale è
+  noto a priori) invece di ricontare.
 - **Fase 1 — action e reducer nel core.** `Restore*` in `actions.ts`/`models.ts`/`reducer.ts`, con test sul
   reducer (isLoading, ripopolamento di entities + entitiesSelected + lastCriteria).
 - **Fase 2 — effect factory.** `createPersistenceEffects` con la tabella del ciclo di vita, il debounce, il

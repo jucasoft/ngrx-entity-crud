@@ -9,9 +9,11 @@ const config: Config = {
     'src/**/*.ts',
     'devtools/**/*.ts',
     'ui/**/*.ts',
+    'persistence/**/*.ts',
     '!src/**/*.spec.ts',
     '!devtools/**/*.spec.ts',
     '!ui/**/*.spec.ts',
+    '!persistence/**/*.spec.ts',
     '!src/test-setup.ts',
   ],
   transform: {
