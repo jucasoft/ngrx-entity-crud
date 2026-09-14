@@ -1,7 +1,7 @@
 # ngrx-entity-crud — Persistenza locale ricerche + bozze (piano)
 
-> Stato: **IN CORSO — Fasi 0-2 completate** (`persistence/`: entry-point + servizio IDB + effect factory;
-> `Restore*` nel core). Fasi 3-5 ancora da fare. Branch `19.4.0-beta`.
+> Stato: **IN CORSO — Fasi 0-3 completate** (`persistence/`: entry-point + servizio IDB + effect factory +
+> componente `<nec-restore-search>`; `Restore*` nel core). Fasi 4-5 ancora da fare. Branch `19.4.0-beta`.
 > Companion di `ngrx-entity-crud-dashboard-plan.md` (che ne riapre la "Fase 4 — meta-reducer di persistenza",
 > lì dichiarata non necessaria perché il consumer usava `ngrx-store-idb`).
 
@@ -266,7 +266,7 @@ registrare gli effects.
 
 ### API pubblica dell'entry-point
 
-`libs/ngrx-entity-crud/persistence/` — cartella con `ng-package.json` + `public-api.ts` (Fasi 0-2 ✅ FATTO,
+`libs/ngrx-entity-crud/persistence/` — cartella con `ng-package.json` + `public-api.ts` (Fasi 0-3 ✅ FATTO,
 vedi *Fasi*):
 
 - `NecPersistenceModule.forRoot(config)` — compatibilità Angular 16; `provideNecPersistence(config)` come
@@ -287,36 +287,52 @@ vedi *Fasi*):
   in `autoRestore` (parametro di sezione, prevale sul default globale di `NEC_PERSISTENCE_CONFIG`), dispatcha da
   sé `RestoreRequest`; traduce comunque `RestoreRequest` — che parta in automatico o dal componente — in
   lettura da IndexedDB + `RestoreSuccess`/`Failure`.
-- `NecRestoreSearchComponent` (`<nec-restore-search feature="orders">`) — vedi sotto.
+- `NecRestoreSearchComponent` (`<nec-restore-search [feature]="..." [effects]="..." [actions]="...">`) — vedi
+  sotto.
 - `provideNecIdbAdapterFromPersistence()` — implementa `NecIdbAdapter` (`devtools/idb-adapter.token.ts`) sul
   DB della persistenza, così la dashboard esistente smette di essere solo agnostica e mostra le sezioni con
   nomi e conteggi veri.
 
 Il `package.json` della libreria resta con `dependencies: {}`.
 
-### Componente
+### Componente — Fase 3 ✅ FATTO
 
-`<nec-restore-search>` wrappa il pulsante Search della sezione, con cinque stati:
+`<nec-restore-search>` wrappa il pulsante Search della sezione via content projection
+(`<ng-content>`: i criteri della ricerca restano compito del form dell'app, fuori scopo qui). I cinque stati
+del piano si sono rivelati, implementando, **quattro rami mutuamente esclusivi** più **due indicatori
+indipendenti** mostrati insieme a uno qualsiasi dei quattro — coerente con la formulazione originale del
+punto 4 ("spinner... **più** icona di sync"), che già li trattava come sovrapponibili:
 
-1. **niente in locale** → normale pulsante Search;
-2. **ripristino automatico in corso** (solo se `autoRestore` è configurato per la sezione e i dati sono entro
-   soglia) → spinner, senza chiedere conferma: dal punto di vista dell'utente la sezione si apre già con i
-   suoi dati;
-3. **dati locali presenti, fuori soglia o `autoRestore` non configurato** →
-   `"100 risultati salvati, 12 modifiche non inviate, 340 KB — ieri 18:42"` con
-   `Ripristina` (dispatcha `RestoreRequest`) / `Nuova ricerca` (con conferma, perché butta via lavoro non
-   inviato);
-4. **attività in corso** → spinner durante il ripristino manuale (da `isLoading` della slice), icona di sync
-   durante i salvataggi (dal contatore);
-5. **quota quasi esaurita** → avviso da `navigator.storage.estimate()`.
+1. **none** → contenuto proiettato (il normale pulsante Search), sia quando non c'è nulla in locale sia dopo
+   un ripristino riuscito (automatico o manuale) o dopo "New search" confermata;
+2. **auto-restoring** (solo se `autoRestore` è configurato per la sezione e i dati sono entro soglia) →
+   spinner, senza chiedere conferma: dal punto di vista dell'utente la sezione si apre già con i suoi dati;
+3. **prompt** — dati locali presenti, fuori soglia o `autoRestore` non configurato →
+   `"100 results saved, 12 unsent changes, 340 KB — yesterday 18:42"` con `Restore` (dispatcha
+   `RestoreRequest`) / `New search` (conferma inline stile Yes/Cancel — come il "Reset all" di
+   `<nec-dashboard>`, niente `confirm()` nativo — perché butta via lavoro non inviato; alla conferma non
+   dispatcha nulla lui stesso, torna allo stato `none` e lascia che sia la ricerca reale, quando l'utente la
+   lancia, a far scattare la purge già prevista su `SearchRequest`);
+4. **manual-restoring** → spinner sul pulsante `Restore` durante `isLoading` della slice;
+   indicatori indipendenti, mostrati insieme a uno qualsiasi dei quattro rami sopra: icona di sync quando
+   `pendingWrites$ > 0`, avviso quando `navigator.storage.estimate()` segnala quota quasi esaurita (chiamato
+   una sola volta, non in polling).
 
-La scelta tra gli stati 1-3 è già decisa quando il componente si monta: legge l'esito del check leggero fatto
-da `createPersistenceEffects` alla creazione della sezione, non ripete la query `stats(feature)`.
+La scelta tra i rami 1-3 è già decisa quando il componente si monta: legge `sectionCheck$` dalla classe
+generata da `createPersistenceEffects`, risolta via `Injector` (il componente riceve la classe stessa come
+`Input`, `[effects]="LaClasseGenerata"`, non una stringa) — stesso injector in cui `EffectsModule.forFeature`
+l'ha registrata, quindi nessuna nuova query a `stats(feature)`.
 
 Solo `p-button` e `p-tag` (classi identiche tra PrimeNG v16 e v19), `primeng` è già `peerDependency`
-opzionale. Le cifre vengono da `stats(feature)`: `count`, `bytes` e `draftCount` dal record `meta` (object
-store separato dal blob `search`, introdotto in Fase 0 — vedi nota sotto). Nessuna lettura integrale degli
-store per disegnare il pulsante.
+opzionale; il tipo di `severity` è comunque `string`-based anche in v19, quindi un valore come `warn` degrada
+al più a un tag senza colore su una versione che non lo riconosce, non rompe nulla. Le cifre vengono da
+`stats(feature)`: `count`, `bytes` e `draftCount` dal record `meta` (object store separato dal blob `search`,
+introdotto in Fase 0 — vedi nota sotto). Nessuna lettura integrale degli store per disegnare il pulsante.
+
+**Bug di logica intercettato prima dei test**: senza gestione dedicata, un `RestoreSuccess` sarebbe ricaduto
+di nuovo nello stato `prompt` invece che in `none` (`check.stats` resta popolato, essendo l'esito di un check
+fatto una sola volta alla creazione) — mostrando di nuovo "Restore" a dati già ripristinati. Corretto
+riusando lo stesso segnale di "New search" confermata.
 
 ## Cosa questo piano NON fa
 
@@ -422,7 +438,36 @@ handler, e allineato il confronto `idSelected` vs id dell'action al confronto st
   il merge nella finestra di debounce, i tre esiti di `RestoreRequest`, sette casi di soglia/precedenza per
   l'auto-restore). `npm run testLibs` verde (296 test, 22 suite), `npm run lint` senza errori, `npm run build`
   + `build:schematics` integri.
-- **Fase 3 — componente.** `<nec-restore-search>` con i cinque stati (incluso il ripristino automatico).
+- **Fase 3 — componente. ✅ FATTO** `NecRestoreSearchComponent` (`persistence/nec-restore-search.component.ts`),
+  standalone/OnPush, solo `p-button`+`p-tag` (`severity` è tipizzato `string`-based anche in v19, quindi un
+  valore come `warn` degrada al più a un tag senza colore su v16, non rompe nulla). Wrappa il pulsante Search
+  via content projection (`<ng-content>` per lo stato **none**): costruire i criteri della ricerca resta
+  fuori scopo, è compito del form dell'app.
+  I cinque stati del piano si riducono a **quattro rami mutuamente esclusivi** (`none`/`prompt`/
+  `auto-restoring`/`manual-restoring`) più **due indicatori indipendenti** (icona di sync da `pendingWrites$`,
+  avviso di quota da `estimateStorage()`, chiamato una sola volta) mostrati insieme a qualunque ramo — è la
+  lettura più fedele della descrizione originale dello stato 4 ("spinner... **più** icona di sync"), che già
+  trattava le due cose come sovrapponibili.
+  Legge `sectionCheck$` dalla classe generata da `createPersistenceEffects` risolvendola via `Injector` (il
+  componente riceve `[effects]="LaClasseGenerata"` come `Input`, non una stringa): stesso injector in cui
+  `EffectsModule.forFeature` l'ha registrata, quindi nessuna nuova query a `stats(feature)`.
+  "New search" (stato `prompt`) non dispatcha nulla lui stesso: mostra una conferma inline stile Yes/Cancel
+  (come il "Reset all" di `<nec-dashboard>`, niente `confirm()` nativo) e poi torna allo stato `none`,
+  lasciando che sia la ricerca reale dell'app — quando l'utente la lancia dal pulsante ora rivisibile — a far
+  scattare la purge automatica già prevista su `SearchRequest`.
+  **Bug di logica intercettato prima dei test**: un `RestoreSuccess` (automatico o manuale) senza gestione
+  dedicata sarebbe ricaduto di nuovo nello stato `prompt` invece che in `none` (`check.stats` resta popolato,
+  essendo l'esito di un check fatto una sola volta alla creazione) — mostrando di nuovo "Restore" a dati già
+  ripristinati. Corretto riusando lo stesso segnale di "New search" confermata: un restore riuscito chiude il
+  prompt.
+  13 nuovi test in `nec-restore-search.component.spec.ts` (helper `formatBytes`/`formatAge` puri, più i
+  quattro stati e i due indicatori via `TestBed`). Un dettaglio di RxJS ha richiesto di riscrivere l'approccio
+  di test: `combineLatest` è cold e i `Subject` non-replay non ripetono ai nuovi iscritti i valori già
+  emessi, quindi il primo tentativo (una nuova `.subscribe()` per ogni asserzione) restava in timeout —
+  serve un'**unica sottoscrizione persistente** per test, e `pendingWrites$` nel doppio dev'essere una
+  `BehaviorSubject` come lo è per davvero in `NecPersistenceService` (Fase 0), non un `Subject` semplice.
+  `npm run testLibs` verde (312 test, 23 suite), `npm run lint` senza errori, `npm run build` +
+  `build:schematics` integri.
 - **Fase 4 — integrazione.** `provideNecIdbAdapterFromPersistence()` per la dashboard, pannello sezioni con
   purge esplicito in `<nec-dashboard>`, opzione `--persist` negli schematics `store`/`section` per generare
   la registrazione degli effects, README + ricetta in `TEST.md`.
