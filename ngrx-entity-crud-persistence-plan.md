@@ -57,6 +57,15 @@ riserializza e riscrive l'intero stato 1.000 volte.
     è istantaneo: serve il ciclo `Request`/`Success`/`Failure` come per ogni altra operazione, perché
     `isLoading` deve essere vero durante la lettura e tornare falso alla fine. In più elimina il campo
     marcatore che sarebbe servito a distinguere una `SearchSuccess` vera da una sintetica.
+11. **Check di freschezza agganciato alla creazione della sezione dello store**, non all'apertura del
+    componente. `createPersistenceEffects` esegue una lettura leggera (`stats(feature)`: metadati soltanto,
+    non il blob) appena gli effects della feature vengono registrati — stesso istante per store eager e lazy.
+    Il componente non ripete la query: legge l'esito già disponibile.
+12. **Soglia di età configurabile (`autoRestore.maxAgeMs`, opzionale `maxBytes`) per decidere se il ripristino
+    parte da solo o resta un gesto esplicito.** Opt-in, per sezione: se non impostata, il comportamento resta
+    quello della decisione 10 (sempre gesto esplicito). Serve a distinguere sezioni con dati volatili (dove un
+    ripristino silenzioso di dati vecchi sarebbe un problema) da sezioni con bozze costose da rifare (dove
+    aspettare un click in più è solo attrito).
 
 ## Contesto rilevato nel codebase (vincoli)
 
@@ -127,6 +136,10 @@ Modificare una riga scrive **un solo record**. L'indice `feature` serve a contar
 | `DeleteSuccess`, `DeleteManySuccess` | `delete` delle bozze degli id cancellati |
 | `Restore*` | **nessuno** — il ripristino legge, non scrive |
 
+A questi eventi si aggiunge, alla creazione della sezione (non un'action, un side-effect della registrazione
+degli effects), la lettura leggera `stats(feature)` che decide auto-restore vs prompt — vedi la sezione
+successiva.
+
 Ne consegue che **una sezione contiene al massimo l'ultima ricerca e le sue bozze**: non si accumula storia,
 e il problema "apro 7 sezioni e mi ritrovo migliaia di record" è contenuto dal reset-per-ricerca. La pulizia
 periodica diventa un di più, non un requisito.
@@ -135,15 +148,34 @@ periodica diventa un di più, non un requisito.
 `createPersistenceEffects<T>(config)`, registrata nell'`EffectsModule.forFeature` del module dello store —
 lo stesso posto per store eager e lazy, quindi il problema "slice lazy registrata dopo la reidratazione"
 non si pone. Gli effects leggono lo stato già ridotto con `withLatestFrom` e sono `{dispatch: false}`, tranne
-quelli del ripristino.
+quelli del ripristino. È lo stesso hook a cui si aggancia il check leggero di freschezza descritto sotto: la
+lettura di `stats(feature)` avviene quando la sezione (eager o lazy) viene creata, non quando l'utente apre
+il componente — per una sezione lazy, quindi, nel momento in cui l'utente ci naviga e il modulo si carica.
 
-### Ripristino: su gesto dell'utente, sempre da locale
+### Ripristino: check leggero automatico alla creazione della sezione, poi gesto esplicito (salvo auto-restore configurato)
 
-Nessuna reidratazione al bootstrap. All'apertura della sezione il componente interroga IndexedDB per quella
-feature e, se trova dati, offre il ripristino. Questo elimina in un colpo sia il bootstrap bloccante sia la
-race condition di `ngrx-store-idb`.
+Nessuna reidratazione al bootstrap dell'applicazione. Il trigger non è "il componente si monta e l'utente
+guarda", ma la **creazione della sezione dello store**: appena `createPersistenceEffects` registra i suoi
+effects, esegue una lettura di `stats(feature)` — solo metadati (`count`, `bytes`, numero bozze, `at`), **non**
+il blob `entities`/`drafts`. È la stessa lettura economica già prevista per alimentare il pulsante, semplicemente
+anticipata al momento della creazione della sezione invece che al mount del componente.
 
-Il ripristino ha **action proprie**, con lo stesso ciclo di ogni altra operazione della libreria:
+In base al risultato:
+
+- **nessun dato locale** → nessuna azione, il pulsante Search si comporta come oggi;
+- **dati locali entro `autoRestore.maxAgeMs`** (e sotto `autoRestore.maxBytes`, se impostato) → `RestoreRequest`
+  viene dispatchato in automatico, senza intervento dell'utente: la sezione si apre già con i suoi dati;
+- **dati locali fuori soglia, o `autoRestore` non configurato per quella sezione (default)** → nessun dispatch
+  automatico: il componente mostra il riepilogo e il ripristino resta un gesto esplicito, come nella versione
+  precedente di questo piano.
+
+`autoRestore` è **opt-in e per sezione**: se il consumer non lo configura, il comportamento è quello già
+deciso (sempre gesto esplicito) — l'introduzione della soglia non cambia nulla per chi non la usa. La soglia
+"giusta" non è la stessa per tutte le sezioni: un catalogo che cambia in continuazione può restare a gesto
+esplicito, una sezione con bozze lunghe da ricostruire può accettare una soglia larga.
+
+Il ripristino, automatico o manuale che sia, usa sempre le stesse **action dedicate**, con lo stesso ciclo di
+ogni altra operazione della libreria:
 
 | Action | Effetto sul reducer |
 |---|---|
@@ -214,11 +246,17 @@ registrare gli effects.
 
 - `NecPersistenceModule.forRoot(config)` — compatibilità Angular 16; `provideNecPersistence(config)` come
   variante funzionale per chi è su Angular 15+.
-- `NEC_PERSISTENCE_CONFIG` — `{dbName, dbVersion, debounceMs, enabled}`.
+- `NEC_PERSISTENCE_CONFIG` — `{dbName, dbVersion, debounceMs, enabled, autoRestore?}`, con
+  `autoRestore?: {maxAgeMs: number, maxBytes?: number}` come default globale. Opt-in: se assente, nessun
+  ripristino automatico da nessuna parte — comportamento di default invariato rispetto alla versione
+  precedente del piano.
 - `NecPersistenceService` — apertura DB e schema, `readSection(feature)`, `purgeSection(feature)`,
   `stats(feature)`, `pendingWrites$`.
-- `createPersistenceEffects<T>({feature, selectId, actions})` — la effect factory: scrive sugli eventi della
-  tabella del ciclo di vita, e traduce `RestoreRequest` in lettura da IndexedDB + `RestoreSuccess`/`Failure`.
+- `createPersistenceEffects<T>({feature, selectId, actions, autoRestore?})` — la effect factory: scrive sugli
+  eventi della tabella del ciclo di vita; alla creazione esegue il check leggero `stats(feature)` e, se rientra
+  in `autoRestore` (parametro di sezione, prevale sul default globale di `NEC_PERSISTENCE_CONFIG`), dispatcha da
+  sé `RestoreRequest`; traduce comunque `RestoreRequest` — che parta in automatico o dal componente — in
+  lettura da IndexedDB + `RestoreSuccess`/`Failure`.
 - `NecRestoreSearchComponent` (`<nec-restore-search feature="orders">`) — vedi sotto.
 - `provideNecIdbAdapterFromPersistence()` — implementa `NecIdbAdapter` (`devtools/idb-adapter.token.ts`) sul
   DB della persistenza, così la dashboard esistente smette di essere solo agnostica e mostra le sezioni con
@@ -228,15 +266,22 @@ Il `package.json` della libreria resta con `dependencies: {}`.
 
 ### Componente
 
-`<nec-restore-search>` wrappa il pulsante Search della sezione, con quattro stati:
+`<nec-restore-search>` wrappa il pulsante Search della sezione, con cinque stati:
 
 1. **niente in locale** → normale pulsante Search;
-2. **dati locali presenti** → `"100 risultati salvati, 12 modifiche non inviate, 340 KB — ieri 18:42"` con
+2. **ripristino automatico in corso** (solo se `autoRestore` è configurato per la sezione e i dati sono entro
+   soglia) → spinner, senza chiedere conferma: dal punto di vista dell'utente la sezione si apre già con i
+   suoi dati;
+3. **dati locali presenti, fuori soglia o `autoRestore` non configurato** →
+   `"100 risultati salvati, 12 modifiche non inviate, 340 KB — ieri 18:42"` con
    `Ripristina` (dispatcha `RestoreRequest`) / `Nuova ricerca` (con conferma, perché butta via lavoro non
    inviato);
-3. **attività in corso** → spinner durante il ripristino (da `isLoading` della slice), icona di sync durante
-   i salvataggi (dal contatore);
-4. **quota quasi esaurita** → avviso da `navigator.storage.estimate()`.
+4. **attività in corso** → spinner durante il ripristino manuale (da `isLoading` della slice), icona di sync
+   durante i salvataggi (dal contatore);
+5. **quota quasi esaurita** → avviso da `navigator.storage.estimate()`.
+
+La scelta tra gli stati 1-3 è già decisa quando il componente si monta: legge l'esito del check leggero fatto
+da `createPersistenceEffects` alla creazione della sezione, non ripete la query `stats(feature)`.
 
 Solo `p-button` e `p-tag` (classi identiche tra PrimeNG v16 e v19), `primeng` è già `peerDependency`
 opzionale. Le cifre vengono da `stats(feature)`: `count` e `bytes` dal record `search`, numero bozze da
@@ -301,9 +346,10 @@ handler, e allineato il confronto `idSelected` vs id dell'action al confronto st
   emetta `dist/ngrx-entity-crud/persistence` e che `npm run build` + `build:schematics` restino integri.
 - **Fase 1 — action e reducer nel core.** `Restore*` in `actions.ts`/`models.ts`/`reducer.ts`, con test sul
   reducer (isLoading, ripopolamento di entities + entitiesSelected + lastCriteria).
-- **Fase 2 — effect factory.** `createPersistenceEffects` con la tabella del ciclo di vita, il debounce e la
-  traduzione di `RestoreRequest` in lettura. Test sul comportamento delle azioni, non sull'I/O.
-- **Fase 3 — componente.** `<nec-restore-search>` con i quattro stati.
+- **Fase 2 — effect factory.** `createPersistenceEffects` con la tabella del ciclo di vita, il debounce, il
+  check leggero `stats(feature)` alla creazione con eventuale auto-restore (`autoRestore`), e la traduzione di
+  `RestoreRequest` in lettura. Test sul comportamento delle azioni, non sull'I/O.
+- **Fase 3 — componente.** `<nec-restore-search>` con i cinque stati (incluso il ripristino automatico).
 - **Fase 4 — integrazione.** `provideNecIdbAdapterFromPersistence()` per la dashboard, pannello sezioni con
   purge esplicito in `<nec-dashboard>`, opzione `--persist` negli schematics `store`/`section` per generare
   la registrazione degli effects, README + ricetta in `TEST.md`.
@@ -330,6 +376,9 @@ handler, e allineato il confronto `idSelected` vs id dell'action al confronto st
 - **PrimeNG v16 vs v19**: attenersi ai soli componenti con classe identica, `p-message` escluso.
 - **Superficie pubblica**: tre action in più nel core e un secondo entry-point esportato vanno versionati con
   attenzione (single source: `libs/ngrx-entity-crud/package.json`).
+- **Auto-restore con soglia troppo larga**: se `autoRestore.maxAgeMs` è impostato troppo permissivo, l'utente
+  può ritrovarsi dati vecchi senza accorgersene — esattamente il caso che il gesto esplicito evitava.
+  Mitigato dal default assente (opt-in) e dal fatto che la soglia è per sezione: si attiva solo dove ha senso.
 
 ## Verifica
 
@@ -349,3 +398,7 @@ handler, e allineato il confronto `idSelected` vs id dell'action al confronto st
    volo, e alla riapertura le modifiche precedenti sono tutte presenti.
 8. Misurare i tempi di `SearchSuccess` (scrittura) e `RestoreRequest` (lettura) sulla sezione con più righe,
    per sapere se e quando la soglia andrà reintrodotta.
+9. Con `autoRestore` configurato su una sezione: aprirla con dati locali entro soglia e verificare che il
+   ripristino parta da solo (nessun click, spinner visibile, nessuna scrittura durante la lettura); superata
+   la soglia (o su una sezione senza `autoRestore`), verificare che torni il comportamento a gesto esplicito
+   del punto 3 dello stato del componente.
