@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit, signal, Type} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, signal} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {ButtonModule} from 'primeng/button';
 import {TagModule} from 'primeng/tag';
@@ -8,7 +8,7 @@ import {BehaviorSubject, combineLatest, from, merge, Observable, Subject} from '
 import {map, startWith, takeUntil} from 'rxjs/operators';
 import {Actions} from 'ngrx-entity-crud';
 import {NecPersistenceService} from './nec-persistence.service';
-import {NecPersistenceEffects} from './nec-persistence-effects';
+import {NecPersistenceSelectors} from './nec-persistence-selectors';
 import {NecSectionCheck, NecSectionStats} from './models';
 
 export type NecRestoreSearchState = 'none' | 'prompt' | 'auto-restoring' | 'manual-restoring';
@@ -74,9 +74,9 @@ function pluralize(count: number, singular: string, plural: string): string {
  *    qualsiasi degli stati sopra: icona di sync quando `pendingWrites$ > 0`, avviso quando
  *    `navigator.storage.estimate()` segnala quota quasi esaurita.
  *
- * La scelta tra gli stati 1-3 è già decisa alla creazione della sezione: legge `sectionCheck$`
- * dalla classe generata da `createPersistenceEffects` (risolta via `Injector`, stesso injector in
- * cui `EffectsModule.forFeature` l'ha registrata), non ripete la query `stats(feature)`.
+ * La scelta tra gli stati 1-3 è già decisa alla creazione della sezione: legge lo stato scritto da
+ * `createPersistenceReducer` tramite il selector `sectionCheck` di `createPersistenceSelectors`
+ * (`@Input() selectors`), non ripete la query `stats(feature)`.
  *
  * Solo `p-button` e `p-tag` (classi identiche PrimeNG v16↔v19, `p-message` escluso). Il tipo
  * `severity` di `p-tag` è comunque `string`-based in entrambe le major: un valore come `warn`
@@ -154,7 +154,7 @@ function pluralize(count: number, singular: string, plural: string): string {
 })
 export class NecRestoreSearchComponent<T = unknown> implements OnInit, OnDestroy {
   @Input() feature = '';
-  @Input() effects!: Type<NecPersistenceEffects>;
+  @Input() selectors!: NecPersistenceSelectors;
   @Input() actions!: Actions<T>;
   /** Frazione (0-1) di `storage.estimate()` oltre la quale compare l'avviso di quota. */
   @Input() quotaWarningThreshold = 0.9;
@@ -167,7 +167,6 @@ export class NecRestoreSearchComponent<T = unknown> implements OnInit, OnDestroy
   private readonly destroyed$ = new Subject<void>();
 
   constructor(
-    private readonly injector: Injector,
     private readonly store: Store,
     private readonly ngrxActions: NgrxActions,
     private readonly persistence: NecPersistenceService
@@ -175,8 +174,7 @@ export class NecRestoreSearchComponent<T = unknown> implements OnInit, OnDestroy
   }
 
   ngOnInit(): void {
-    const effectsInstance = this.injector.get(this.effects);
-    const check$: Observable<NecSectionCheck | null> = effectsInstance.sectionCheck$.pipe(startWith(null));
+    const check$: Observable<NecSectionCheck | null> = this.store.select(this.selectors.sectionCheck).pipe(startWith(null));
 
     const restoring$: Observable<boolean> = merge(
       this.ngrxActions.pipe(ofType(this.actions.RestoreRequest), map(() => true)),

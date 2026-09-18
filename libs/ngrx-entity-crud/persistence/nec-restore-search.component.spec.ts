@@ -1,4 +1,3 @@
-import {Type} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
 import {Action, Store} from '@ngrx/store';
 import {Actions as NgrxActionsClass} from '@ngrx/effects';
@@ -6,7 +5,7 @@ import {BehaviorSubject, Subject, Subscription} from 'rxjs';
 import {createCrudEntityAdapter} from 'ngrx-entity-crud';
 import {formatAge, formatBytes, NecRestoreSearchComponent, NecRestoreSearchViewModel} from './nec-restore-search.component';
 import {NecPersistenceService} from './nec-persistence.service';
-import {NecPersistenceEffects} from './nec-persistence-effects';
+import {createPersistenceSelectors, NecPersistenceSelectors} from './nec-persistence-selectors';
 import {NecSectionCheck, NecSectionStats} from './models';
 
 const flush = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
@@ -48,8 +47,9 @@ describe('formatAge', () => {
 });
 
 /**
- * Copre la derivazione dello stato (Fase 3 del piano): `sectionCheck$` + il flusso di azioni
- * decidono quale dei cinque stati va mostrato, senza mai ripetere `stats(feature)`.
+ * Copre la derivazione dello stato (Fase 3 del piano, rivista dopo Fase 4): la vm deriva da
+ * `selectors.sectionCheck` letto dallo store (`createPersistenceSelectors`) + il flusso di azioni,
+ * senza mai ripetere `stats(feature)` ne' risolvere una classe Effects via `Injector`.
  */
 describe('NecRestoreSearchComponent', () => {
   interface Coin {
@@ -60,11 +60,13 @@ describe('NecRestoreSearchComponent', () => {
   const adapter = createCrudEntityAdapter<Coin>({selectId: (m) => m.id});
   const actions = adapter.createCrudActions('coins');
 
-  class FakeSectionEffects {
-    sectionCheck$ = new Subject<NecSectionCheck>();
-  }
+  // `NecPersistenceSelectors.sectionCheck` e' un vero MemoizedSelector (`.release`/`.projector`,
+  // non solo una call signature): il doppio si costruisce con la stessa factory di produzione
+  // (Task 4), non con una arrow function fatta a mano che non implementerebbe l'interfaccia.
+  const selectors: NecPersistenceSelectors = createPersistenceSelectors('coins');
 
   let dispatch: jest.Mock;
+  let select: jest.Mock;
   let actionsSubject: Subject<Action>;
   let checkSubject: Subject<NecSectionCheck>;
   let pendingWrites$: BehaviorSubject<number>;
@@ -86,9 +88,7 @@ describe('NecRestoreSearchComponent', () => {
     const fixture = TestBed.createComponent(NecRestoreSearchComponent<Coin>);
     const created = fixture.componentInstance;
     created.feature = 'coins';
-    // Il doppio nel test espone solo `sectionCheck$`, l'unico membro che il componente legge
-    // davvero: cast esplicito, non ha senso implementare l'intera interfaccia per un test.
-    created.effects = FakeSectionEffects as unknown as Type<NecPersistenceEffects>;
+    created.selectors = selectors;
     created.actions = actions;
     fixture.detectChanges(); // esegue ngOnInit
     return created;
@@ -100,17 +100,19 @@ describe('NecRestoreSearchComponent', () => {
     checkSubject = new Subject<NecSectionCheck>();
     pendingWrites$ = new BehaviorSubject<number>(0);
     estimateStorage = jest.fn().mockResolvedValue(null);
+    // Il componente chiama sempre store.select(this.selectors.sectionCheck): quale selector venga
+    // passato non conta per questo doppio, restituisce sempre lo stesso Subject controllato dal test.
+    select = jest.fn().mockReturnValue(checkSubject.asObservable());
 
     TestBed.configureTestingModule({
       imports: [NecRestoreSearchComponent],
       providers: [
-        {provide: Store, useValue: {dispatch}},
+        {provide: Store, useValue: {dispatch, select}},
         {provide: NgrxActionsClass, useValue: new NgrxActionsClass(actionsSubject)},
         {
           provide: NecPersistenceService,
           useValue: {pendingWrites$, estimateStorage},
         },
-        {provide: FakeSectionEffects, useValue: {sectionCheck$: checkSubject}},
       ],
     });
 
@@ -191,7 +193,6 @@ describe('NecRestoreSearchComponent', () => {
     expect(component.dismissPending()).toBe(false);
     component.requestNewSearch();
     expect(component.dismissPending()).toBe(true);
-    // annullare la conferma non deve cambiare lo stato della vm
     component.cancelNewSearch();
     expect(component.dismissPending()).toBe(false);
     expect(currentVm().state).toBe('prompt');
@@ -211,8 +212,6 @@ describe('NecRestoreSearchComponent', () => {
   });
 
   it('quota quasi esaurita: quotaWarning true, letta una sola volta da estimateStorage', async () => {
-    // `estimateStorage` viene chiamato una sola volta in ngOnInit: il mock va impostato PRIMA
-    // di creare il componente, altrimenti la nuova risoluzione arriva troppo tardi.
     estimateStorage.mockResolvedValue({quota: 100, usage: 95});
 
     const freshComponent = createComponent();
@@ -224,7 +223,6 @@ describe('NecRestoreSearchComponent', () => {
     await flush();
 
     expect(freshVm?.quotaWarning).toBe(true);
-    // Una chiamata dal componente del beforeEach, una da questo.
     expect(estimateStorage).toHaveBeenCalledTimes(2);
     sub.unsubscribe();
   });
