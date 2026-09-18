@@ -54,3 +54,6 @@ Thumbs.db
 .github/instructions/nx.instructions.md
 
 graphify-out/
+
+.worktrees/
+.superpowers/
