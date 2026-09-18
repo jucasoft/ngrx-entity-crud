@@ -39,8 +39,8 @@ ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=CRUD-PLURAL -
 # per mostrare lo stato della persistenza nella UI, avvolgi il pulsante Search esistente:
 #   import {NecPersistenceModule} from 'ngrx-entity-crud/persistence';  (una volta, in AppModule)
 #   import {NecRestoreSearchComponent} from 'ngrx-entity-crud/persistence';
-#   import {CoinPersistenceEffects} from '@root-store/coin-store';
-#   <nec-restore-search feature="coin" [effects]="CoinPersistenceEffects" [actions]="actions">
+#   import {CoinPersistenceSelectors} from '@root-store/coin-store';
+#   <nec-restore-search feature="coin" [selectors]="CoinPersistenceSelectors" [actions]="actions">
 #     <button pButton label="Search" (click)="search()"></button>
 #   </nec-restore-search>
 #

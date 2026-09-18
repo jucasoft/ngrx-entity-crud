@@ -65,9 +65,11 @@ Store registration strategy:
 
 Local persistence (search results + drafts saved to IndexedDB, see the
 [`ngrx-entity-crud/persistence`](#secondary-entry-point-ngrx-entity-crudpersistence) section below):
-  - generates the `createPersistenceEffects` registration in `<clazz>-store.module.ts` and exports
-    `<Clazz>PersistenceEffects`, so `EffectsModule.forFeature` picks it up automatically — same
-    registration point for eager and lazy stores.
+  - generates the `createPersistenceEffects`/`createPersistenceReducer`/`createPersistenceSelectors`
+    registration in `<clazz>-store.module.ts`, exporting `<Clazz>PersistenceEffects`,
+    `<Clazz>PersistenceReducer` and `<Clazz>PersistenceSelectors` — `EffectsModule.forFeature` and a
+    second `StoreModule.forFeature` pick them up automatically, same registration point for eager
+    and lazy stores.
   - only meaningful for `--type=CRUD-PLURAL` (the other types don't have `entitiesSelected`/`Restore*`);
     passing it with another type is silently ignored, with a warning in the schematic log.
 
@@ -86,9 +88,10 @@ With `--registration=lazy` the store is not added to `RootStoreModule`; remember
 ```sh
 ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=CRUD-PLURAL --persist=true
 ```
-Generates `CoinPersistenceEffects` in `coin-store.module.ts` and registers it alongside
-`CoinStoreEffects`. Nothing else is required for the effects to work; to also show the local-data
-status to the user, wrap the existing search button (see
+Generates `CoinPersistenceEffects`, `CoinPersistenceReducer` and `CoinPersistenceSelectors` in
+`coin-store.module.ts` and registers the effects/reducer alongside `CoinStoreEffects`. Nothing else
+is required for the effects to work; to also show the local-data status to the user, wrap the
+existing search button (see
 [`ngrx-entity-crud/persistence`](#secondary-entry-point-ngrx-entity-crudpersistence) below).
 
 
@@ -682,7 +685,7 @@ Generated automatically by `ng generate ngrx-entity-crud:store --persist=true` (
 [`store`](#store) section above). To wire it by hand into an existing `<Clazz>StoreModule`:
 
 ```ts
-import {createPersistenceEffects} from 'ngrx-entity-crud/persistence';
+import {createPersistenceEffects, createPersistenceReducer, createPersistenceSelectors, necPersistenceFeatureKey} from 'ngrx-entity-crud/persistence';
 import {actions} from './coin.actions';
 import {Coin} from '@models/vo/coin';
 import {Names} from './coin.names';
@@ -691,18 +694,21 @@ export const CoinPersistenceEffects = createPersistenceEffects<Coin>({
   feature: Names.NAME,
   selectId: Coin.selectId,
   actions,
-  // opzionale, sovrascrive il default globale di NecPersistenceModule.forRoot per QUESTA sezione:
+  // optional, overrides NecPersistenceModule.forRoot's global default for THIS section:
   // autoRestore: {maxAgeMs: 60 * 60 * 1000},
 });
+export const CoinPersistenceReducer = createPersistenceReducer(Names.NAME);
+export const CoinPersistenceSelectors = createPersistenceSelectors(Names.NAME);
 ```
 
 ```ts
 @NgModule({
   imports: [
     // ...
+    StoreModule.forFeature(necPersistenceFeatureKey(Names.NAME), CoinPersistenceReducer),
     EffectsModule.forFeature([CoinStoreEffects, CoinPersistenceEffects]),
   ],
-  providers: [CoinStoreEffects /* CoinPersistenceEffects non va in providers: e' gia' un Effects class */],
+  providers: [CoinStoreEffects /* CoinPersistenceEffects/Reducer/Selectors don't go in providers */],
 })
 export class CoinStoreModule {}
 ```
@@ -721,11 +727,11 @@ untouched, building the search criteria is your form's job:
 
 ```ts
 import {NecRestoreSearchComponent} from 'ngrx-entity-crud/persistence';
-import {CoinPersistenceEffects} from '@root-store/coin-store';
+import {CoinPersistenceSelectors} from '@root-store/coin-store';
 ```
 
 ```html
-<nec-restore-search feature="coin" [effects]="CoinPersistenceEffects" [actions]="actions">
+<nec-restore-search feature="coin" [selectors]="CoinPersistenceSelectors" [actions]="actions">
   <button pButton label="Search" icon="pi pi-search" (click)="search()"></button>
 </nec-restore-search>
 ```
@@ -733,7 +739,7 @@ import {CoinPersistenceEffects} from '@root-store/coin-store';
 | Input | Type | Notes |
 | --- | --- | --- |
 | `feature` | `string` | Only used for display; must match the `feature` passed to `createPersistenceEffects`. |
-| `effects` | `Type<NecPersistenceEffects>` | The class exported by `createPersistenceEffects` (`CoinPersistenceEffects` above), resolved via `Injector` — same one `EffectsModule.forFeature` registered, so no extra `stats()` query. |
+| `selectors` | `NecPersistenceSelectors` | The object returned by `createPersistenceSelectors` (`CoinPersistenceSelectors` above). The component reads `sectionCheck` from the store — no `Injector`, no dependency on the Effects class. |
 | `actions` | `Actions<T>` | The section's action group (`actions` from `<clazz>.actions.ts`). |
 | `quotaWarningThreshold` | `number` | Default `0.9`. Fraction of `storage.estimate()` above which the "storage almost full" tag appears. |
 

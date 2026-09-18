@@ -505,6 +505,17 @@ handler, e allineato il confronto `idSelected` vs id dell'action al confronto st
     in modifica per le bozze locali (`__clazz@dasherize__-main.component.html`, rischio di conflitto con
     lavoro in corso) — il README documenta il wiring manuale (poche righe, vedi sopra), preferito a un
     automatismo fragile.
+- **Nota (revisione dopo Fase 4).** Il pattern di Fase 2/3 per `sectionCheck` — un Effect come fonte di
+  stato, letto dal componente risolvendo la classe generata da `createPersistenceEffects` via `Injector`
+  (`[effects]="LaClasseGenerata"`) — è stato sostituito: un Effect non deve essere una fonte di stato letta
+  da un componente. `createPersistenceEffects` non espone più `sectionCheck$`/`ReplaySubject`;
+  `autoRestoreCheckOn$` dispatcha `SectionCheckSuccess` (nuova azione con `type` scoped per `feature`,
+  `nec-persistence-actions.ts`), un reducer dedicato (`createPersistenceReducer`, montato con un secondo
+  `StoreModule.forFeature` su `necPersistenceFeatureKey(feature)`) lo scrive nello store, e
+  `createPersistenceSelectors` lo espone al componente (`@Input() selectors` sostituisce `@Input() effects`
+  + `Injector`). L'auto-dispatch di `RestoreRequest` è ora un effect separato (`autoRestoreTriggerOn$`) che
+  ascolta `SectionCheckSuccess`. Vedi
+  `docs/superpowers/specs/2026-09-17-persistence-section-check-store-design.md` per il design completo.
 - **Fase 5 — dopo la validazione sul campo.** Rimozione del fork di `ngrx-store-idb` dalle app; valutazione
   se assorbire anche `ngrx-store-localstorage`; eventuale Web Locks per il multi-tab.
 
