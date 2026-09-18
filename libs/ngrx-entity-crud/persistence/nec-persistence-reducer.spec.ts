@@ -26,7 +26,7 @@ describe('createPersistenceReducer', () => {
     expect(state).toEqual({check});
   });
 
-  it("SectionCheckSuccess di un'altra feature: nessun effetto (type diverso, nessun filtro manuale necessario)", () => {
+  it('SectionCheckSuccess di un\'altra feature: nessun effetto (type diverso, nessun filtro manuale necessario)', () => {
     const reducer = createPersistenceReducer('coins');
     const otherFeatureCheckSuccess = createSectionCheckSuccessAction('orders');
 
