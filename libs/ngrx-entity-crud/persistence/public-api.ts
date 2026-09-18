@@ -9,12 +9,19 @@
  * (`createPersistenceEffects`, che DIPENDE dal core per `Actions<T>`/`ICriteria` — a differenza
  * del servizio IDB, che resta agnostico) + componente (`NecRestoreSearchComponent`, che dipende
  * anche da PrimeNG: `p-button`/`p-tag` soltanto, classi identiche v16↔v19).
+ *
+ * Revisione dopo Fase 4: `createPersistenceReducer`/`createPersistenceSelectors` sostituiscono il
+ * `sectionCheck$` esposto in precedenza dall'Effects — vedi
+ * `docs/superpowers/specs/2026-09-17-persistence-section-check-store-design.md`.
  */
 
 export * from './models';
 export * from './persistence-config.token';
 export * from './nec-persistence.service';
 export * from './nec-persistence.module';
+export * from './nec-persistence-actions';
+export * from './nec-persistence-reducer';
+export * from './nec-persistence-selectors';
 export * from './nec-persistence-effects';
 export * from './nec-restore-search.component';
 export * from './nec-persistence-idb-adapter';
