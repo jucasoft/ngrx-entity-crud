@@ -789,9 +789,11 @@ describe('NecRestoreSearchComponent', () => {
   const adapter = createCrudEntityAdapter<Coin>({selectId: (m) => m.id});
   const actions = adapter.createCrudActions('coins');
 
-  const selectors: NecPersistenceSelectors = {
-    sectionCheck: (state: unknown) => (state as {check: NecSectionCheck | null}).check,
-  };
+  // `NecPersistenceSelectors.sectionCheck` is a `MemoizedSelector`, not a plain function (it also
+  // carries `.release`/`.projector`) — a hand-rolled arrow function wouldn't satisfy the type. The
+  // fake `Store.select` below ignores which selector it's called with anyway (it always returns
+  // `checkSubject`), so using the real factory here is both type-correct and simpler than faking it.
+  const selectors: NecPersistenceSelectors = createPersistenceSelectors('coins');
 
   let dispatch: jest.Mock;
   let select: jest.Mock;
@@ -979,7 +981,7 @@ import {BehaviorSubject, Subject, Subscription} from 'rxjs';
 import {createCrudEntityAdapter} from 'ngrx-entity-crud';
 import {formatAge, formatBytes, NecRestoreSearchComponent, NecRestoreSearchViewModel} from './nec-restore-search.component';
 import {NecPersistenceService} from './nec-persistence.service';
-import {NecPersistenceSelectors} from './nec-persistence-selectors';
+import {createPersistenceSelectors, NecPersistenceSelectors} from './nec-persistence-selectors';
 import {NecSectionCheck, NecSectionStats} from './models';
 ```
 
