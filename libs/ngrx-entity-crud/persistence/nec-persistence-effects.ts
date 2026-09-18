@@ -1,12 +1,13 @@
 import {Inject, Injectable, Optional, Type} from '@angular/core';
 import {Actions as NgrxActions, createEffect, ofType} from '@ngrx/effects';
 import {Action} from '@ngrx/store';
-import {defer, EMPTY, from, merge, Observable, of, ReplaySubject} from 'rxjs';
+import {defer, EMPTY, from, merge, Observable, of} from 'rxjs';
 import {catchError, debounceTime, filter, map, switchMap, tap} from 'rxjs/operators';
 import {Actions, ICriteria} from 'ngrx-entity-crud';
 import {NecAutoRestoreConfig, NecPersistenceConfig, NecSectionCheck, NecSectionStats} from './models';
 import {NEC_PERSISTENCE_CONFIG} from './persistence-config.token';
 import {NecPersistenceService} from './nec-persistence.service';
+import {createSectionCheckSuccessAction} from './nec-persistence-actions';
 
 /** Default se né la sezione né `NEC_PERSISTENCE_CONFIG` specificano `debounceMs`. */
 const DEFAULT_DEBOUNCE_MS = 200;
@@ -21,17 +22,13 @@ export interface NecPersistenceEffectsConfig<T> {
 
 /**
  * Superficie pubblica della classe generata da `createPersistenceEffects`: gli effect richiesti
- * da `EffectsModule.forFeature([...])`, più `sectionCheck$` per il componente (Fase 3) e per i
- * test — che possono sottoscrivere ogni effect direttamente, senza passare da `EffectsModule`.
+ * da `EffectsModule.forFeature([...])` — anche per i test, che possono sottoscrivere ogni effect
+ * direttamente, senza passare da `EffectsModule`.
  */
 export interface NecPersistenceEffects {
-  /**
-   * Esito del check leggero `stats(feature)` eseguito una sola volta, alla creazione della
-   * sezione. Il componente (`<nec-restore-search>`, Fase 3) legge questo observable invece di
-   * ripetere la query.
-   */
-  readonly sectionCheck$: Observable<NecSectionCheck>;
   readonly autoRestoreCheckOn$: Observable<Action>;
+  /** Traduce un `SectionCheckSuccess` con `autoRestoreTriggered: true` in `RestoreRequest`. */
+  readonly autoRestoreTriggerOn$: Observable<Action>;
   readonly restoreRequestOn$: Observable<Action>;
   readonly searchRequestOn$: Observable<unknown>;
   readonly searchSuccessOn$: Observable<unknown>;
@@ -48,9 +45,11 @@ export interface NecPersistenceEffects {
  * registrazione per store eager e lazy (vedi "Aggancio" in `ngrx-entity-crud-persistence-plan.md`).
  *
  * Traduce la tabella "Ciclo di vita per sezione" del piano in effect `{dispatch: false}` (scrivono
- * e basta), più due effect che dispatchano: la traduzione di `RestoreRequest` in lettura, e il
- * check leggero di freschezza eseguito una sola volta alla creazione — che dispatcha da sé
- * `RestoreRequest` se i dati locali rientrano in `autoRestore`.
+ * e basta), più tre effect che dispatchano: la traduzione di `RestoreRequest` in lettura
+ * (`restoreRequestOn$`), il check leggero di freschezza eseguito una sola volta alla creazione
+ * (`autoRestoreCheckOn$`, dispatcha `SectionCheckSuccess` — lo stato lo scrive
+ * `createPersistenceReducer`, lo legge `createPersistenceSelectors`) e la sua traduzione in
+ * `RestoreRequest` quando i dati locali rientrano in `autoRestore` (`autoRestoreTriggerOn$`).
  */
 export function createPersistenceEffects<T>(config: NecPersistenceEffectsConfig<T>): Type<NecPersistenceEffects> {
   const {feature, selectId, actions} = config;
@@ -58,8 +57,6 @@ export function createPersistenceEffects<T>(config: NecPersistenceEffectsConfig<
   @Injectable()
   class NecSectionPersistenceEffects implements NecPersistenceEffects {
     private readonly pendingDrafts = new Map<string, T>();
-    private readonly checkSubject = new ReplaySubject<NecSectionCheck>(1);
-    readonly sectionCheck$: Observable<NecSectionCheck> = this.checkSubject.asObservable();
 
     // Dichiarati qui ma assegnati nel corpo del costruttore (non come field initializer): per una
     // classe senza `extends`, i field initializer girano PRIMA del corpo del costruttore (spec
@@ -67,6 +64,7 @@ export function createPersistenceEffects<T>(config: NecPersistenceEffectsConfig<
     // globalConfig) vengano assegnate — leggerle da un field initializer li trova `undefined`.
     // Vedi bug osservato a runtime: "Cannot read properties of undefined (reading 'pipe')".
     readonly autoRestoreCheckOn$: Observable<Action>;
+    readonly autoRestoreTriggerOn$: Observable<Action>;
     readonly restoreRequestOn$: Observable<Action>;
     readonly searchRequestOn$: Observable<unknown>;
     readonly searchSuccessOn$: Observable<unknown>;
@@ -81,18 +79,26 @@ export function createPersistenceEffects<T>(config: NecPersistenceEffectsConfig<
       private readonly persistence: NecPersistenceService,
       @Optional() @Inject(NEC_PERSISTENCE_CONFIG) private readonly globalConfig: NecPersistenceConfig | null
     ) {
+      const sectionCheckSuccess = createSectionCheckSuccessAction(feature);
+
       // Check leggero eseguito UNA SOLA VOLTA: `createEffect` sottoscrive l'observable non appena
       // la classe viene istanziata da EffectsModule, quindi questo `defer` gira nello stesso istante
-      // in cui la sezione (eager o lazy) viene creata, non quando un componente si monta.
+      // in cui la sezione (eager o lazy) viene creata, non quando un componente si monta. Dispatcha
+      // sempre SectionCheckSuccess: il reducer generato da createPersistenceReducer lo scrive nello
+      // store, il componente lo legge da li' via createPersistenceSelectors — mai piu' un
+      // side-channel fuori dallo store.
       this.autoRestoreCheckOn$ = createEffect(() => defer(() => from(this.persistence.stats(feature))).pipe(
         map((stats) => this.evaluateAutoRestore(stats)),
-        tap(({stats, autoRestoreTriggered}) => this.checkSubject.next({stats, autoRestoreTriggered})),
-        map(({action}) => action),
-        filter((action): action is Action => action !== null),
-        catchError(() => {
-          this.checkSubject.next({stats: null, autoRestoreTriggered: false});
-          return EMPTY;
-        })
+        map((check) => sectionCheckSuccess({check})),
+        catchError(() => of(sectionCheckSuccess({check: {stats: null, autoRestoreTriggered: false}})))
+      ));
+
+      // Traduce un check con autoRestoreTriggered in RestoreRequest: separato dal check sopra cosi'
+      // ogni effect dispatcha un solo tipo di esito.
+      this.autoRestoreTriggerOn$ = createEffect(() => this.actions$.pipe(
+        ofType(sectionCheckSuccess),
+        filter(({check}) => check.autoRestoreTriggered),
+        map(() => actions.RestoreRequest())
       ));
 
       // Traduce RestoreRequest in lettura da IndexedDB, che parta dal check sopra o dal componente.
@@ -167,15 +173,14 @@ export function createPersistenceEffects<T>(config: NecPersistenceEffectsConfig<
       return config.autoRestore ?? this.globalConfig?.autoRestore ?? undefined;
     }
 
-    private evaluateAutoRestore(stats: NecSectionStats | null): NecSectionCheck & { action: Action | null } {
+    private evaluateAutoRestore(stats: NecSectionStats | null): NecSectionCheck {
       const autoRestore = this.autoRestoreConfig();
       if (!stats || !autoRestore) {
-        return {stats, autoRestoreTriggered: false, action: null};
+        return {stats, autoRestoreTriggered: false};
       }
       const withinAge = Date.now() - stats.at <= autoRestore.maxAgeMs;
       const withinBytes = autoRestore.maxBytes === undefined || stats.bytes <= autoRestore.maxBytes;
-      const triggered = withinAge && withinBytes;
-      return {stats, autoRestoreTriggered: triggered, action: triggered ? actions.RestoreRequest() : null};
+      return {stats, autoRestoreTriggered: withinAge && withinBytes};
     }
   }
 

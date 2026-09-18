@@ -5,6 +5,7 @@ import {createCrudEntityAdapter} from 'ngrx-entity-crud';
 import {createPersistenceEffects} from './nec-persistence-effects';
 import {NecPersistenceService} from './nec-persistence.service';
 import {NecAutoRestoreConfig, NecPersistenceConfig, NecSectionCheck, NecSectionStats} from './models';
+import {createSectionCheckSuccessAction} from './nec-persistence-actions';
 
 /**
  * Copre `createPersistenceEffects` (Fase 2 del piano): comportamento delle azioni, non I/O reale
@@ -190,95 +191,99 @@ describe('createPersistenceEffects', () => {
   });
 
   describe('check leggero alla creazione + auto-restore', () => {
-    it('nessun dato locale: nessun dispatch, sectionCheck$ riflette stats null', async () => {
+    const sectionCheckSuccess = createSectionCheckSuccessAction(NAME);
+
+    it('nessun dato locale: SectionCheckSuccess con stats null', async () => {
       const {effects} = setup({stats: jest.fn().mockResolvedValue(null)}, {maxAgeMs: 60000});
       const dispatched: Action[] = [];
-      const checks: NecSectionCheck[] = [];
       effects.autoRestoreCheckOn$.subscribe((a) => dispatched.push(a));
-      effects.sectionCheck$.subscribe((c) => checks.push(c));
 
       await flushPromises();
 
-      expect(dispatched).toEqual([]);
-      expect(checks).toEqual([{stats: null, autoRestoreTriggered: false}]);
+      expect(dispatched).toEqual([sectionCheckSuccess({check: {stats: null, autoRestoreTriggered: false}})]);
     });
 
-    it('dati entro soglia: dispatcha RestoreRequest da sé', async () => {
+    it('dati entro soglia: SectionCheckSuccess con autoRestoreTriggered true, poi RestoreRequest da se\'', async () => {
       const stats: NecSectionStats = {feature: NAME, count: 10, bytes: 500, draftCount: 0, at: Date.now() - 1000};
-      const {effects} = setup({stats: jest.fn().mockResolvedValue(stats)}, {maxAgeMs: 60000});
-      const dispatched: Action[] = [];
-      const checks: NecSectionCheck[] = [];
-      effects.autoRestoreCheckOn$.subscribe((a) => dispatched.push(a));
-      effects.sectionCheck$.subscribe((c) => checks.push(c));
+      const {effects, actionsSubject} = setup({stats: jest.fn().mockResolvedValue(stats)}, {maxAgeMs: 60000});
+      const triggered: Action[] = [];
+      // Nella realta' un'azione dispatchata da un effect torna sullo stream actions$ tramite lo
+      // Store; qui non c'e' un vero Store, quindi la si inoltra a mano cosi' autoRestoreTriggerOn$
+      // (che ascolta actions$, non autoRestoreCheckOn$ direttamente) puo' reagire.
+      effects.autoRestoreCheckOn$.subscribe((a) => actionsSubject.next(a));
+      effects.autoRestoreTriggerOn$.subscribe((a) => triggered.push(a));
 
       await flushPromises();
 
-      expect(dispatched).toEqual([actions.RestoreRequest()]);
-      expect(checks).toEqual([{stats, autoRestoreTriggered: true}]);
+      expect(triggered).toEqual([actions.RestoreRequest()]);
     });
 
-    it('dati fuori soglia di età: nessun dispatch automatico', async () => {
+    it('dati fuori soglia di eta\': nessun RestoreRequest automatico', async () => {
       const stats: NecSectionStats = {feature: NAME, count: 10, bytes: 500, draftCount: 0, at: Date.now() - 120000};
-      const {effects} = setup({stats: jest.fn().mockResolvedValue(stats)}, {maxAgeMs: 60000});
-      const dispatched: Action[] = [];
-      effects.autoRestoreCheckOn$.subscribe((a) => dispatched.push(a));
+      const {effects, actionsSubject} = setup({stats: jest.fn().mockResolvedValue(stats)}, {maxAgeMs: 60000});
+      const triggered: Action[] = [];
+      effects.autoRestoreCheckOn$.subscribe((a) => actionsSubject.next(a));
+      effects.autoRestoreTriggerOn$.subscribe((a) => triggered.push(a));
 
       await flushPromises();
 
-      expect(dispatched).toEqual([]);
+      expect(triggered).toEqual([]);
     });
 
-    it('fuori soglia di bytes pur essendo dentro la soglia di età: nessun dispatch', async () => {
+    it('fuori soglia di bytes pur essendo dentro la soglia di eta\': nessun RestoreRequest', async () => {
       const stats: NecSectionStats = {feature: NAME, count: 10, bytes: 5000, draftCount: 0, at: Date.now() - 1000};
-      const {effects} = setup({stats: jest.fn().mockResolvedValue(stats)}, {maxAgeMs: 60000, maxBytes: 1000});
-      const dispatched: Action[] = [];
-      effects.autoRestoreCheckOn$.subscribe((a) => dispatched.push(a));
+      const {effects, actionsSubject} = setup({stats: jest.fn().mockResolvedValue(stats)}, {maxAgeMs: 60000, maxBytes: 1000});
+      const triggered: Action[] = [];
+      effects.autoRestoreCheckOn$.subscribe((a) => actionsSubject.next(a));
+      effects.autoRestoreTriggerOn$.subscribe((a) => triggered.push(a));
 
       await flushPromises();
 
-      expect(dispatched).toEqual([]);
+      expect(triggered).toEqual([]);
     });
 
-    it('autoRestore non configurato né per sezione né globalmente: nessun dispatch anche con dati freschi', async () => {
+    it('autoRestore non configurato ne\' per sezione ne\' globalmente: nessun RestoreRequest anche con dati freschi', async () => {
       const stats: NecSectionStats = {feature: NAME, count: 10, bytes: 500, draftCount: 0, at: Date.now()};
-      const {effects} = setup({stats: jest.fn().mockResolvedValue(stats)});
-      const dispatched: Action[] = [];
-      effects.autoRestoreCheckOn$.subscribe((a) => dispatched.push(a));
+      const {effects, actionsSubject} = setup({stats: jest.fn().mockResolvedValue(stats)});
+      const triggered: Action[] = [];
+      effects.autoRestoreCheckOn$.subscribe((a) => actionsSubject.next(a));
+      effects.autoRestoreTriggerOn$.subscribe((a) => triggered.push(a));
 
       await flushPromises();
 
-      expect(dispatched).toEqual([]);
+      expect(triggered).toEqual([]);
     });
 
     it('il default globale si applica quando la sezione non specifica autoRestore', async () => {
       const stats: NecSectionStats = {feature: NAME, count: 10, bytes: 500, draftCount: 0, at: Date.now() - 1000};
-      const {effects} = setup(
+      const {effects, actionsSubject} = setup(
         {stats: jest.fn().mockResolvedValue(stats)},
         undefined,
         {autoRestore: {maxAgeMs: 60000}}
       );
-      const dispatched: Action[] = [];
-      effects.autoRestoreCheckOn$.subscribe((a) => dispatched.push(a));
+      const triggered: Action[] = [];
+      effects.autoRestoreCheckOn$.subscribe((a) => actionsSubject.next(a));
+      effects.autoRestoreTriggerOn$.subscribe((a) => triggered.push(a));
 
       await flushPromises();
 
-      expect(dispatched).toEqual([actions.RestoreRequest()]);
+      expect(triggered).toEqual([actions.RestoreRequest()]);
     });
 
     it('il parametro di sezione prevale sul default globale', async () => {
       const stats: NecSectionStats = {feature: NAME, count: 10, bytes: 500, draftCount: 0, at: Date.now() - 120000};
-      // Sezione: soglia stretta (i dati sono troppo vecchi) - deve vincere sul default globale permissivo.
-      const {effects} = setup(
+      const {effects, actionsSubject} = setup(
         {stats: jest.fn().mockResolvedValue(stats)},
         {maxAgeMs: 1000},
         {autoRestore: {maxAgeMs: 999999}}
       );
-      const dispatched: Action[] = [];
-      effects.autoRestoreCheckOn$.subscribe((a) => dispatched.push(a));
+      const triggered: Action[] = [];
+      effects.autoRestoreCheckOn$.subscribe((a) => actionsSubject.next(a));
+      effects.autoRestoreTriggerOn$.subscribe((a) => triggered.push(a));
 
       await flushPromises();
 
-      expect(dispatched).toEqual([]);
+      expect(triggered).toEqual([]);
     });
   });
 });
