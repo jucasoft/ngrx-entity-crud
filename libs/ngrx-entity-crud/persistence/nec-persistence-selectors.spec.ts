@@ -20,6 +20,13 @@ describe('createPersistenceSelectors', () => {
     expect(selectors.sectionCheck(state)).toEqual(check);
   });
 
+  it('slice assente (feature mai montata nello store): sectionCheck null invece di lanciare', () => {
+    const selectors = createPersistenceSelectors('coins');
+    const state = {};
+
+    expect(selectors.sectionCheck(state)).toBeNull();
+  });
+
   it('due feature diverse leggono slice diverse', () => {
     const coinsSelectors = createPersistenceSelectors('coins');
     const ordersSelectors = createPersistenceSelectors('orders');

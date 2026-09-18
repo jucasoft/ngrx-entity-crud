@@ -106,7 +106,6 @@ export function createPersistenceEffects<T>(config: NecPersistenceEffectsConfig<
         ofType(actions.RestoreRequest),
         switchMap(() => from(this.persistence.readSection<T, ICriteria>(feature)).pipe(
           map((section) => section
-
             ? actions.RestoreSuccess({
               items: section.ids.map((id) => section.entities[id]).filter((item): item is T => item !== undefined),
               selected: Object.values(section.drafts).filter((item): item is T => item !== undefined),

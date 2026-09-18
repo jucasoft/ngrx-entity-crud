@@ -137,6 +137,7 @@ describe('NecRestoreSearchComponent', () => {
 
   it('stato iniziale, prima di ogni esito del check: none', () => {
     expect(currentVm().state).toBe('none');
+    expect(select).toHaveBeenCalledWith(selectors.sectionCheck);
   });
 
   it('check senza dati locali: none', () => {

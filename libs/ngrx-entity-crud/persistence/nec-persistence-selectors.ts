@@ -8,6 +8,6 @@ export interface NecPersistenceSelectors {
 
 export function createPersistenceSelectors(feature: string): NecPersistenceSelectors {
   const selectPersistenceState = createFeatureSelector<NecPersistenceState>(necPersistenceFeatureKey(feature));
-  const sectionCheck = createSelector(selectPersistenceState, (state) => state.check);
+  const sectionCheck = createSelector(selectPersistenceState, (state) => state?.check ?? null);
   return {sectionCheck};
 }

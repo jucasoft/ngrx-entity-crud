@@ -14,8 +14,7 @@ export const INJECTION_TOKEN = new InjectionToken<ActionReducer<State>>(`${Names
 <% if (persist) { %>
 // Persistenza locale IndexedDB (opt-in, generata da --persist): vedi ngrx-entity-crud/persistence
 // e ngrx-entity-crud-persistence-plan.md. Effects/reducer/selectors sono chiusi su Names.NAME.
-// <nec-restore-search> (Fase 3 del piano) legge lo stato via [selectors], non risolve piu' la
-// classe Effects con l'Injector.
+// <nec-restore-search> legge lo stato via [selectors], che espone gli stessi selectors dello store.
 export const <%= clazz %>PersistenceEffects = createPersistenceEffects<<%= clazz %>>({
 	feature: Names.NAME,
 	selectId: <%= clazz %>.selectId,
