@@ -37,6 +37,12 @@ export interface NecSectionStats {
   at: number;
 }
 
+/** Esito del check leggero eseguito alla creazione della sezione (decisioni 11/12 del piano). */
+export interface NecSectionCheck {
+  stats: NecSectionStats | null;
+  autoRestoreTriggered: boolean;
+}
+
 export interface NecSearchRecord<T, C = unknown> {
   criteria: C;
   ids: string[];

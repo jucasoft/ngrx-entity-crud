@@ -8,8 +8,8 @@ import {BehaviorSubject, combineLatest, from, merge, Observable, Subject} from '
 import {map, startWith, takeUntil} from 'rxjs/operators';
 import {Actions} from 'ngrx-entity-crud';
 import {NecPersistenceService} from './nec-persistence.service';
-import {NecPersistenceEffects, NecSectionCheck} from './nec-persistence-effects';
-import {NecSectionStats} from './models';
+import {NecPersistenceEffects} from './nec-persistence-effects';
+import {NecSectionCheck, NecSectionStats} from './models';
 
 export type NecRestoreSearchState = 'none' | 'prompt' | 'auto-restoring' | 'manual-restoring';
 

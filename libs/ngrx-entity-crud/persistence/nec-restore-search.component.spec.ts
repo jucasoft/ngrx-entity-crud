@@ -6,8 +6,8 @@ import {BehaviorSubject, Subject, Subscription} from 'rxjs';
 import {createCrudEntityAdapter} from 'ngrx-entity-crud';
 import {formatAge, formatBytes, NecRestoreSearchComponent, NecRestoreSearchViewModel} from './nec-restore-search.component';
 import {NecPersistenceService} from './nec-persistence.service';
-import {NecPersistenceEffects, NecSectionCheck} from './nec-persistence-effects';
-import {NecSectionStats} from './models';
+import {NecPersistenceEffects} from './nec-persistence-effects';
+import {NecSectionCheck, NecSectionStats} from './models';
 
 const flush = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
 

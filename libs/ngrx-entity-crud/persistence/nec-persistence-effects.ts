@@ -4,7 +4,7 @@ import {Action} from '@ngrx/store';
 import {defer, EMPTY, from, merge, Observable, of, ReplaySubject} from 'rxjs';
 import {catchError, debounceTime, filter, map, switchMap, tap} from 'rxjs/operators';
 import {Actions, ICriteria} from 'ngrx-entity-crud';
-import {NecAutoRestoreConfig, NecPersistenceConfig, NecSectionStats} from './models';
+import {NecAutoRestoreConfig, NecPersistenceConfig, NecSectionCheck, NecSectionStats} from './models';
 import {NEC_PERSISTENCE_CONFIG} from './persistence-config.token';
 import {NecPersistenceService} from './nec-persistence.service';
 
@@ -17,12 +17,6 @@ export interface NecPersistenceEffectsConfig<T> {
   actions: Actions<T>;
   /** Sovrascrive, se presente, il default globale di `NEC_PERSISTENCE_CONFIG.autoRestore`. */
   autoRestore?: NecAutoRestoreConfig;
-}
-
-/** Esito del check leggero eseguito alla creazione della sezione (decisioni 11/12 del piano). */
-export interface NecSectionCheck {
-  stats: NecSectionStats | null;
-  autoRestoreTriggered: boolean;
 }
 
 /**

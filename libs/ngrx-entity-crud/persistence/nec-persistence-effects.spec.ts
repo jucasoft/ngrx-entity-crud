@@ -2,9 +2,9 @@ import {Subject} from 'rxjs';
 import {Action} from '@ngrx/store';
 import {Actions as NgrxActionsClass} from '@ngrx/effects';
 import {createCrudEntityAdapter} from 'ngrx-entity-crud';
-import {createPersistenceEffects, NecSectionCheck} from './nec-persistence-effects';
+import {createPersistenceEffects} from './nec-persistence-effects';
 import {NecPersistenceService} from './nec-persistence.service';
-import {NecAutoRestoreConfig, NecPersistenceConfig, NecSectionStats} from './models';
+import {NecAutoRestoreConfig, NecPersistenceConfig, NecSectionCheck, NecSectionStats} from './models';
 
 /**
  * Copre `createPersistenceEffects` (Fase 2 del piano): comportamento delle azioni, non I/O reale
