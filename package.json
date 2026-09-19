@@ -18,6 +18,8 @@
     "build:schematics": "nx run ngrx-entity-crud:build-schematics",
     "build:schematics:watch": "nx run ngrx-entity-crud:build-schematics:watch",
     "link": "nx run ngrx-entity-crud:link",
+    "link:copy": "npm run build && node scripts/link-copy.js",
+    "link:copy-only": "node scripts/link-copy.js",
     "dev": "nx build ngrx-entity-crud --watch",
     "publish": "nx run ngrx-entity-crud:publish",
     "publish:beta": "nx run ngrx-entity-crud:publish-beta",
