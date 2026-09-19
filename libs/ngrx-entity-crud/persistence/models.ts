@@ -10,6 +10,15 @@
 
 export type NecEntityDictionary<T> = { [id: string]: T | undefined };
 
+/**
+ * `'on-draft'` (default): il blocco ricerca si scrive solo alla prima bozza, niente prompt Restore
+ * su una ricerca senza bozze. `'always'`: torna a scrivere il blocco su ogni `SearchSuccess`, per
+ * chi preferisce ritrovare anche i soli risultati della ricerca al riavvio. Preferenza per sezione,
+ * scelta dall'utente finale tramite `<nec-restore-search>`, sopravvive a `purgeSection` (vive in un
+ * object store separato da `search`/`meta`/`drafts`, vedi `ngrx-entity-crud-persistence-plan.md`).
+ */
+export type NecSaveMode = 'on-draft' | 'always';
+
 export interface NecAutoRestoreConfig {
   /** Età massima (ms) del blocco salvato oltre la quale il ripristino NON parte da solo. */
   maxAgeMs: number;
@@ -41,6 +50,7 @@ export interface NecSectionStats {
 export interface NecSectionCheck {
   stats: NecSectionStats | null;
   autoRestoreTriggered: boolean;
+  saveMode: NecSaveMode;
 }
 
 export interface NecSearchRecord<T, C = unknown> {

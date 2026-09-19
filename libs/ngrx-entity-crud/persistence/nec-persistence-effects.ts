@@ -4,10 +4,12 @@ import {Action} from '@ngrx/store';
 import {defer, EMPTY, from, merge, Observable, of} from 'rxjs';
 import {catchError, debounceTime, filter, map, switchMap, tap} from 'rxjs/operators';
 import {Actions, ICriteria} from 'ngrx-entity-crud';
-import {NecAutoRestoreConfig, NecPersistenceConfig, NecSectionCheck, NecSectionStats} from './models';
+import {NecAutoRestoreConfig, NecPersistenceConfig, NecSaveMode, NecSectionCheck, NecSectionStats} from './models';
 import {NEC_PERSISTENCE_CONFIG} from './persistence-config.token';
 import {NecPersistenceService} from './nec-persistence.service';
-import {createSectionCheckSuccessAction} from './nec-persistence-actions';
+import {createSectionCheckSuccessAction, createSetSectionSaveModeAction} from './nec-persistence-actions';
+
+const DEFAULT_SAVE_MODE: NecSaveMode = 'on-draft';
 
 /** Default se né la sezione né `NEC_PERSISTENCE_CONFIG` specificano `debounceMs`. */
 const DEFAULT_DEBOUNCE_MS = 200;
@@ -37,6 +39,8 @@ export interface NecPersistenceEffects {
   readonly removeAllSelectedOn$: Observable<unknown>;
   readonly deleteSuccessOn$: Observable<unknown>;
   readonly deleteManySuccessOn$: Observable<unknown>;
+  /** Persiste la scelta dell'utente su come salvare (`<nec-restore-search>`), vedi `NecSaveMode`. */
+  readonly setSaveModeOn$: Observable<unknown>;
 }
 
 /**
@@ -57,6 +61,16 @@ export function createPersistenceEffects<T>(config: NecPersistenceEffectsConfig<
   @Injectable()
   class NecSectionPersistenceEffects implements NecPersistenceEffects {
     private readonly pendingDrafts = new Map<string, T>();
+    /**
+     * Ultima `SearchSuccess` ricevuta, tenuta solo in memoria: il blocco `search[feature]` non si
+     * scrive più qui (vedi `searchSuccessOn$`), ma alla prima bozza (`draftsPutOn$`), che ne ha
+     * bisogno per scrivere `entities`+criteri insieme al draft.
+     */
+    private lastSearch: {criteria: ICriteria; items: T[]} | null = null;
+    /** true dopo che il blocco search e' stato scritto per la ricerca corrente (si scrive una sola volta). */
+    private searchPersisted = false;
+    /** Letto dal check alla creazione della sezione, aggiornato a runtime da `setSaveModeOn$`. */
+    private saveMode: NecSaveMode = DEFAULT_SAVE_MODE;
 
     // Dichiarati qui ma assegnati nel corpo del costruttore (non come field initializer): per una
     // classe senza `extends`, i field initializer girano PRIMA del corpo del costruttore (spec
@@ -73,6 +87,7 @@ export function createPersistenceEffects<T>(config: NecPersistenceEffectsConfig<
     readonly removeAllSelectedOn$: Observable<unknown>;
     readonly deleteSuccessOn$: Observable<unknown>;
     readonly deleteManySuccessOn$: Observable<unknown>;
+    readonly setSaveModeOn$: Observable<unknown>;
 
     constructor(
       private readonly actions$: NgrxActions,
@@ -80,18 +95,37 @@ export function createPersistenceEffects<T>(config: NecPersistenceEffectsConfig<
       @Optional() @Inject(NEC_PERSISTENCE_CONFIG) private readonly globalConfig: NecPersistenceConfig | null
     ) {
       const sectionCheckSuccess = createSectionCheckSuccessAction(feature);
+      const setSectionSaveMode = createSetSectionSaveModeAction(feature);
 
       // Check leggero eseguito UNA SOLA VOLTA: `createEffect` sottoscrive l'observable non appena
       // la classe viene istanziata da EffectsModule, quindi questo `defer` gira nello stesso istante
       // in cui la sezione (eager o lazy) viene creata, non quando un componente si monta. Dispatcha
       // sempre SectionCheckSuccess: il reducer generato da createPersistenceReducer lo scrive nello
       // store, il componente lo legge da li' via createPersistenceSelectors — mai piu' un
-      // side-channel fuori dallo store.
-      this.autoRestoreCheckOn$ = createEffect(() => defer(() => from(this.persistence.stats(feature))).pipe(
-        map((stats) => this.evaluateAutoRestore(stats)),
+      // side-channel fuori dallo store. Legge anche `saveMode` (object store separato, sopravvive a
+      // `purgeSection`) nello stesso giro, cosi' la preferenza scelta in una sessione precedente e'
+      // gia' pronta prima che arrivi una eventuale SearchSuccess.
+      this.autoRestoreCheckOn$ = createEffect(() => defer(() => from(
+        Promise.all([this.persistence.stats(feature), this.persistence.getSaveMode(feature)])
+      )).pipe(
+        tap(([, saveMode]) => {
+          this.saveMode = saveMode;
+        }),
+        map(([stats, saveMode]) => this.evaluateAutoRestore(stats, saveMode)),
         map((check) => sectionCheckSuccess({check})),
-        catchError(() => of(sectionCheckSuccess({check: {stats: null, autoRestoreTriggered: false}})))
+        catchError(() => of(sectionCheckSuccess({check: {stats: null, autoRestoreTriggered: false, saveMode: this.saveMode}})))
       ));
+
+      // Il toggle in `<nec-restore-search>` dispatcha questa action: aggiorna il comportamento a
+      // runtime (letto da `searchSuccessOn$`/`evaluateAutoRestore`) e lo persiste (sopravvive a
+      // `purgeSection`, vedi `NecPersistenceService.setSaveMode`).
+      this.setSaveModeOn$ = createEffect(() => this.actions$.pipe(
+        ofType(setSectionSaveMode),
+        tap(({mode}) => {
+          this.saveMode = mode;
+        }),
+        switchMap(({mode}) => from(this.persistence.setSaveMode(feature, mode)).pipe(catchError(() => EMPTY)))
+      ), {dispatch: false});
 
       // Traduce un check con autoRestoreTriggered in RestoreRequest: separato dal check sopra cosi'
       // ogni effect dispatcha un solo tipo di esito.
@@ -118,14 +152,23 @@ export function createPersistenceEffects<T>(config: NecPersistenceEffectsConfig<
 
       this.searchRequestOn$ = createEffect(() => this.actions$.pipe(
         ofType(actions.SearchRequest),
+        tap(() => {
+          this.lastSearch = null;
+          this.searchPersisted = false;
+        }),
         switchMap(() => from(this.persistence.purgeSection(feature)).pipe(catchError(() => EMPTY)))
       ), {dispatch: false});
 
       this.searchSuccessOn$ = createEffect(() => this.actions$.pipe(
         ofType(actions.SearchSuccess),
-        switchMap(({items, request}) => from(
-          this.persistence.writeSearch<T, ICriteria>(feature, request, items, selectId)
-        ).pipe(catchError(() => EMPTY)))
+        tap(({items, request}) => {
+          this.lastSearch = {criteria: request, items};
+        }),
+        // saveMode 'always': scrive subito, senza aspettare una bozza (il toggle esiste apposta
+        // per chi vuole ritrovare anche i soli risultati della ricerca al riavvio).
+        switchMap(() => this.saveMode === 'always'
+          ? from(this.persistSearchIfNeeded()).pipe(catchError(() => EMPTY))
+          : EMPTY)
       ), {dispatch: false});
 
       // Debounce sull'azione, non sulla scrittura: accumula gli item toccati durante la finestra di
@@ -141,9 +184,11 @@ export function createPersistenceEffects<T>(config: NecPersistenceEffectsConfig<
         switchMap(() => {
           const items = Array.from(this.pendingDrafts.values());
           this.pendingDrafts.clear();
-          return items.length
-            ? from(this.persistence.putDrafts(feature, items, selectId)).pipe(catchError(() => EMPTY))
-            : EMPTY;
+          if (!items.length) {
+            return EMPTY;
+          }
+          return from(this.persistSearchIfNeeded().then(() => this.persistence.putDrafts(feature, items, selectId)))
+            .pipe(catchError(() => EMPTY));
         })
       ), {dispatch: false});
 
@@ -168,18 +213,35 @@ export function createPersistenceEffects<T>(config: NecPersistenceEffectsConfig<
       ), {dispatch: false});
     }
 
+    /** Scrive il blocco `search[feature]` una sola volta per ricerca, alla prima bozza che lo richiede. */
+    private persistSearchIfNeeded(): Promise<void> {
+      if (this.searchPersisted || !this.lastSearch) {
+        return Promise.resolve();
+      }
+      const {criteria, items} = this.lastSearch;
+      this.searchPersisted = true;
+      return this.persistence.writeSearch<T, ICriteria>(feature, criteria, items, selectId);
+    }
+
     private autoRestoreConfig(): NecAutoRestoreConfig | undefined {
       return config.autoRestore ?? this.globalConfig?.autoRestore ?? undefined;
     }
 
-    private evaluateAutoRestore(stats: NecSectionStats | null): NecSectionCheck {
+    private evaluateAutoRestore(rawStats: NecSectionStats | null, saveMode: NecSaveMode): NecSectionCheck {
+      // In 'on-draft' senza bozze il blocco search non protegge nulla che una nuova ricerca non
+      // ricostruirebbe gratis: trattarlo come dato locale utile mostrerebbe un prompt "Restore"
+      // fuorviante (puo' capitare con draftCount tornato a 0 dopo che tutte le bozze sono state
+      // rimosse, il record meta/search resta scritto ma senza piu' nulla da proteggere). In
+      // 'always' il filtro non si applica: e' lo scopo stesso del toggle, il blocco esiste apposta
+      // per essere ripristinato anche senza bozze.
+      const stats = rawStats && (saveMode === 'always' || rawStats.draftCount > 0) ? rawStats : null;
       const autoRestore = this.autoRestoreConfig();
       if (!stats || !autoRestore) {
-        return {stats, autoRestoreTriggered: false};
+        return {stats, autoRestoreTriggered: false, saveMode};
       }
       const withinAge = Date.now() - stats.at <= autoRestore.maxAgeMs;
       const withinBytes = autoRestore.maxBytes === undefined || stats.bytes <= autoRestore.maxBytes;
-      return {stats, autoRestoreTriggered: withinAge && withinBytes};
+      return {stats, autoRestoreTriggered: withinAge && withinBytes, saveMode};
     }
   }
 

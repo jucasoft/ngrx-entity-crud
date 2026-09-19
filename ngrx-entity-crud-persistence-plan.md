@@ -43,10 +43,45 @@ riserializza e riscrive l'intero stato 1.000 volte.
    se ne riparla dopo.
 2. **Collocazione**: nuovo secondary entry-point **`ngrx-entity-crud/persistence`**, separato da `devtools`.
 3. **Due tipi di record**: risultato della ricerca salvato **in blocco**, bozze salvate **una per entità**.
-4. **Nessuna soglia**: il risultato della ricerca si salva **sempre**, qualunque sia la dimensione. La soglia
-   era servita solo a giustificare un secondo percorso di ripristino (rilancio della ricerca sopra soglia):
-   eliminandola sparisce quel ramo, e con esso le bozze orfane e il rischio più grave del piano. `count` e
-   `bytes` restano misurati e mostrati, così la soglia è reintroducibile in un punto solo se mai servisse.
+4. **Nessuna soglia dimensionale**: quando il blocco si salva, si salva **per intero**, qualunque sia la
+   dimensione — niente rilancio della ricerca sopra soglia, che avrebbe richiesto un secondo percorso di
+   ripristino con bozze orfane. `count` e `bytes` restano misurati e mostrati, così la soglia è reintroducibile
+   in un punto solo se mai servisse.
+4bis. **Revisione dopo validazione sul campo — si salva solo se serve a una bozza.** La prima versione di
+   questa decisione salvava il blocco `search[feature]` su **ogni** `SearchSuccess`, bozze o no: un utente che
+   cerca e guarda senza modificare nulla, chiude e riapre il browser, si ritrovava comunque il prompt
+   `Restore`/`New search` — rumore per un dato puramente rigenerabile (vedi tabella *Contesto/perché*:
+   `entities` "se la perdi: fastidio", non "danno"). Ora `SearchSuccess` non scrive più nulla: tiene solo in
+   memoria (`lastSearch`, sulla classe Effects) l'ultimo `{criteria, items}`. Il blocco si scrive **una sola
+   volta**, alla prima bozza (`AddManySelected`/`SelectItems`) di quella ricerca — l'effect `draftsPutOn$`
+   chiama `writeSearch` prima di `putDrafts` se non l'ha già fatto (`searchPersisted`), poi solo bozze. Ogni
+   `SearchRequest` azzera `lastSearch`/`searchPersisted`, coerente con la decisione 6. Il check
+   (`evaluateAutoRestore`) tratta comunque `stats.draftCount === 0` come "nessun dato locale utile" — copre il
+   caso limite in cui tutte le bozze vengono rimosse dopo essere state create: il record `meta`/`search` resta
+   scritto su IndexedDB (`deleteAllDrafts` azzera `draftCount` ma non cancella il record) ma non c'è più nulla
+   da proteggere.
+4ter. **`saveMode` per sezione — gesto esplicito dell'utente, non del developer.** Preoccupazione emersa dopo
+   4bis: un utente che *vuole* ritrovare anche i soli risultati della ricerca (non solo le bozze) al riavvio
+   non ha più modo di ottenerlo, e "la persistenza non fa quello che l'utente si aspetta" è peggio di "la
+   persistenza scrive qualche byte in più". Soluzione: un terzo stato, `NecSaveMode = 'on-draft' | 'always'`,
+   scelto dall'utente finale (non configurato dal developer come `autoRestore`) tramite un toggle **dentro
+   `<nec-restore-search>`**, nella stessa riga del pulsante Search — vincolo del piano rispettato: solo
+   `p-button` (icona che cambia stato), niente `p-toggleButton`/`p-inputSwitch` (classi non garantite identiche
+   v16↔v19). Default `'on-draft'` (comportamento 4bis, invariato per chi non tocca il toggle).
+   - **Dove vive**: non nel record `meta[feature]` (quello lo cancella `purgeSection` ad ogni `SearchRequest`,
+     decisione 6 — la preferenza deve invece sopravvivere alla ricerca successiva). Nuovo object store
+     `sectionPrefs` (chiave = feature), letto/scritto da `NecPersistenceService.getSaveMode`/`setSaveMode`.
+     `NEC_DEFAULT_PERSISTENCE_CONFIG.dbVersion` passa a 2 per farlo comparire anche per chi ha già il DB in
+     versione 1 (`onupgradeneeded` è già idempotente sugli store esistenti, nessuna perdita dati).
+   - **Flusso**: il check alla creazione della sezione legge `stats` e `saveMode` nello stesso giro
+     (`Promise.all`), così la scelta di una sessione precedente è pronta prima di ogni `SearchSuccess`. Il
+     toggle dispatcha `SetSectionSaveMode({feature, mode})` (nuova action, stesso scoping per `feature` di
+     `SectionCheckSuccess`): un effect la persiste e aggiorna il campo `saveMode` letto a runtime da
+     `searchSuccessOn$`/`evaluateAutoRestore`; il reducer la scrive nello stesso `check` dello store.
+   - **Effetto su `evaluateAutoRestore`**: il filtro `draftCount === 0 → nessun dato` di 4bis si applica solo
+     in `'on-draft'`. In `'always'` non si applica — è lo scopo stesso del toggle, il blocco esiste apposta
+     per essere ripristinato anche senza bozze — e `searchSuccessOn$` torna a scrivere `search[feature]` su
+     ogni `SearchSuccess` invece di aspettare la prima bozza.
 5. **Forma della bozza**: **entità intera**, esattamente com'è in `entitiesSelected`. Nessun diff, nessun
    baseline, nessun rilevamento conflitti.
 6. **Nuova ricerca = azzeramento**: una `SearchRequest` cancella ricerca e bozze precedenti di quella sezione.
@@ -149,9 +184,9 @@ Modificare una riga scrive **un solo record**. L'indice `feature` serve a contar
 
 | Evento | Effetto su IndexedDB |
 |---|---|
-| `SearchRequest` | cancella `search[feature]`, `meta[feature]` e tutti i `drafts` della feature |
-| `SearchSuccess` | scrive il blocco completo (`search[feature]` + `meta[feature]`, stessa transazione) |
-| `AddManySelected`, `SelectItems` | `put` dei record toccati in `drafts` (debounce breve) + `draftCount` in `meta` |
+| `SearchRequest` | cancella `search[feature]`, `meta[feature]` e tutti i `drafts` della feature; azzera anche `lastSearch` in memoria |
+| `SearchSuccess` | **nessuno** — tiene `{criteria, items}` solo in memoria (`lastSearch`), vedi decisione 4bis |
+| `AddManySelected`, `SelectItems` | alla prima bozza della ricerca corrente, scrive anche il blocco completo (`search[feature]` + `meta[feature]`, da `lastSearch`); poi sempre `put` dei record toccati in `drafts` (debounce breve) + `draftCount` in `meta` |
 | `RemoveManySelected`, `RemoveAllSelected` | `delete` dei record corrispondenti in `drafts` + `draftCount` in `meta` |
 | `DeleteSuccess`, `DeleteManySuccess` | `delete` delle bozze degli id cancellati + `draftCount` in `meta` |
 | `Restore*` | **nessuno** — il ripristino legge, non scrive |
@@ -281,8 +316,9 @@ vedi *Fasi*):
   `writeSearch(feature, criteria, items, selectId)`, `purgeSection(feature)`,
   `putDrafts(feature, items, selectId)`, `deleteDrafts(feature, ids)`, `deleteAllDrafts(feature)`,
   `readSection(feature)` (blocco + bozze, per la traduzione di `RestoreRequest`), `stats(feature)` (solo
-  `meta`, la lettura leggera del check di freschezza), `listSections()` (tutte le sezioni con dati locali,
-  per il pannello dashboard), `pendingWrites$`, `estimateStorage()`. `enabled: false` rende ogni operazione
+  `meta`, la lettura leggera del check di freschezza), `getSaveMode(feature)`/`setSaveMode(feature, mode)`
+  (preferenza `NecSaveMode` per sezione, object store separato — decisione 4ter), `listSections()` (tutte le
+  sezioni con dati locali, per il pannello dashboard), `pendingWrites$`, `estimateStorage()`. `enabled: false` rende ogni operazione
   un no-op. Ogni scrittura registra/deregistra da sé il listener `beforeunload` in base al contatore
   (decisione 8) e invoca `navigator.storage.persist()` una volta all'istanziazione.
 - `createPersistenceEffects<T>({feature, selectId, actions, autoRestore?})` — la effect factory: scrive sugli

@@ -9,7 +9,8 @@ import {map, startWith, takeUntil} from 'rxjs/operators';
 import {Actions} from 'ngrx-entity-crud';
 import {NecPersistenceService} from './nec-persistence.service';
 import {NecPersistenceSelectors} from './nec-persistence-selectors';
-import {NecSectionCheck, NecSectionStats} from './models';
+import {NecSaveMode, NecSectionCheck, NecSectionStats} from './models';
+import {createSetSectionSaveModeAction} from './nec-persistence-actions';
 
 export type NecRestoreSearchState = 'none' | 'prompt' | 'auto-restoring' | 'manual-restoring';
 
@@ -19,6 +20,7 @@ export interface NecRestoreSearchViewModel {
   restoreError: string | null;
   pendingWrites: number;
   quotaWarning: boolean;
+  saveMode: NecSaveMode;
 }
 
 /** `340 KB`, `1.2 MB`. */
@@ -148,6 +150,16 @@ function pluralize(count: number, singular: string, plural: string): string {
                value="Saving…"></p-tag>
         <p-tag *ngIf="vm.quotaWarning" styleClass="nec-ml" severity="warn" icon="pi pi-exclamation-triangle"
                value="Storage almost full"></p-tag>
+
+        <button type="button" pButton class="p-button-sm nec-ml"
+                [class.p-button-outlined]="vm.saveMode !== 'always'"
+                [class.p-button-secondary]="vm.saveMode !== 'always'"
+                icon="pi pi-save"
+                [attr.aria-pressed]="vm.saveMode === 'always'"
+                [title]="vm.saveMode === 'always'
+                  ? 'Salva sempre i risultati della ricerca — clic per disattivare'
+                  : 'Salva i risultati solo alla prima modifica — clic per salvarli sempre'"
+                (click)="toggleSaveMode(vm.saveMode)"></button>
       </div>
     </ng-container>
   `,
@@ -212,16 +224,17 @@ export class NecRestoreSearchComponent<T = unknown> implements OnInit, OnDestroy
     ]).pipe(
       map(([check, restoring, manualInFlight, dismissed, restoreError, pendingWrites, quotaWarning]) => {
         const stats = check?.stats ?? null;
+        const saveMode = check?.saveMode ?? 'on-draft';
         if (restoring && manualInFlight) {
-          return {state: 'manual-restoring', stats, restoreError: null, pendingWrites, quotaWarning} as const;
+          return {state: 'manual-restoring', stats, restoreError: null, pendingWrites, quotaWarning, saveMode} as const;
         }
         if (restoring && check?.autoRestoreTriggered) {
-          return {state: 'auto-restoring', stats, restoreError: null, pendingWrites, quotaWarning} as const;
+          return {state: 'auto-restoring', stats, restoreError: null, pendingWrites, quotaWarning, saveMode} as const;
         }
         if (dismissed || !stats) {
-          return {state: 'none', stats: null, restoreError: null, pendingWrites, quotaWarning} as const;
+          return {state: 'none', stats: null, restoreError: null, pendingWrites, quotaWarning, saveMode} as const;
         }
-        return {state: 'prompt', stats, restoreError, pendingWrites, quotaWarning} as const;
+        return {state: 'prompt', stats, restoreError, pendingWrites, quotaWarning, saveMode} as const;
       })
     );
   }
@@ -247,6 +260,12 @@ export class NecRestoreSearchComponent<T = unknown> implements OnInit, OnDestroy
 
   cancelNewSearch(): void {
     this.dismissPending.set(false);
+  }
+
+  /** Inverte 'on-draft'/'always' per questa sezione — il toggle nella riga del pulsante Search. */
+  toggleSaveMode(current: NecSaveMode): void {
+    const setSectionSaveMode = createSetSectionSaveModeAction(this.feature);
+    this.store.dispatch(setSectionSaveMode({mode: current === 'always' ? 'on-draft' : 'always'}));
   }
 
   statsSummary(stats: NecSectionStats | null): string {

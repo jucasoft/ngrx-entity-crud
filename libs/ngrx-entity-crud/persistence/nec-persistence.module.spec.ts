@@ -1,5 +1,11 @@
 import {NecPersistenceModule, provideNecPersistence} from './nec-persistence.module';
-import {NEC_PERSISTENCE_CONFIG} from './persistence-config.token';
+import {NEC_DEFAULT_PERSISTENCE_CONFIG, NEC_PERSISTENCE_CONFIG} from './persistence-config.token';
+
+describe('NEC_DEFAULT_PERSISTENCE_CONFIG', () => {
+  it('dbVersion e\' 2 (schema con sectionPrefs, vedi decisione saveMode)', () => {
+    expect(NEC_DEFAULT_PERSISTENCE_CONFIG.dbVersion).toBe(2);
+  });
+});
 
 describe('NecPersistenceModule', () => {
   it('forRoot fornisce NEC_PERSISTENCE_CONFIG con il valore passato', () => {

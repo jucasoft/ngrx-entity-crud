@@ -159,6 +159,62 @@ describe('NecPersistenceService', () => {
     removeSpy.mockRestore();
   });
 
+  it('getSaveMode senza preferenza impostata: default "on-draft"', async () => {
+    expect(await service.getSaveMode('coins')).toBe('on-draft');
+  });
+
+  it('setSaveMode poi getSaveMode: rilegge il valore impostato', async () => {
+    await service.setSaveMode('coins', 'always');
+
+    expect(await service.getSaveMode('coins')).toBe('always');
+  });
+
+  it('purgeSection non tocca la preferenza saveMode', async () => {
+    await service.setSaveMode('coins', 'always');
+    await service.writeSearch('coins', {}, [{id: '1', name: 'BTC'}], selectId);
+
+    await service.purgeSection('coins');
+
+    expect(await service.getSaveMode('coins')).toBe('always');
+  });
+
+  it('migrazione: un DB gia\' esistente in versione 1 (senza sectionPrefs) apre in versione 2 senza perdere i dati', async () => {
+    const dbName = `nec-persistence-migration-${Math.random().toString(36).slice(2)}`;
+
+    // Simula uno store creato dalla versione precedente della libreria: solo i tre object store
+    // originali, nessun sectionPrefs.
+    const oldDb = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open(dbName, 1);
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        db.createObjectStore('search');
+        db.createObjectStore('meta');
+        const drafts = db.createObjectStore('drafts', {keyPath: ['feature', 'id']});
+        drafts.createIndex('feature', 'feature');
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    await new Promise<void>((resolve, reject) => {
+      const tx = oldDb.transaction(['search', 'meta'], 'readwrite');
+      tx.objectStore('search').put({criteria: {}, ids: ['1'], entities: {1: {id: '1', name: 'BTC'}}, count: 1, bytes: 10, at: Date.now()}, 'coins');
+      tx.objectStore('meta').put({feature: 'coins', count: 1, bytes: 10, draftCount: 0, at: Date.now()}, 'coins');
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+    oldDb.close();
+
+    const upgraded = makeService({dbName, dbVersion: 2});
+
+    const stats = await upgraded.stats('coins');
+    expect(stats?.count).toBe(1);
+    expect(await upgraded.getSaveMode('coins')).toBe('on-draft');
+    await upgraded.setSaveMode('coins', 'always');
+    expect(await upgraded.getSaveMode('coins')).toBe('always');
+
+    upgraded.ngOnDestroy();
+  });
+
   it('con enabled: false ogni operazione è un no-op', async () => {
     const disabled = makeService({enabled: false});
 
@@ -168,6 +224,8 @@ describe('NecPersistenceService', () => {
     expect(await disabled.stats('coins')).toBeNull();
     expect(await disabled.readSection('coins')).toBeNull();
     expect(await disabled.listSections()).toEqual([]);
+    await disabled.setSaveMode('coins', 'always');
+    expect(await disabled.getSaveMode('coins')).toBe('on-draft');
 
     disabled.ngOnDestroy();
   });

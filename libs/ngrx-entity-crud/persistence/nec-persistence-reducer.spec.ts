@@ -1,4 +1,4 @@
-import {createSectionCheckSuccessAction} from './nec-persistence-actions';
+import {createSectionCheckSuccessAction, createSetSectionSaveModeAction} from './nec-persistence-actions';
 import {createPersistenceReducer, NEC_PERSISTENCE_INITIAL_STATE, necPersistenceFeatureKey} from './nec-persistence-reducer';
 import {NecSectionStats} from './models';
 
@@ -19,7 +19,7 @@ describe('createPersistenceReducer', () => {
   it('SectionCheckSuccess della propria feature: scrive check', () => {
     const reducer = createPersistenceReducer('coins');
     const sectionCheckSuccess = createSectionCheckSuccessAction('coins');
-    const check = {stats, autoRestoreTriggered: true};
+    const check = {stats, autoRestoreTriggered: true, saveMode: 'on-draft' as const};
 
     const state = reducer(undefined, sectionCheckSuccess({check}));
 
@@ -30,8 +30,29 @@ describe('createPersistenceReducer', () => {
     const reducer = createPersistenceReducer('coins');
     const otherFeatureCheckSuccess = createSectionCheckSuccessAction('orders');
 
-    const state = reducer(undefined, otherFeatureCheckSuccess({check: {stats, autoRestoreTriggered: true}}));
+    const state = reducer(undefined, otherFeatureCheckSuccess({check: {stats, autoRestoreTriggered: true, saveMode: 'on-draft'}}));
 
     expect(state).toEqual(NEC_PERSISTENCE_INITIAL_STATE);
+  });
+
+  it('SetSectionSaveMode aggiorna saveMode nel check esistente, senza toccare stats/autoRestoreTriggered', () => {
+    const reducer = createPersistenceReducer('coins');
+    const sectionCheckSuccess = createSectionCheckSuccessAction('coins');
+    const setSectionSaveMode = createSetSectionSaveModeAction('coins');
+    const check = {stats, autoRestoreTriggered: true, saveMode: 'on-draft' as const};
+    const afterCheck = reducer(undefined, sectionCheckSuccess({check}));
+
+    const state = reducer(afterCheck, setSectionSaveMode({mode: 'always'}));
+
+    expect(state).toEqual({check: {...check, saveMode: 'always'}});
+  });
+
+  it('SetSectionSaveMode prima di ogni check: crea un check minimale con solo saveMode impostato', () => {
+    const reducer = createPersistenceReducer('coins');
+    const setSectionSaveMode = createSetSectionSaveModeAction('coins');
+
+    const state = reducer(undefined, setSectionSaveMode({mode: 'always'}));
+
+    expect(state).toEqual({check: {stats: null, autoRestoreTriggered: false, saveMode: 'always'}});
   });
 });

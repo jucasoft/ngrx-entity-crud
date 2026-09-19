@@ -5,7 +5,7 @@ import {createCrudEntityAdapter} from 'ngrx-entity-crud';
 import {createPersistenceEffects} from './nec-persistence-effects';
 import {NecPersistenceService} from './nec-persistence.service';
 import {NecAutoRestoreConfig, NecPersistenceConfig, NecSectionStats} from './models';
-import {createSectionCheckSuccessAction} from './nec-persistence-actions';
+import {createSectionCheckSuccessAction, createSetSectionSaveModeAction} from './nec-persistence-actions';
 
 /**
  * Copre `createPersistenceEffects` (Fase 2 del piano): comportamento delle azioni, non I/O reale
@@ -25,6 +25,8 @@ const flushPromises = (): Promise<void> => new Promise((resolve) => setTimeout(r
 function fakePersistence(overrides: Partial<Record<string, jest.Mock>> = {}): NecPersistenceService {
   return {
     stats: jest.fn().mockResolvedValue(null),
+    getSaveMode: jest.fn().mockResolvedValue('on-draft'),
+    setSaveMode: jest.fn().mockResolvedValue(undefined),
     readSection: jest.fn().mockResolvedValue(null),
     writeSearch: jest.fn().mockResolvedValue(undefined),
     purgeSection: jest.fn().mockResolvedValue(undefined),
@@ -66,7 +68,7 @@ describe('createPersistenceEffects', () => {
       expect(persistence.purgeSection).toHaveBeenCalledWith(NAME);
     });
 
-    it('SearchSuccess -> writeSearch(feature, request, items, selectId)', () => {
+    it('SearchSuccess da sola non scrive nulla (il blocco search si scrive alla prima bozza, non qui)', () => {
       const {effects, persistence, actionsSubject} = setup();
       effects.searchSuccessOn$.subscribe();
       const request = {queryParams: {q: 'x'}};
@@ -74,10 +76,70 @@ describe('createPersistenceEffects', () => {
 
       actionsSubject.next(actions.SearchSuccess({items, request}));
 
-      expect(persistence.writeSearch).toHaveBeenCalledWith(NAME, request, items, expect.any(Function));
+      expect(persistence.writeSearch).not.toHaveBeenCalled();
     });
 
-    it('accumula le righe toccate entro la finestra di debounce e scrive un solo putDrafts', () => {
+    it('la prima bozza dopo una ricerca scrive anche il blocco search (criteria/items dell\'ultima SearchSuccess)', () => {
+      jest.useFakeTimers();
+      try {
+        const {effects, persistence, actionsSubject} = setup({}, undefined, {debounceMs: 50});
+        effects.searchSuccessOn$.subscribe();
+        effects.draftsPutOn$.subscribe();
+        const request = {queryParams: {q: 'x'}};
+        const items: Coin[] = [{id: '1', name: 'BTC'}, {id: '2', name: 'ETH'}];
+
+        actionsSubject.next(actions.SearchSuccess({items, request}));
+        actionsSubject.next(actions.AddManySelected({items: [{id: '1', name: 'BTC-edit'}]}));
+        jest.advanceTimersByTime(50);
+
+        expect(persistence.writeSearch).toHaveBeenCalledWith(NAME, request, items, expect.any(Function));
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('SearchRequest azzera la ricerca in cache: una bozza dopo una nuova ricerca non riscrive quella vecchia', () => {
+      jest.useFakeTimers();
+      try {
+        const {effects, persistence, actionsSubject} = setup({}, undefined, {debounceMs: 50});
+        effects.searchRequestOn$.subscribe();
+        effects.searchSuccessOn$.subscribe();
+        effects.draftsPutOn$.subscribe();
+        const oldItems: Coin[] = [{id: '1', name: 'BTC'}];
+
+        actionsSubject.next(actions.SearchSuccess({items: oldItems, request: {queryParams: {q: 'old'}}}));
+        actionsSubject.next(actions.SearchRequest({queryParams: {q: 'new'}}));
+        actionsSubject.next(actions.AddManySelected({items: [{id: '1', name: 'BTC-edit'}]}));
+        jest.advanceTimersByTime(50);
+
+        expect(persistence.writeSearch).not.toHaveBeenCalled();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('una seconda bozza, in un giro di debounce successivo, non riscrive il blocco search', () => {
+      jest.useFakeTimers();
+      try {
+        const {effects, persistence, actionsSubject} = setup({}, undefined, {debounceMs: 50});
+        effects.searchSuccessOn$.subscribe();
+        effects.draftsPutOn$.subscribe();
+        const request = {queryParams: {q: 'x'}};
+        const items: Coin[] = [{id: '1', name: 'BTC'}, {id: '2', name: 'ETH'}];
+
+        actionsSubject.next(actions.SearchSuccess({items, request}));
+        actionsSubject.next(actions.AddManySelected({items: [{id: '1', name: 'BTC-edit'}]}));
+        jest.advanceTimersByTime(50);
+        actionsSubject.next(actions.AddManySelected({items: [{id: '2', name: 'ETH-edit'}]}));
+        jest.advanceTimersByTime(50);
+
+        expect(persistence.writeSearch).toHaveBeenCalledTimes(1);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('accumula le righe toccate entro la finestra di debounce e scrive un solo putDrafts', async () => {
       jest.useFakeTimers();
       try {
         const {effects, persistence, actionsSubject} = setup({}, undefined, {debounceMs: 50});
@@ -89,6 +151,8 @@ describe('createPersistenceEffects', () => {
         jest.advanceTimersByTime(10);
         actionsSubject.next(actions.SelectItems({items: [{id: '2', name: 'b'}]}));
         jest.advanceTimersByTime(50);
+        // persistSearchIfNeeded() aggiunge un giro di microtask prima di putDrafts, indipendente dai fake timers.
+        await Promise.resolve();
 
         expect(persistence.putDrafts).toHaveBeenCalledTimes(1);
         const [featureArg, items] = (persistence.putDrafts as jest.Mock).mock.calls[0];
@@ -200,11 +264,46 @@ describe('createPersistenceEffects', () => {
 
       await flushPromises();
 
-      expect(dispatched).toEqual([sectionCheckSuccess({check: {stats: null, autoRestoreTriggered: false}})]);
+      expect(dispatched).toEqual([sectionCheckSuccess({check: {stats: null, autoRestoreTriggered: false, saveMode: 'on-draft'}})]);
+    });
+
+    it('legge saveMode da persistence.getSaveMode e lo include nel check dispatchato', async () => {
+      const {effects} = setup({getSaveMode: jest.fn().mockResolvedValue('always')});
+      const dispatched: Action[] = [];
+      effects.autoRestoreCheckOn$.subscribe((a) => dispatched.push(a));
+
+      await flushPromises();
+
+      expect(dispatched).toEqual([sectionCheckSuccess({check: {stats: null, autoRestoreTriggered: false, saveMode: 'always'}})]);
+    });
+
+    it('search salvato ma nessuna bozza (draftCount 0): trattato come nessun dato locale', async () => {
+      const stats: NecSectionStats = {feature: NAME, count: 10, bytes: 500, draftCount: 0, at: Date.now()};
+      const {effects} = setup({stats: jest.fn().mockResolvedValue(stats)}, {maxAgeMs: 60000});
+      const dispatched: Action[] = [];
+      effects.autoRestoreCheckOn$.subscribe((a) => dispatched.push(a));
+
+      await flushPromises();
+
+      expect(dispatched).toEqual([sectionCheckSuccess({check: {stats: null, autoRestoreTriggered: false, saveMode: 'on-draft'}})]);
+    });
+
+    it('saveMode "always": draftCount 0 NON viene filtrato, il prompt mostra comunque i risultati salvati', async () => {
+      const stats: NecSectionStats = {feature: NAME, count: 10, bytes: 500, draftCount: 0, at: Date.now()};
+      const {effects} = setup({
+        stats: jest.fn().mockResolvedValue(stats),
+        getSaveMode: jest.fn().mockResolvedValue('always'),
+      });
+      const dispatched: Action[] = [];
+      effects.autoRestoreCheckOn$.subscribe((a) => dispatched.push(a));
+
+      await flushPromises();
+
+      expect(dispatched).toEqual([sectionCheckSuccess({check: {stats, autoRestoreTriggered: false, saveMode: 'always'}})]);
     });
 
     it('dati entro soglia: SectionCheckSuccess con autoRestoreTriggered true, poi RestoreRequest da se\'', async () => {
-      const stats: NecSectionStats = {feature: NAME, count: 10, bytes: 500, draftCount: 0, at: Date.now() - 1000};
+      const stats: NecSectionStats = {feature: NAME, count: 10, bytes: 500, draftCount: 1, at: Date.now() - 1000};
       const {effects, actionsSubject} = setup({stats: jest.fn().mockResolvedValue(stats)}, {maxAgeMs: 60000});
       const triggered: Action[] = [];
       // Nella realta' un'azione dispatchata da un effect torna sullo stream actions$ tramite lo
@@ -219,7 +318,7 @@ describe('createPersistenceEffects', () => {
     });
 
     it('dati fuori soglia di eta\': nessun RestoreRequest automatico', async () => {
-      const stats: NecSectionStats = {feature: NAME, count: 10, bytes: 500, draftCount: 0, at: Date.now() - 120000};
+      const stats: NecSectionStats = {feature: NAME, count: 10, bytes: 500, draftCount: 1, at: Date.now() - 120000};
       const {effects, actionsSubject} = setup({stats: jest.fn().mockResolvedValue(stats)}, {maxAgeMs: 60000});
       const triggered: Action[] = [];
       effects.autoRestoreCheckOn$.subscribe((a) => actionsSubject.next(a));
@@ -231,7 +330,7 @@ describe('createPersistenceEffects', () => {
     });
 
     it('fuori soglia di bytes pur essendo dentro la soglia di eta\': nessun RestoreRequest', async () => {
-      const stats: NecSectionStats = {feature: NAME, count: 10, bytes: 5000, draftCount: 0, at: Date.now() - 1000};
+      const stats: NecSectionStats = {feature: NAME, count: 10, bytes: 5000, draftCount: 1, at: Date.now() - 1000};
       const {effects, actionsSubject} = setup({stats: jest.fn().mockResolvedValue(stats)}, {maxAgeMs: 60000, maxBytes: 1000});
       const triggered: Action[] = [];
       effects.autoRestoreCheckOn$.subscribe((a) => actionsSubject.next(a));
@@ -243,7 +342,7 @@ describe('createPersistenceEffects', () => {
     });
 
     it('autoRestore non configurato ne\' per sezione ne\' globalmente: nessun RestoreRequest anche con dati freschi', async () => {
-      const stats: NecSectionStats = {feature: NAME, count: 10, bytes: 500, draftCount: 0, at: Date.now()};
+      const stats: NecSectionStats = {feature: NAME, count: 10, bytes: 500, draftCount: 1, at: Date.now()};
       const {effects, actionsSubject} = setup({stats: jest.fn().mockResolvedValue(stats)});
       const triggered: Action[] = [];
       effects.autoRestoreCheckOn$.subscribe((a) => actionsSubject.next(a));
@@ -255,7 +354,7 @@ describe('createPersistenceEffects', () => {
     });
 
     it('il default globale si applica quando la sezione non specifica autoRestore', async () => {
-      const stats: NecSectionStats = {feature: NAME, count: 10, bytes: 500, draftCount: 0, at: Date.now() - 1000};
+      const stats: NecSectionStats = {feature: NAME, count: 10, bytes: 500, draftCount: 1, at: Date.now() - 1000};
       const {effects, actionsSubject} = setup(
         {stats: jest.fn().mockResolvedValue(stats)},
         undefined,
@@ -271,7 +370,7 @@ describe('createPersistenceEffects', () => {
     });
 
     it('il parametro di sezione prevale sul default globale', async () => {
-      const stats: NecSectionStats = {feature: NAME, count: 10, bytes: 500, draftCount: 0, at: Date.now() - 120000};
+      const stats: NecSectionStats = {feature: NAME, count: 10, bytes: 500, draftCount: 1, at: Date.now() - 120000};
       const {effects, actionsSubject} = setup(
         {stats: jest.fn().mockResolvedValue(stats)},
         {maxAgeMs: 1000},
@@ -284,6 +383,32 @@ describe('createPersistenceEffects', () => {
       await flushPromises();
 
       expect(triggered).toEqual([]);
+    });
+  });
+
+  describe('SetSectionSaveMode', () => {
+    const setSectionSaveMode = createSetSectionSaveModeAction(NAME);
+
+    it('persiste la scelta: persistence.setSaveMode(feature, mode)', () => {
+      const {effects, persistence, actionsSubject} = setup();
+      effects.setSaveModeOn$.subscribe();
+
+      actionsSubject.next(setSectionSaveMode({mode: 'always'}));
+
+      expect(persistence.setSaveMode).toHaveBeenCalledWith(NAME, 'always');
+    });
+
+    it('mode "always": una SearchSuccess successiva scrive subito il blocco search, senza aspettare una bozza', () => {
+      const {effects, persistence, actionsSubject} = setup();
+      effects.setSaveModeOn$.subscribe();
+      effects.searchSuccessOn$.subscribe();
+      const request = {queryParams: {q: 'x'}};
+      const items: Coin[] = [{id: '1', name: 'BTC'}];
+
+      actionsSubject.next(setSectionSaveMode({mode: 'always'}));
+      actionsSubject.next(actions.SearchSuccess({items, request}));
+
+      expect(persistence.writeSearch).toHaveBeenCalledWith(NAME, request, items, expect.any(Function));
     });
   });
 });

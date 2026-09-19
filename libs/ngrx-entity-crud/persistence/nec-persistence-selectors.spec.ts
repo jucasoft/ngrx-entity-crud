@@ -14,7 +14,7 @@ describe('createPersistenceSelectors', () => {
 
   it('sectionCheck legge il check scritto nella slice', () => {
     const selectors = createPersistenceSelectors('coins');
-    const check = {stats, autoRestoreTriggered: false};
+    const check = {stats, autoRestoreTriggered: false, saveMode: 'on-draft' as const};
     const state = {[necPersistenceFeatureKey('coins')]: {check}};
 
     expect(selectors.sectionCheck(state)).toEqual(check);
@@ -27,10 +27,20 @@ describe('createPersistenceSelectors', () => {
     expect(selectors.sectionCheck(state)).toBeNull();
   });
 
+  it('saveMode legge il campo dal check, default "on-draft" se nessun check ancora ricevuto', () => {
+    const selectors = createPersistenceSelectors('coins');
+    const noCheckState = {[necPersistenceFeatureKey('coins')]: NEC_PERSISTENCE_INITIAL_STATE};
+    expect(selectors.saveMode(noCheckState)).toBe('on-draft');
+
+    const check = {stats, autoRestoreTriggered: false, saveMode: 'always' as const};
+    const state = {[necPersistenceFeatureKey('coins')]: {check}};
+    expect(selectors.saveMode(state)).toBe('always');
+  });
+
   it('due feature diverse leggono slice diverse', () => {
     const coinsSelectors = createPersistenceSelectors('coins');
     const ordersSelectors = createPersistenceSelectors('orders');
-    const check = {stats, autoRestoreTriggered: true};
+    const check = {stats, autoRestoreTriggered: true, saveMode: 'on-draft' as const};
     const state = {
       [necPersistenceFeatureKey('coins')]: {check},
       [necPersistenceFeatureKey('orders')]: NEC_PERSISTENCE_INITIAL_STATE,

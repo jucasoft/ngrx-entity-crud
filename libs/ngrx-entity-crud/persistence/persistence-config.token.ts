@@ -4,7 +4,9 @@ import {NecPersistenceConfig} from './models';
 /** Default se il consumer non configura nulla: nessun `autoRestore` (sempre gesto esplicito). */
 export const NEC_DEFAULT_PERSISTENCE_CONFIG: NecPersistenceConfig = {
   dbName: 'nec-persistence',
-  dbVersion: 1,
+  // 2: aggiunge l'object store sectionPrefs (preferenza saveMode per sezione). onupgradeneeded e'
+  // idempotente sugli store esistenti, chi ha gia' il DB in versione 1 aggiorna senza perdere dati.
+  dbVersion: 2,
   debounceMs: 200,
   enabled: true,
 };

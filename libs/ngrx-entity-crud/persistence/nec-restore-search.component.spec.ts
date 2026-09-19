@@ -141,32 +141,32 @@ describe('NecRestoreSearchComponent', () => {
   });
 
   it('check senza dati locali: none', () => {
-    checkSubject.next({stats: null, autoRestoreTriggered: false});
+    checkSubject.next({stats: null, autoRestoreTriggered: false, saveMode: 'on-draft'});
     expect(currentVm().state).toBe('none');
   });
 
   it('check con dati locali, fuori soglia: prompt con le stats', () => {
-    checkSubject.next({stats, autoRestoreTriggered: false});
+    checkSubject.next({stats, autoRestoreTriggered: false, saveMode: 'on-draft'});
     const vm = currentVm();
     expect(vm.state).toBe('prompt');
     expect(vm.stats).toEqual(stats);
   });
 
   it('check con autoRestoreTriggered + RestoreRequest in volo: auto-restoring', () => {
-    checkSubject.next({stats, autoRestoreTriggered: true});
+    checkSubject.next({stats, autoRestoreTriggered: true, saveMode: 'on-draft'});
     actionsSubject.next(actions.RestoreRequest());
     expect(currentVm().state).toBe('auto-restoring');
   });
 
   it('auto-restoring seguito da RestoreSuccess: torna a none, non a prompt', () => {
-    checkSubject.next({stats, autoRestoreTriggered: true});
+    checkSubject.next({stats, autoRestoreTriggered: true, saveMode: 'on-draft'});
     actionsSubject.next(actions.RestoreRequest());
     actionsSubject.next(actions.RestoreSuccess({items: [], selected: [], criteria: {}}));
     expect(currentVm().state).toBe('none');
   });
 
   it('click su Restore: dispaccia RestoreRequest e passa a manual-restoring', () => {
-    checkSubject.next({stats, autoRestoreTriggered: false});
+    checkSubject.next({stats, autoRestoreTriggered: false, saveMode: 'on-draft'});
     expect(currentVm().state).toBe('prompt');
 
     component.restore();
@@ -177,7 +177,7 @@ describe('NecRestoreSearchComponent', () => {
   });
 
   it('RestoreFailure durante un restore manuale: torna a prompt con l\'errore visibile', () => {
-    checkSubject.next({stats, autoRestoreTriggered: false});
+    checkSubject.next({stats, autoRestoreTriggered: false, saveMode: 'on-draft'});
     component.restore();
     actionsSubject.next(actions.RestoreRequest());
 
@@ -189,7 +189,7 @@ describe('NecRestoreSearchComponent', () => {
   });
 
   it('New search chiede conferma prima di scartare le bozze, poi torna a none', () => {
-    checkSubject.next({stats, autoRestoreTriggered: false});
+    checkSubject.next({stats, autoRestoreTriggered: false, saveMode: 'on-draft'});
 
     expect(component.dismissPending()).toBe(false);
     component.requestNewSearch();
@@ -206,10 +206,26 @@ describe('NecRestoreSearchComponent', () => {
   });
 
   it('pendingWrites si riflette nella vm indipendentemente dallo stato principale', () => {
-    checkSubject.next({stats: null, autoRestoreTriggered: false});
+    checkSubject.next({stats: null, autoRestoreTriggered: false, saveMode: 'on-draft'});
     pendingWrites$.next(3);
 
     expect(currentVm().pendingWrites).toBe(3);
+  });
+
+  it('saveMode nella vm riflette il check, default "on-draft" prima di ogni check', () => {
+    expect(currentVm().saveMode).toBe('on-draft');
+
+    checkSubject.next({stats: null, autoRestoreTriggered: false, saveMode: 'always'});
+
+    expect(currentVm().saveMode).toBe('always');
+  });
+
+  it('toggleSaveMode dispaccia SetSectionSaveMode invertendo lo stato corrente', () => {
+    component.toggleSaveMode('on-draft');
+    expect(dispatch).toHaveBeenCalledWith({type: '[coins Persistence] Set Section Save Mode', mode: 'always'});
+
+    component.toggleSaveMode('always');
+    expect(dispatch).toHaveBeenCalledWith({type: '[coins Persistence] Set Section Save Mode', mode: 'on-draft'});
   });
 
   it('quota quasi esaurita: quotaWarning true, letta una sola volta da estimateStorage', async () => {

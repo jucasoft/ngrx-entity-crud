@@ -4,6 +4,7 @@ import {
   NecDraftRecord,
   NecEntityDictionary,
   NecPersistenceConfig,
+  NecSaveMode,
   NecSearchRecord,
   NecSectionData,
   NecSectionStats,
@@ -14,6 +15,13 @@ const SEARCH_STORE = 'search';
 const META_STORE = 'meta';
 const DRAFTS_STORE = 'drafts';
 const DRAFTS_FEATURE_INDEX = 'feature';
+const PREFS_STORE = 'sectionPrefs';
+const DEFAULT_SAVE_MODE: NecSaveMode = 'on-draft';
+
+interface NecSectionPrefs {
+  feature: string;
+  saveMode: NecSaveMode;
+}
 
 /**
  * Servizio IndexedDB dedicato alla persistenza locale delle sezioni CRUD.
@@ -146,7 +154,35 @@ export class NecPersistenceService implements OnDestroy {
     });
   }
 
+  /**
+   * Preferenza per sezione, in un object store separato da `search`/`meta`/`drafts` apposta:
+   * `purgeSection` (chiamato su ogni `SearchRequest`, decisione 6 del piano) cancella quei tre, ma
+   * la scelta dell'utente sul "come salvare" deve sopravvivere alla ricerca successiva.
+   */
+  async setSaveMode(feature: string, saveMode: NecSaveMode): Promise<void> {
+    if (!this.isEnabled()) {
+      return;
+    }
+    const prefs: NecSectionPrefs = {feature, saveMode};
+    await this.runWrite([PREFS_STORE], (tx) => {
+      tx.objectStore(PREFS_STORE).put(prefs, feature);
+    });
+  }
+
   // ---- letture ---------------------------------------------------------------
+
+  async getSaveMode(feature: string): Promise<NecSaveMode> {
+    if (!this.isEnabled()) {
+      return DEFAULT_SAVE_MODE;
+    }
+    const db = await this.open();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction([PREFS_STORE], 'readonly');
+      const request = tx.objectStore(PREFS_STORE).get(feature) as IDBRequest<NecSectionPrefs | undefined>;
+      request.onsuccess = () => resolve(request.result?.saveMode ?? DEFAULT_SAVE_MODE);
+      request.onerror = () => reject(request.error ?? new Error('lettura saveMode fallita'));
+    });
+  }
 
   /** Lettura leggera: solo i quattro campi di `meta`, mai il blob `entities`/`drafts`. */
   async stats(feature: string): Promise<NecSectionStats | null> {
@@ -254,6 +290,9 @@ export class NecPersistenceService implements OnDestroy {
         if (!db.objectStoreNames.contains(DRAFTS_STORE)) {
           const drafts = db.createObjectStore(DRAFTS_STORE, {keyPath: ['feature', 'id']});
           drafts.createIndex(DRAFTS_FEATURE_INDEX, 'feature');
+        }
+        if (!db.objectStoreNames.contains(PREFS_STORE)) {
+          db.createObjectStore(PREFS_STORE);
         }
       };
       request.onblocked = () =>
