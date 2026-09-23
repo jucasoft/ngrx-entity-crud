@@ -74,6 +74,16 @@ Cambi da conoscere prima di aggiornare un progetto consumer. Dettagli e test con
   collegare la persistenza a una sezione esistente. Dove una sezione modificata a mano non ha il
   punto d'aggancio atteso, lascia un marcatore che non compila (`NEC_PASSO_MANUALE__*`,
   `<nec-passo-manuale-*>`), così `ng build` indica i passi da completare a mano.
+- fix(persistence): al reload di una sezione le bozze salvate venivano cancellate prima di poterle
+  ripristinare: la lista generata cercava all'apertura con `SearchRequest`, che fa `purgeSection`.
+  Nuova azione `<Clazz>Persistence.actions.InitialSearch` (stessi criteri di `SearchRequest`): cerca
+  solo se non ci sono dati locali da ripristinare, altrimenti lascia la scelta ad `autoRestore` o a
+  `<nec-restore-search>`. Il template `section` la usa; lo schematic `persistence` sostituisce la
+  `SearchRequest` di `ngOnInit` nella lista delle sezioni esistenti (marcatore se non la trova).
+  Chi ha generato una sezione con beta.21 deve fare la stessa sostituzione (o rilanciare
+  `ng g ngrx-entity-crud:persistence --clazz=X`).
+- fix(persistence): una `SearchRequest` azzera `stats` del check nello store: riaprendo la sezione
+  `<nec-restore-search>` non propone più il ripristino di dati appena cancellati.
 
 **Rotture rispetto alle beta precedenti (la persistenza non esiste in v19.2.6):**
 - `NecRestoreSearchComponent` e `provideNecIdbAdapterFromPersistence` si importano da

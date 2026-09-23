@@ -727,7 +727,7 @@ export class CoinStoreModule {}
 | `feature` / `featureKey` | The store feature and the key of the persistence slice (`<feature>:persistence`). |
 | `enabled` | `false`: effects are inert (no IndexedDB access at all) and `<nec-restore-search>` only renders its projected content. |
 | `crudActions` | The section's CRUD actions (with `RestoreRequest/Success/Failure`). |
-| `actions` | `SectionCheckSuccess`, `SetSectionSaveMode`, e.g. `store.dispatch(CoinPersistence.actions.SetSectionSaveMode({mode: 'always'}))`. |
+| `actions` | `SectionCheckSuccess`, `SetSectionSaveMode`, `InitialSearch`, e.g. `store.dispatch(CoinPersistence.actions.SetSectionSaveMode({mode: 'always'}))`. |
 | `reducer` / `selectors` / `effects` | To register as shown above; `selectors.sectionCheck`, `selectors.saveMode`. |
 
 Once enabled, the effects write on their own following the CRUD action lifecycle
@@ -737,6 +737,22 @@ deletions clean up the matching drafts): no further action dispatches needed. Th
 section is created (same instant for eager and lazy stores) it also runs a lightweight freshness
 check (`stats(feature)`, metadata only) and, if `autoRestore` applies, dispatches `RestoreRequest`
 on its own.
+
+**Searching when the section opens: `InitialSearch`.** A `SearchRequest` purges the section's local
+data, so a list that searches in `ngOnInit` with `SearchRequest` would wipe the saved drafts on every
+reload, before the user can restore them. Dispatch `InitialSearch` instead (same criteria):
+
+```ts
+ngOnInit(): void {
+  this.store$.dispatch(CoinPersistence.actions.InitialSearch({queryParams: {}}));
+}
+```
+
+It becomes a `SearchRequest` only when there's nothing to restore: no local data, a failed check, or
+the local data was already searched over / restored earlier in the session (reopening the section).
+When local data is waiting, no search starts: `autoRestore` restores it, or `<nec-restore-search>`
+offers `Restore`/`New search`. With `enabled: false` it is a plain `SearchRequest`. The generated
+list component uses it; a search the user starts (`<app-search>`) stays a `SearchRequest`.
 
 The lower-level factories (`createPersistenceActions`, `createPersistenceReducer`,
 `createPersistenceSelectors`, `createPersistenceEffects`) are still exported; `createPersistence`
@@ -788,11 +804,13 @@ ng generate ngrx-entity-crud:persistence --clazz=Coin --ui=false   # store only,
 It creates `coin.persistence.ts`, registers reducer/effects in `coin-store.module.ts`, exports
 `CoinPersistence` from the store `index.ts` and (unless `--ui=false`) imports
 `NecRestoreSearchComponent` in the section module, adds `persistence = CoinPersistence` to
-`CoinMainComponent` and wraps `<app-search>` in its template. Running it twice changes nothing.
+`CoinMainComponent`, wraps `<app-search>` in its template and replaces the `SearchRequest` in
+`CoinListComponent.ngOnInit` with `CoinPersistence.actions.InitialSearch`. Running it twice changes
+nothing.
 
 **Sections modified by hand.** Where the expected code isn't found (e.g. effects registered through
 a constant instead of an array literal, a renamed main component, a custom search instead of
-`<app-search>`, the wiring of a previous beta with `createPersistenceEffects`), the schematic does
+`<app-search>`, zero or several `SearchRequest` in the list's `ngOnInit`, the wiring of a previous beta with `createPersistenceEffects`), the schematic does
 not guess: it leaves a marker that **does not compile** and lists it in the log.
 
 ```ts

@@ -52,6 +52,11 @@ ng generate ngrx-entity-crud:persistence --clazz=Coin --ui=false
 #    `ng build` fallisce esattamente li' (TS2304 / NG8001) finche' non si completano i passi
 # c. con enabled: false nessuna scrittura in DevTools -> Application -> IndexedDB -> nec-persistence,
 #    e <nec-restore-search> mostra solo la ricerca (niente toggle salvataggio)
+# d. con enabled: true modifica una cella, ricarica la pagina sulla sezione: la bozza resta in
+#    IndexedDB, la lista NON cerca (InitialSearch) e <nec-restore-search> propone Restore/New search;
+#    Restore riporta la riga modificata. Con autoRestore la riga torna da sola.
+# e. esci e rientra nella sezione dopo Restore o dopo una ricerca: la lista cerca di nuovo e il
+#    prompt non ricompare
 #
 # giro di test manuale, in ordine (vedi anche "Verifica" nel piano):
 # 1. ricerca -> modifica alcune righe -> chiudi la scheda -> riapri: il pulsante annuncia
