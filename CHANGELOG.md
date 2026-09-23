@@ -58,6 +58,32 @@ Cambi da conoscere prima di aggiornare un progetto consumer. Dettagli e test con
 - fix(schematics): `ng-add` — `selectErrors` normalizza gli errori oggetto invece di scartarli.
 - fix(schematics): `section` — il pulsante delete scarta gli elementi selezionati non presenti in
   `entities`.
+- fix(schematics): `store` — il template plural esporta `RestoreRequest/Failure/Success`; il template
+  singular esporta `SelectItem`.
+- feat(persistence): `createPersistence<T>({feature, selectId, actions, enabled?, autoRestore?})` crea
+  in un solo oggetto azioni (`createPersistenceActions`), reducer, selectors ed effects della
+  sezione, senza stringhe `feature` da ripetere. Con `enabled: false` gli effects sono inerti
+  (nessun accesso a IndexedDB) e `<nec-restore-search>` mostra solo il contenuto proiettato.
+- feat(persistence-ui): nuovo entry point `ngrx-entity-crud/persistence-ui` con
+  `<nec-restore-search>` (nuovo input `[persistence]`) e `provideNecIdbAdapterFromPersistence`:
+  `ngrx-entity-crud/persistence` resta la sola parte store, senza PrimeNG né devtools.
+- feat(schematics): `store` — per `CRUD-PLURAL` il cablaggio della persistenza è sempre generato
+  (`<clazz>.persistence.ts`, registrato nel modulo ed esportato dall'`index.ts`); `--persist` imposta
+  solo `enabled: true`. `section` — `<app-search>` è avvolto da `<nec-restore-search [persistence]>`.
+- feat(schematics): nuovo `ng g ngrx-entity-crud:persistence --clazz=X [--enabled] [--ui=false]` per
+  collegare la persistenza a una sezione esistente. Dove una sezione modificata a mano non ha il
+  punto d'aggancio atteso, lascia un marcatore che non compila (`NEC_PASSO_MANUALE__*`,
+  `<nec-passo-manuale-*>`), così `ng build` indica i passi da completare a mano.
+
+**Rotture rispetto alle beta precedenti (la persistenza non esiste in v19.2.6):**
+- `NecRestoreSearchComponent` e `provideNecIdbAdapterFromPersistence` si importano da
+  `ngrx-entity-crud/persistence-ui`, non più da `ngrx-entity-crud/persistence`.
+- Gli store generati con `--persist` dalle beta precedenti (`createPersistenceEffects` nel modulo)
+  continuano a funzionare; per passare a `createPersistence` lanciare lo schematic `persistence`,
+  che segnala con un marcatore il vecchio cablaggio da rimuovere.
+- Una sezione generata con il nuovo `section` richiede `<Clazz>Persistence` dallo store: con uno
+  store generato prima, la compilazione fallisce su quell'import finché non si lancia
+  `ng g ngrx-entity-crud:persistence --clazz=<Clazz>`.
 
 ## v19.4.0-beta.18 — 2026-07-20
 

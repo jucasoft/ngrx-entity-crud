@@ -64,19 +64,19 @@ Store registration strategy:
 > - `root-store/selectors.ts` exposes the global loading/error selectors (`selectIsLoading`, `selectError`, `selectLoadingNames`) in a **store-agnostic** way: they scan the root state using the `EntityCrudBaseState` convention (every CRUD slice exposes `isLoading`/`error` at the top level), so lazily-registered stores contribute to the global loading/error state without coupling the root to any specific domain.
 
 Local persistence (search results + drafts saved to IndexedDB, see the
-[`ngrx-entity-crud/persistence`](#secondary-entry-point-ngrx-entity-crudpersistence) section below):
-  - generates the `createPersistenceEffects`/`createPersistenceReducer`/`createPersistenceSelectors`
-    registration in `<clazz>-store.module.ts`, exporting `<Clazz>PersistenceEffects`,
-    `<Clazz>PersistenceReducer` and `<Clazz>PersistenceSelectors` — `EffectsModule.forFeature` and a
-    second `StoreModule.forFeature` pick them up automatically, same registration point for eager
-    and lazy stores.
-  - only meaningful for `--type=CRUD-PLURAL` (the other types don't have `entitiesSelected`/`Restore*`);
-    passing it with another type is silently ignored, with a warning in the schematic log.
+[`ngrx-entity-crud/persistence`](#secondary-entry-point-ngrx-entity-crudpersistence) section below).
+For `--type=CRUD-PLURAL` the wiring is **always generated**, switched off by default:
+  - `<clazz>.persistence.ts` exports `<Clazz>Persistence = createPersistence<Clazz>({..., enabled})`,
+    registered in `<clazz>-store.module.ts` (`StoreModule.forFeature` + `EffectsModule.forFeature`,
+    same registration point for eager and lazy stores) and exported from the store `index.ts`;
+  - with `enabled: false` nothing touches IndexedDB; to turn it on later change only that value;
+  - the other types don't have `entitiesSelected`/`Restore*`: the flag is ignored, with a warning in
+    the schematic log.
 
 - `--persist`
   - Type: `boolean`
   - Default: `false`
-  - Opt-in: with the flag omitted, nothing changes — no new import, no new dependency.
+  - Sets `enabled: true` in `<clazz>.persistence.ts`; without it the wiring is there but off.
 
 #### Examples
 
@@ -88,11 +88,10 @@ With `--registration=lazy` the store is not added to `RootStoreModule`; remember
 ```sh
 ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=CRUD-PLURAL --persist=true
 ```
-Generates `CoinPersistenceEffects`, `CoinPersistenceReducer` and `CoinPersistenceSelectors` in
-`coin-store.module.ts` and registers the effects/reducer alongside `CoinStoreEffects`. Nothing else
-is required for the effects to work; to also show the local-data status to the user, wrap the
-existing search button (see
-[`ngrx-entity-crud/persistence`](#secondary-entry-point-ngrx-entity-crudpersistence) below).
+Same files as without the flag, with `enabled: true` in `coin.persistence.ts`. Sections generated
+by `ng generate ngrx-entity-crud:section` already wrap the search with `<nec-restore-search>`; for
+sections generated before this version use the
+[`persistence`](#adding-persistence-to-an-existing-section) schematic.
 
 
 ```sh
@@ -655,7 +654,16 @@ have very different write profiles, so they're never rewritten together. Full de
 [`ngrx-entity-crud-persistence-plan.md`](https://github.com/jucasoft/ngrx-entity-crud/blob/master/ngrx-entity-crud-persistence-plan.md)
 at the repository root. Tree-shakable: importing it costs nothing to consumers who don't.
 
-### Setup
+The entry-point is split in two, so that every store can import the store side without pulling
+PrimeNG:
+- `ngrx-entity-crud/persistence` — store side: `createPersistence`, service, actions, reducer,
+  selectors, effects. No PrimeNG, no `ngrx-entity-crud/devtools`.
+- `ngrx-entity-crud/persistence-ui` — `<nec-restore-search>` (PrimeNG `p-button`/`p-tag`) and the
+  `<nec-dashboard>` adapter (`provideNecIdbAdapterFromPersistence`).
+
+### Setup (optional)
+
+The global configuration is optional: without it the defaults below apply.
 
 ```ts
 import {NecPersistenceModule} from 'ngrx-entity-crud/persistence';
@@ -665,9 +673,10 @@ import {NecPersistenceModule} from 'ngrx-entity-crud/persistence';
     NecPersistenceModule.forRoot({
       // tutti i campi sono opzionali; questi sono i default.
       dbName: 'nec-persistence',
-      dbVersion: 1,
+      dbVersion: 2,          // non fissarlo a 1: la versione 2 aggiunge lo store sectionPrefs
       debounceMs: 200,
-      enabled: true,
+      openTimeoutMs: 10000,  // oltre, l'apertura del DB fallisce e la chiamata successiva ritenta
+      enabled: true,         // false spegne la persistenza di TUTTE le sezioni
       // autoRestore e' assente di default: il ripristino resta sempre un gesto esplicito
       // finche' non lo abiliti, qui (default globale) o per sezione (vedi sotto).
     }),
@@ -679,69 +688,85 @@ export class AppModule {}
 On Angular 15+ you can use the functional variant instead: `provideNecPersistence({...})` in your
 `ApplicationConfig`/`providers` array.
 
-### Per-section wiring
+### Per-section wiring: `createPersistence`
 
-Generated automatically by `ng generate ngrx-entity-crud:store --persist=true` (see the
-[`store`](#store) section above). To wire it by hand into an existing `<Clazz>StoreModule`:
+One call per section creates everything once (the persistence actions, reducer, selectors and
+effects) on the same feature as the store, so no `feature` string has to be repeated and kept in
+sync by hand. Generated by the `store` schematic in `<clazz>.persistence.ts`:
 
 ```ts
-import {createPersistenceEffects, createPersistenceReducer, createPersistenceSelectors, necPersistenceFeatureKey} from 'ngrx-entity-crud/persistence';
-import {actions} from './coin.actions';
+import {createPersistence} from 'ngrx-entity-crud/persistence';
 import {Coin} from '@models/vo/coin';
+import {actions} from './coin.actions';
 import {Names} from './coin.names';
 
-export const CoinPersistenceEffects = createPersistenceEffects<Coin>({
+export const CoinPersistence = createPersistence<Coin>({
   feature: Names.NAME,
   selectId: Coin.selectId,
   actions,
+  enabled: false, // cablaggio presente ma spento: nessun accesso a IndexedDB
   // optional, overrides NecPersistenceModule.forRoot's global default for THIS section:
   // autoRestore: {maxAgeMs: 60 * 60 * 1000},
 });
-export const CoinPersistenceReducer = createPersistenceReducer(Names.NAME);
-export const CoinPersistenceSelectors = createPersistenceSelectors(Names.NAME);
 ```
 
 ```ts
 @NgModule({
   imports: [
     // ...
-    StoreModule.forFeature(necPersistenceFeatureKey(Names.NAME), CoinPersistenceReducer),
-    EffectsModule.forFeature([CoinStoreEffects, CoinPersistenceEffects]),
+    StoreModule.forFeature(CoinPersistence.featureKey, CoinPersistence.reducer),
+    EffectsModule.forFeature([CoinStoreEffects, CoinPersistence.effects]),
   ],
-  providers: [CoinStoreEffects /* CoinPersistenceEffects/Reducer/Selectors don't go in providers */],
+  providers: [CoinStoreEffects /* CoinPersistence.effects doesn't go in providers */],
 })
 export class CoinStoreModule {}
 ```
 
-Once registered, the effects write on their own following the CRUD action lifecycle
-(`SearchRequest` purges, `SearchSuccess` saves the block, `AddManySelected`/`SelectItems` save
-drafts debounced, deletions clean up the matching drafts) — no further action dispatches needed.
-The moment the section is created (same instant for eager and lazy stores) it also runs a
-lightweight freshness check (`stats(feature)`, metadata only) and, if `autoRestore` applies,
-dispatches `RestoreRequest` on its own.
+| Member | Notes |
+| --- | --- |
+| `feature` / `featureKey` | The store feature and the key of the persistence slice (`<feature>:persistence`). |
+| `enabled` | `false`: effects are inert (no IndexedDB access at all) and `<nec-restore-search>` only renders its projected content. |
+| `crudActions` | The section's CRUD actions (with `RestoreRequest/Success/Failure`). |
+| `actions` | `SectionCheckSuccess`, `SetSectionSaveMode`, e.g. `store.dispatch(CoinPersistence.actions.SetSectionSaveMode({mode: 'always'}))`. |
+| `reducer` / `selectors` / `effects` | To register as shown above; `selectors.sectionCheck`, `selectors.saveMode`. |
 
-### `<nec-restore-search>`
+Once enabled, the effects write on their own following the CRUD action lifecycle
+(`SearchRequest` purges, the search block is saved with the first draft, or on every
+`SearchSuccess` in `'always'` save mode, `AddManySelected`/`SelectItems` save drafts debounced,
+deletions clean up the matching drafts): no further action dispatches needed. The moment the
+section is created (same instant for eager and lazy stores) it also runs a lightweight freshness
+check (`stats(feature)`, metadata only) and, if `autoRestore` applies, dispatches `RestoreRequest`
+on its own.
 
-Wraps the section's existing search button — pass it as projected content, it's left completely
-untouched, building the search criteria is your form's job:
+The lower-level factories (`createPersistenceActions`, `createPersistenceReducer`,
+`createPersistenceSelectors`, `createPersistenceEffects`) are still exported; `createPersistence`
+is the recommended entry point.
+
+### `<nec-restore-search>` (`ngrx-entity-crud/persistence-ui`)
+
+Wraps the section's existing search button (pass it as projected content, it's left completely
+untouched: building the search criteria is your form's job):
 
 ```ts
-import {NecRestoreSearchComponent} from 'ngrx-entity-crud/persistence';
-import {CoinPersistenceSelectors} from '@root-store/coin-store';
+import {NecRestoreSearchComponent} from 'ngrx-entity-crud/persistence-ui'; // standalone: add it to the NgModule imports
+import {CoinPersistence} from '@root-store/index';
+
+export class CoinMainComponent {
+  persistence = CoinPersistence;
+}
 ```
 
 ```html
-<nec-restore-search feature="coin" [selectors]="CoinPersistenceSelectors" [actions]="actions">
-  <button pButton label="Search" icon="pi pi-search" (click)="search()"></button>
+<nec-restore-search [persistence]="persistence">
+  <app-search [actions]="actions"></app-search>
 </nec-restore-search>
 ```
 
 | Input | Type | Notes |
 | --- | --- | --- |
-| `feature` | `string` | **Identifies the section, it is not a display label**: must match *exactly* the `feature` passed to `createPersistenceEffects` (it builds the `type` of the save-mode toggle action — a different value makes the toggle silently do nothing). An empty value logs a warning in dev mode. |
-| `selectors` | `NecPersistenceSelectors` | The object returned by `createPersistenceSelectors` (`CoinPersistenceSelectors` above). The component reads `sectionCheck` from the store — no `Injector`, no dependency on the Effects class. |
-| `actions` | `Actions<T>` | The section's action group (`actions` from `<clazz>.actions.ts`). |
+| `persistence` | `NecPersistence<T>` | The object returned by `createPersistence`. With `enabled: false` the component is transparent: it only renders the projected content. |
 | `quotaWarningThreshold` | `number` | Default `0.9`. Fraction of `storage.estimate()` above which the "storage almost full" tag appears. |
+| `feature`, `selectors`, `actions` | | **Deprecated**, kept for sections wired with previous betas: use `[persistence]`. `feature` must match *exactly* the `feature` of the effects (an empty value logs a warning in dev mode). |
 
 Only `p-button`/`p-tag` (identical classes across PrimeNG v16→v19; `primeng` stays an optional peer
 dependency). When there's nothing saved locally it just renders the projected button; with local
@@ -749,13 +774,44 @@ data present it shows a summary (`"100 results saved, 12 unsent changes, 340 KB 
 with `Restore`/`New search` (inline Yes/Cancel confirmation, since it discards unsent work); if
 `autoRestore` applies, the restore starts on its own with a spinner, no confirmation asked.
 
+### Adding persistence to an existing section
+
+Sections generated before this version have no `<clazz>.persistence.ts`. One command wires store
+and UI:
+
+```sh
+ng generate ngrx-entity-crud:persistence --clazz=Coin              # wired, switched off
+ng generate ngrx-entity-crud:persistence --clazz=Coin --enabled    # wired and on
+ng generate ngrx-entity-crud:persistence --clazz=Coin --ui=false   # store only, no UI changes
+```
+
+It creates `coin.persistence.ts`, registers reducer/effects in `coin-store.module.ts`, exports
+`CoinPersistence` from the store `index.ts` and (unless `--ui=false`) imports
+`NecRestoreSearchComponent` in the section module, adds `persistence = CoinPersistence` to
+`CoinMainComponent` and wraps `<app-search>` in its template. Running it twice changes nothing.
+
+**Sections modified by hand.** Where the expected code isn't found (e.g. effects registered through
+a constant instead of an array literal, a renamed main component, a custom search instead of
+`<app-search>`, the wiring of a previous beta with `createPersistenceEffects`), the schematic does
+not guess: it leaves a marker that **does not compile** and lists it in the log.
+
+```ts
+// ngrx-entity-crud:persistence — PASSO MANUALE: registra CoinPersistence.effects in EffectsModule.forFeature.
+// Questa riga non compila apposta: completa il passo a mano, poi cancellala.
+NEC_PASSO_MANUALE__registra_CoinPersistence_effects_in_EffectsModule_forFeature;
+```
+
+`ng build` then fails exactly there (`TS2304: Cannot find name 'NEC_PASSO_MANUALE__...'` in `.ts`
+files, `NG8001: 'nec-passo-manuale-...' is not a known element` in templates): the name says what to
+do; complete the step and delete the marker.
+
 ### Dashboard integration (optional)
 
 If you also use [`<nec-dashboard>`](#dashboard), this makes its IndexedDB panel show your sections
 (names, saved/drafts counts) instead of relying only on the native fallback:
 
 ```ts
-import {provideNecIdbAdapterFromPersistence} from 'ngrx-entity-crud/persistence';
+import {provideNecIdbAdapterFromPersistence} from 'ngrx-entity-crud/persistence-ui';
 
 @NgModule({
   providers: [provideNecIdbAdapterFromPersistence()],

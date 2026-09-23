@@ -32,17 +32,26 @@ ng generate ngrx-entity-crud:table-report --output=
 
 persistence (Fasi 0-4 di ngrx-entity-crud-persistence-plan.md)
 ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=CRUD-PLURAL --persist=true --registration=eager
-# genera anche CoinPersistenceEffects nel modulo dello store (createPersistenceEffects):
-# nessun'altra azione richiesta, gli effects scrivono da soli su IndexedDB seguendo il ciclo
-# di vita della sezione (SearchRequest/SearchSuccess/AddManySelected/RemoveManySelected/...).
+# per CRUD-PLURAL il cablaggio e' sempre generato: coin.persistence.ts esporta
+# CoinPersistence = createPersistence<Coin>({..., enabled}), registrato in coin-store.module.ts.
+# --persist imposta enabled: true; senza il flag resta enabled: false (nessun accesso a IndexedDB).
+# nessun'altra azione richiesta: con enabled: true gli effects scrivono da soli su IndexedDB
+# seguendo il ciclo di vita della sezione (SearchRequest/SearchSuccess/AddManySelected/...).
 #
-# per mostrare lo stato della persistenza nella UI, avvolgi il pulsante Search esistente:
-#   import {NecPersistenceModule} from 'ngrx-entity-crud/persistence';  (una volta, in AppModule)
-#   import {NecRestoreSearchComponent} from 'ngrx-entity-crud/persistence';
-#   import {CoinPersistenceSelectors} from '@root-store/coin-store';
-#   <nec-restore-search feature="coin" [selectors]="CoinPersistenceSelectors" [actions]="actions">
-#     <button pButton label="Search" (click)="search()"></button>
-#   </nec-restore-search>
+# la sezione generata da ngrx-entity-crud:section avvolge gia' <app-search> con
+#   <nec-restore-search [persistence]="persistence">   (ngrx-entity-crud/persistence-ui)
+#
+# sezione esistente (generata prima): uno schematic collega store e UI
+ng generate ngrx-entity-crud:persistence --clazz=Coin
+ng generate ngrx-entity-crud:persistence --clazz=Coin --enabled
+ng generate ngrx-entity-crud:persistence --clazz=Coin --ui=false
+# verifiche:
+# a. rieseguire lo schematic non cambia nulla (idempotente)
+# b. su una sezione modificata a mano (es. <app-search> sostituito, effects registrati con una
+#    costante) lo schematic lascia marcatori NEC_PASSO_MANUALE__* / <nec-passo-manuale-*> e
+#    `ng build` fallisce esattamente li' (TS2304 / NG8001) finche' non si completano i passi
+# c. con enabled: false nessuna scrittura in DevTools -> Application -> IndexedDB -> nec-persistence,
+#    e <nec-restore-search> mostra solo la ricerca (niente toggle salvataggio)
 #
 # giro di test manuale, in ordine (vedi anche "Verifica" nel piano):
 # 1. ricerca -> modifica alcune righe -> chiudi la scheda -> riapri: il pulsante annuncia
@@ -52,13 +61,13 @@ ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=CRUD-PLURAL -
 #    resti fermo (il ripristino legge, non scrive)
 # 4. "New search" -> conferma (Yes/Cancel inline) -> la ricerca reale successiva cancella
 #    search+drafts della sezione (verificabile da DevTools -> Application -> IndexedDB -> nec-persistence)
-# 5. imposta autoRestore sulla sezione (parametro di createPersistenceEffects) e riapri entro
+# 5. imposta autoRestore sulla sezione (parametro di createPersistence) e riapri entro
 #    la soglia: il ripristino parte da solo, nessun click, spinner visibile
 # 6. chiusura della scheda durante una raffica di modifiche -> il dialog beforeunload compare
 #    solo se c'e' una scrittura in volo
 #
 # per mostrare le sezioni persistite nella dashboard esistente (facoltativo):
-#   providers: [provideNecIdbAdapterFromPersistence()]  // da 'ngrx-entity-crud/persistence',
+#   providers: [provideNecIdbAdapterFromPersistence()]  // da 'ngrx-entity-crud/persistence-ui',
 #   accanto a NecPersistenceModule.forRoot({...})
 
 dashboard
