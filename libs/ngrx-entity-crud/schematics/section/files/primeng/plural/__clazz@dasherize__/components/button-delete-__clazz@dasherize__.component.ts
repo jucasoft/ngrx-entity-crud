@@ -1,6 +1,7 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {select, Store} from '@ngrx/store';
 import {Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
 import {<%= clazz %>StoreActions, <%= clazz %>StoreSelectors, RootStoreState} from '@root-store/index';
 import {<%= clazz %>} from '@models/vo/<%= dasherize(clazz) %>';
 
@@ -25,8 +26,11 @@ export class ButtonDelete<%= clazz %>Component implements OnInit {
   ngOnInit(): void {
     // "Origin" = gli elementi selezionati letti dallo store (entities + idsSelected):
     // la cancellazione non deve mai partire dalla bozza locale, che puo' essere stata modificata.
+    // Il filtro scarta gli id selezionati che non sono (piu') in entities: per quelli il selector
+    // restituisce undefined, che finirebbe in DeleteManyRequest.
     this.itemsSelected$ = this.store$.pipe(
-      select(<%= clazz %>StoreSelectors.selectItemsSelectedOrigin)
+      select(<%= clazz %>StoreSelectors.selectItemsSelectedOrigin),
+      map((items: <%= clazz %>[]) => (items || []).filter((item) => !!item))
     );
   }
 

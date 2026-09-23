@@ -25,7 +25,7 @@ const WHITELIST: ReadonlyArray<string> = [];
 
 interface LoadingSlice {
   isLoading?: boolean;
-  error?: string | null;
+  error?: unknown;
 }
 
 const selectRootState = (state: any): Record<string, any> => state;
@@ -61,14 +61,36 @@ export const selectIsLoading = createSelector(
 );
 
 /**
+ * Gli effect di ngrx-entity-crud, nel catchError, salvano in `error` l'oggetto intercettato
+ * (es. HttpErrorResponse) e non una stringa: va ridotto a testo, altrimenti sparirebbe dal banner.
+ */
+const errorToText = (error: unknown): string => {
+  if (error === null || error === undefined) {
+    return '';
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  const message = (error as { message?: unknown }).message;
+  if (typeof message === 'string' && message.length > 0) {
+    return message;
+  }
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
+};
+
+/**
  * Elenco degli errori non vuoti presenti nelle slice CRUD.
  */
 export const selectErrors = createSelector(
   selectRootState,
   (state): string[] =>
     crudEntries(state)
-      .map(([, slice]) => slice.error)
-      .filter((error): error is string => typeof error === 'string' && error.length > 0)
+      .map(([, slice]) => errorToText(slice.error))
+      .filter((error) => error.length > 0)
 );
 
 /**
