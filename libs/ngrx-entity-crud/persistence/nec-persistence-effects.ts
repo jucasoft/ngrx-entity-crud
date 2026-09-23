@@ -7,7 +7,7 @@ import {Actions, ICriteria} from 'ngrx-entity-crud';
 import {NecAutoRestoreConfig, NecPersistenceConfig, NecSaveMode, NecSectionCheck, NecSectionStats} from './models';
 import {NEC_PERSISTENCE_CONFIG} from './persistence-config.token';
 import {NecPersistenceService} from './nec-persistence.service';
-import {createSectionCheckSuccessAction, createSetSectionSaveModeAction} from './nec-persistence-actions';
+import {createPersistenceActions, NecPersistenceActions} from './nec-persistence-actions';
 
 const DEFAULT_SAVE_MODE: NecSaveMode = 'on-draft';
 
@@ -20,6 +20,13 @@ export interface NecPersistenceEffectsConfig<T> {
   actions: Actions<T>;
   /** Sovrascrive, se presente, il default globale di `NEC_PERSISTENCE_CONFIG.autoRestore`. */
   autoRestore?: NecAutoRestoreConfig;
+  /**
+   * `false`: cablaggio presente ma spento, nessun effect tocca IndexedDB (niente check alla
+   * creazione, niente scritture). Default `true`.
+   */
+  enabled?: boolean;
+  /** Gruppo di `createPersistenceActions(feature)`: se omesso viene creato da `feature`. */
+  persistenceActions?: NecPersistenceActions;
 }
 
 /**
@@ -57,6 +64,8 @@ export interface NecPersistenceEffects {
  */
 export function createPersistenceEffects<T>(config: NecPersistenceEffectsConfig<T>): Type<NecPersistenceEffects> {
   const {feature, selectId, actions} = config;
+  const enabled = config.enabled !== false;
+  const persistenceActions = config.persistenceActions ?? createPersistenceActions(feature);
 
   @Injectable()
   class NecSectionPersistenceEffects implements NecPersistenceEffects {
@@ -94,8 +103,27 @@ export function createPersistenceEffects<T>(config: NecPersistenceEffectsConfig<
       private readonly persistence: NecPersistenceService,
       @Optional() @Inject(NEC_PERSISTENCE_CONFIG) private readonly globalConfig: NecPersistenceConfig | null
     ) {
-      const sectionCheckSuccess = createSectionCheckSuccessAction(feature);
-      const setSectionSaveMode = createSetSectionSaveModeAction(feature);
+      const sectionCheckSuccess = persistenceActions.SectionCheckSuccess;
+      const setSectionSaveMode = persistenceActions.SetSectionSaveMode;
+
+      if (!enabled) {
+        // Cablaggio presente ma spento: ogni effect e' un observable vuoto, nessun accesso a
+        // IndexedDB. Per attivarlo basta `enabled: true`, senza toccare la registrazione.
+        // `defer` crea un observable nuovo per ogni effect: `createEffect` marca l'istanza, e EMPTY e' un singleton.
+        const inert = (): Observable<never> => createEffect(() => defer(() => EMPTY), {dispatch: false});
+        this.autoRestoreCheckOn$ = inert();
+        this.autoRestoreTriggerOn$ = inert();
+        this.restoreRequestOn$ = inert();
+        this.searchRequestOn$ = inert();
+        this.searchSuccessOn$ = inert();
+        this.draftsPutOn$ = inert();
+        this.removeManySelectedOn$ = inert();
+        this.removeAllSelectedOn$ = inert();
+        this.deleteSuccessOn$ = inert();
+        this.deleteManySuccessOn$ = inert();
+        this.setSaveModeOn$ = inert();
+        return;
+      }
 
       // Check leggero eseguito UNA SOLA VOLTA: `createEffect` sottoscrive l'observable non appena
       // la classe viene istanziata da EffectsModule, quindi questo `defer` gira nello stesso istante

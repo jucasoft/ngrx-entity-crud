@@ -1,4 +1,15 @@
-import {createSectionCheckSuccessAction, createSetSectionSaveModeAction} from './nec-persistence-actions';
+import {createPersistenceActions, createSectionCheckSuccessAction, createSetSectionSaveModeAction} from './nec-persistence-actions';
+
+describe('createPersistenceReducer con il gruppo di azioni', () => {
+  it('usa le azioni del gruppo passato invece di ricrearle dalla feature', () => {
+    const group = createPersistenceActions('coins');
+    const reducer = createPersistenceReducer('coins', group);
+
+    const state = reducer(undefined, group.SetSectionSaveMode({mode: 'always'}));
+
+    expect(state.check?.saveMode).toBe('always');
+  });
+});
 import {createPersistenceReducer, NEC_PERSISTENCE_INITIAL_STATE, necPersistenceFeatureKey} from './nec-persistence-reducer';
 import {NecSectionStats} from './models';
 

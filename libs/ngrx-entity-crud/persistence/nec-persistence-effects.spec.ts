@@ -5,7 +5,7 @@ import {createCrudEntityAdapter} from 'ngrx-entity-crud';
 import {createPersistenceEffects} from './nec-persistence-effects';
 import {NecPersistenceService} from './nec-persistence.service';
 import {NecAutoRestoreConfig, NecPersistenceConfig, NecSectionStats} from './models';
-import {createSectionCheckSuccessAction, createSetSectionSaveModeAction} from './nec-persistence-actions';
+import {createPersistenceActions, createSectionCheckSuccessAction, createSetSectionSaveModeAction} from './nec-persistence-actions';
 
 /**
  * Copre `createPersistenceEffects` (Fase 2 del piano): comportamento delle azioni, non I/O reale
@@ -302,6 +302,76 @@ describe('createPersistenceEffects', () => {
       } finally {
         jest.useRealTimers();
       }
+    });
+  });
+
+  describe('enabled: false (cablaggio presente ma spento)', () => {
+    function setupDisabled() {
+      const persistence = fakePersistence();
+      const EffectsClass = createPersistenceEffects<Coin>({feature: NAME, selectId: (c) => c.id, actions, enabled: false});
+      const actionsSubject = new Subject<Action>();
+      const effects = new EffectsClass(new NgrxActionsClass(actionsSubject), persistence, null);
+      return {effects, persistence, actionsSubject};
+    }
+
+    it('nessun accesso a IndexedDB alla creazione (niente check di freschezza)', async () => {
+      const {effects, persistence} = setupDisabled();
+      const emitted: Action[] = [];
+      effects.autoRestoreCheckOn$.subscribe((a) => emitted.push(a));
+      await flushPromises();
+
+      expect(persistence.stats).not.toHaveBeenCalled();
+      expect(persistence.getSaveMode).not.toHaveBeenCalled();
+      expect(emitted).toEqual([]);
+    });
+
+    it('nessun accesso a IndexedDB su ricerca, bozze, rimozioni o RestoreRequest', async () => {
+      jest.useFakeTimers();
+      try {
+        const {effects, persistence, actionsSubject} = setupDisabled();
+        effects.searchRequestOn$.subscribe();
+        effects.searchSuccessOn$.subscribe();
+        effects.draftsPutOn$.subscribe();
+        effects.removeManySelectedOn$.subscribe();
+        effects.removeAllSelectedOn$.subscribe();
+        effects.deleteSuccessOn$.subscribe();
+        effects.deleteManySuccessOn$.subscribe();
+        effects.restoreRequestOn$.subscribe();
+        effects.setSaveModeOn$.subscribe();
+        effects.autoRestoreTriggerOn$.subscribe();
+
+        actionsSubject.next(actions.SearchRequest({queryParams: {}}));
+        actionsSubject.next(actions.SearchSuccess({items: [{id: '1', name: 'a'}], request: {queryParams: {}}}));
+        actionsSubject.next(actions.AddManySelected({items: [{id: '1', name: 'a-edit'}]}));
+        actionsSubject.next(actions.RemoveManySelected({ids: ['1']}));
+        actionsSubject.next(actions.RemoveAllSelected());
+        actionsSubject.next(actions.RestoreRequest());
+        jest.advanceTimersByTime(1000);
+        await Promise.resolve();
+
+        Object.values(persistence).forEach((fn) => expect(fn).not.toHaveBeenCalled());
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+  });
+
+  describe('gruppo di azioni della persistenza passato in config', () => {
+    it('dispatcha SectionCheckSuccess del gruppo ricevuto', async () => {
+      const group = createPersistenceActions(NAME);
+      const persistence = fakePersistence();
+      const EffectsClass = createPersistenceEffects<Coin>({
+        feature: NAME,
+        selectId: (c) => c.id,
+        actions,
+        persistenceActions: group,
+      });
+      const effects = new EffectsClass(new NgrxActionsClass(new Subject<Action>()), persistence, null);
+      const emitted: Action[] = [];
+      effects.autoRestoreCheckOn$.subscribe((a) => emitted.push(a));
+      await flushPromises();
+
+      expect(emitted.map((a) => a.type)).toEqual([group.SectionCheckSuccess.type]);
     });
   });
 

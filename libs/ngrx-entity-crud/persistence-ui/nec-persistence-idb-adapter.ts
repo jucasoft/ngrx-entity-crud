@@ -1,6 +1,6 @@
 import {Provider} from '@angular/core';
 import {NEC_IDB_ADAPTER, NecIdbAdapter, NecIdbDbReport} from 'ngrx-entity-crud/devtools';
-import {NecPersistenceService} from './nec-persistence.service';
+import {NecPersistenceService} from 'ngrx-entity-crud/persistence';
 
 /**
  * Ponte verso `ngrx-entity-crud/devtools`: implementa `NecIdbAdapter` (`NEC_IDB_ADAPTER`) sopra

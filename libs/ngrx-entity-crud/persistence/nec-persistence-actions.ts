@@ -29,3 +29,24 @@ export function createSetSectionSaveModeAction(
 ): ActionCreator<string, (props: { mode: NecSaveMode }) => {   mode: NecSaveMode } & TypedAction<string>> {
   return createAction(`[${feature} Persistence] Set Section Save Mode`, props<{ mode: NecSaveMode }>());
 }
+
+/** Azioni della persistenza di una sezione, create una sola volta da `createPersistenceActions`. */
+export interface NecPersistenceActions {
+  /** Esito del check eseguito alla creazione della sezione (dispatchata dagli effects). */
+  SectionCheckSuccess: ActionCreator<string, (props: { check: NecSectionCheck }) => { check: NecSectionCheck } & TypedAction<string>>;
+  /** Sceglie come salvare (`'on-draft'` | `'always'`): dal toggle di `<nec-restore-search>` o dall'app. */
+  SetSectionSaveMode: ActionCreator<string, (props: { mode: NecSaveMode }) => { mode: NecSaveMode } & TypedAction<string>>;
+}
+
+/**
+ * Gruppo delle azioni della persistenza per `feature`, parallelo a `createCrudActions(name)` del
+ * core. Crearle una volta e passare il gruppo a reducer, effects e componente evita che ognuno le
+ * ricostruisca dalla stringa `feature` (un valore diverso in un solo punto rompeva il collegamento
+ * senza errori). Di norma non serve chiamarla a mano: la usa `createPersistence`.
+ */
+export function createPersistenceActions(feature: string): NecPersistenceActions {
+  return {
+    SectionCheckSuccess: createSectionCheckSuccessAction(feature),
+    SetSectionSaveMode: createSetSectionSaveModeAction(feature),
+  };
+}

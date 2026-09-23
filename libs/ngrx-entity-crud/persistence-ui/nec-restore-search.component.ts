@@ -4,13 +4,19 @@ import {ButtonModule} from 'primeng/button';
 import {TagModule} from 'primeng/tag';
 import {Store} from '@ngrx/store';
 import {Actions as NgrxActions, ofType} from '@ngrx/effects';
-import {BehaviorSubject, combineLatest, from, merge, Observable, Subject} from 'rxjs';
+import {BehaviorSubject, combineLatest, from, merge, Observable, of, Subject} from 'rxjs';
 import {map, startWith, takeUntil} from 'rxjs/operators';
 import {Actions} from 'ngrx-entity-crud';
-import {NecPersistenceService} from './nec-persistence.service';
-import {NecPersistenceSelectors} from './nec-persistence-selectors';
-import {NecSaveMode, NecSectionCheck, NecSectionStats} from './models';
-import {createSetSectionSaveModeAction} from './nec-persistence-actions';
+import {
+  createSetSectionSaveModeAction,
+  NecPersistence,
+  NecPersistenceActions,
+  NecPersistenceSelectors,
+  NecPersistenceService,
+  NecSaveMode,
+  NecSectionCheck,
+  NecSectionStats,
+} from 'ngrx-entity-crud/persistence';
 
 export type NecRestoreSearchState = 'none' | 'prompt' | 'auto-restoring' | 'manual-restoring';
 
@@ -21,6 +27,16 @@ export interface NecRestoreSearchViewModel {
   pendingWrites: number;
   quotaWarning: boolean;
   saveMode: NecSaveMode;
+  /** `false`: persistenza spenta per la sezione, il componente mostra solo il contenuto proiettato. */
+  enabled: boolean;
+}
+
+/** Quello che serve al componente, ricavato da `[persistence]` o dagli input singoli (beta precedenti). */
+interface NecResolvedSection<T> {
+  enabled: boolean;
+  selectors: NecPersistenceSelectors;
+  crudActions: Actions<T>;
+  setSaveMode: NecPersistenceActions['SetSectionSaveMode'];
 }
 
 /** `340 KB`, `1.2 MB`. */
@@ -146,6 +162,7 @@ function pluralize(count: number, singular: string, plural: string): string {
           </ng-container>
         </ng-container>
 
+        <ng-container *ngIf="vm.enabled">
         <p-tag *ngIf="vm.pendingWrites > 0" styleClass="nec-ml" severity="secondary" icon="pi pi-spin pi-sync"
                value="Saving…"></p-tag>
         <p-tag *ngIf="vm.quotaWarning" styleClass="nec-ml" severity="warn" icon="pi pi-exclamation-triangle"
@@ -160,18 +177,29 @@ function pluralize(count: number, singular: string, plural: string): string {
                   ? 'Salva sempre i risultati della ricerca — clic per disattivare'
                   : 'Salva i risultati solo alla prima modifica — clic per salvarli sempre'"
                 (click)="toggleSaveMode(vm.saveMode)"></button>
+        </ng-container>
       </div>
     </ng-container>
   `,
 })
 export class NecRestoreSearchComponent<T = unknown> implements OnInit, OnDestroy {
   /**
+   * Bundle della sezione creato da `createPersistence` (`ngrx-entity-crud/persistence`): da solo
+   * sostituisce `feature`, `selectors` e `actions`. Con `enabled: false` il componente e'
+   * trasparente (mostra solo il contenuto proiettato).
+   */
+  @Input() persistence?: NecPersistence<T>;
+  /**
+   * @deprecated usare `[persistence]`.
+
    * Identifica la sezione: deve coincidere ESATTAMENTE con la `feature` passata a
    * `createPersistenceEffects`, perche' costruisce il `type` dell'azione dispatchata dal toggle
    * saveMode. Non e' un'etichetta di sola visualizzazione.
    */
   @Input() feature = '';
+  /** @deprecated usare `[persistence]`. */
   @Input() selectors!: NecPersistenceSelectors;
+  /** @deprecated usare `[persistence]`. */
   @Input() actions!: Actions<T>;
   /** Frazione (0-1) di `storage.estimate()` oltre la quale compare l'avviso di quota. */
   @Input() quotaWarningThreshold = 0.9;
@@ -182,44 +210,55 @@ export class NecRestoreSearchComponent<T = unknown> implements OnInit, OnDestroy
   private readonly manualInFlight$ = new BehaviorSubject<boolean>(false);
   private readonly dismissed$ = new BehaviorSubject<boolean>(false);
   private readonly destroyed$ = new Subject<void>();
+  private section!: NecResolvedSection<T>;
 
   constructor(
     private readonly store: Store,
     private readonly ngrxActions: NgrxActions,
-    private readonly persistence: NecPersistenceService
+    private readonly persistenceService: NecPersistenceService
   ) {
   }
 
   ngOnInit(): void {
-    if (isDevMode() && !this.feature) {
-      console.warn(
-        '<nec-restore-search>: [feature] non valorizzato. Deve coincidere con la `feature` passata a ' +
-        'createPersistenceEffects, altrimenti il toggle saveMode non raggiunge nessun effect.'
-      );
+    this.section = this.resolveSection();
+    const {enabled, selectors, crudActions} = this.section;
+
+    if (!enabled) {
+      this.vm$ = of({
+        state: 'none',
+        stats: null,
+        restoreError: null,
+        pendingWrites: 0,
+        quotaWarning: false,
+        saveMode: 'on-draft',
+        enabled: false,
+      });
+      return;
     }
-    const check$: Observable<NecSectionCheck | null> = this.store.select(this.selectors.sectionCheck).pipe(startWith(null));
+
+    const check$: Observable<NecSectionCheck | null> = this.store.select(selectors.sectionCheck).pipe(startWith(null));
 
     const restoring$: Observable<boolean> = merge(
-      this.ngrxActions.pipe(ofType(this.actions.RestoreRequest), map(() => true)),
-      this.ngrxActions.pipe(ofType(this.actions.RestoreSuccess, this.actions.RestoreFailure), map(() => false))
+      this.ngrxActions.pipe(ofType(crudActions.RestoreRequest), map(() => true)),
+      this.ngrxActions.pipe(ofType(crudActions.RestoreSuccess, crudActions.RestoreFailure), map(() => false))
     ).pipe(startWith(false));
 
     const restoreError$: Observable<string | null> = merge(
-      this.ngrxActions.pipe(ofType(this.actions.RestoreRequest, this.actions.RestoreSuccess), map(() => null)),
-      this.ngrxActions.pipe(ofType(this.actions.RestoreFailure), map(({error}) => error))
+      this.ngrxActions.pipe(ofType(crudActions.RestoreRequest, crudActions.RestoreSuccess), map(() => null)),
+      this.ngrxActions.pipe(ofType(crudActions.RestoreFailure), map(({error}) => error))
     ).pipe(startWith(null));
 
     // Un restore riuscito (automatico o manuale) chiude il prompt: i dati sono gia' applicati,
     // mostrare di nuovo "Restore" sarebbe fuorviante. Riusa `dismissed$`, stesso significato per
     // la vm: "niente altro da proporre qui", si torna al pulsante avvolto (stato 'none').
-    this.ngrxActions.pipe(ofType(this.actions.RestoreSuccess), takeUntil(this.destroyed$)).subscribe(() => {
+    this.ngrxActions.pipe(ofType(crudActions.RestoreSuccess), takeUntil(this.destroyed$)).subscribe(() => {
       this.manualInFlight$.next(false);
       this.dismissed$.next(true);
     });
-    this.ngrxActions.pipe(ofType(this.actions.RestoreFailure), takeUntil(this.destroyed$))
+    this.ngrxActions.pipe(ofType(crudActions.RestoreFailure), takeUntil(this.destroyed$))
       .subscribe(() => this.manualInFlight$.next(false));
 
-    const quotaWarning$: Observable<boolean> = from(this.persistence.estimateStorage()).pipe(
+    const quotaWarning$: Observable<boolean> = from(this.persistenceService.estimateStorage()).pipe(
       map((estimate) => this.isQuotaLow(estimate)),
       startWith(false)
     );
@@ -230,22 +269,22 @@ export class NecRestoreSearchComponent<T = unknown> implements OnInit, OnDestroy
       this.manualInFlight$,
       this.dismissed$,
       restoreError$,
-      this.persistence.pendingWrites$,
+      this.persistenceService.pendingWrites$,
       quotaWarning$,
     ]).pipe(
       map(([check, restoring, manualInFlight, dismissed, restoreError, pendingWrites, quotaWarning]) => {
         const stats = check?.stats ?? null;
         const saveMode = check?.saveMode ?? 'on-draft';
         if (restoring && manualInFlight) {
-          return {state: 'manual-restoring', stats, restoreError: null, pendingWrites, quotaWarning, saveMode} as const;
+          return {state: 'manual-restoring', stats, restoreError: null, pendingWrites, quotaWarning, saveMode, enabled} as const;
         }
         if (restoring && check?.autoRestoreTriggered) {
-          return {state: 'auto-restoring', stats, restoreError: null, pendingWrites, quotaWarning, saveMode} as const;
+          return {state: 'auto-restoring', stats, restoreError: null, pendingWrites, quotaWarning, saveMode, enabled} as const;
         }
         if (dismissed || !stats) {
-          return {state: 'none', stats: null, restoreError: null, pendingWrites, quotaWarning, saveMode} as const;
+          return {state: 'none', stats: null, restoreError: null, pendingWrites, quotaWarning, saveMode, enabled} as const;
         }
-        return {state: 'prompt', stats, restoreError, pendingWrites, quotaWarning, saveMode} as const;
+        return {state: 'prompt', stats, restoreError, pendingWrites, quotaWarning, saveMode, enabled} as const;
       })
     );
   }
@@ -257,7 +296,7 @@ export class NecRestoreSearchComponent<T = unknown> implements OnInit, OnDestroy
 
   restore(): void {
     this.manualInFlight$.next(true);
-    this.store.dispatch(this.actions.RestoreRequest());
+    this.store.dispatch(this.section.crudActions.RestoreRequest());
   }
 
   requestNewSearch(): void {
@@ -275,8 +314,32 @@ export class NecRestoreSearchComponent<T = unknown> implements OnInit, OnDestroy
 
   /** Inverte 'on-draft'/'always' per questa sezione — il toggle nella riga del pulsante Search. */
   toggleSaveMode(current: NecSaveMode): void {
-    const setSectionSaveMode = createSetSectionSaveModeAction(this.feature);
-    this.store.dispatch(setSectionSaveMode({mode: current === 'always' ? 'on-draft' : 'always'}));
+    this.store.dispatch(this.section.setSaveMode({mode: current === 'always' ? 'on-draft' : 'always'}));
+  }
+
+  private resolveSection(): NecResolvedSection<T> {
+    const bundle = this.persistence;
+    if (bundle) {
+      return {
+        enabled: bundle.enabled,
+        selectors: bundle.selectors,
+        crudActions: bundle.crudActions,
+        setSaveMode: bundle.actions.SetSectionSaveMode,
+      };
+    }
+    if (isDevMode() && !this.feature) {
+      console.warn(
+        '<nec-restore-search>: [feature] non valorizzato. Deve coincidere con la `feature` passata a ' +
+        'createPersistenceEffects, altrimenti il toggle saveMode non raggiunge nessun effect. ' +
+        'Meglio passare [persistence] (createPersistence).'
+      );
+    }
+    return {
+      enabled: true,
+      selectors: this.selectors,
+      crudActions: this.actions,
+      setSaveMode: createSetSectionSaveModeAction(this.feature),
+    };
   }
 
   statsSummary(stats: NecSectionStats | null): string {

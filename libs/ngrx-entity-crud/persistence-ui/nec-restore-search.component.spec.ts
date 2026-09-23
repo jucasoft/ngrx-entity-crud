@@ -4,9 +4,15 @@ import {Actions as NgrxActionsClass} from '@ngrx/effects';
 import {BehaviorSubject, Subject, Subscription} from 'rxjs';
 import {createCrudEntityAdapter} from 'ngrx-entity-crud';
 import {formatAge, formatBytes, NecRestoreSearchComponent, NecRestoreSearchViewModel} from './nec-restore-search.component';
-import {NecPersistenceService} from './nec-persistence.service';
-import {createPersistenceSelectors, NecPersistenceSelectors} from './nec-persistence-selectors';
-import {NecSectionCheck, NecSectionStats} from './models';
+import {
+  createPersistence,
+  createPersistenceSelectors,
+  NecPersistence,
+  NecPersistenceSelectors,
+  NecPersistenceService,
+  NecSectionCheck,
+  NecSectionStats,
+} from 'ngrx-entity-crud/persistence';
 
 const flush = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -226,6 +232,60 @@ describe('NecRestoreSearchComponent', () => {
 
     component.toggleSaveMode('always');
     expect(dispatch).toHaveBeenCalledWith({type: '[coins Persistence] Set Section Save Mode', mode: 'on-draft'});
+  });
+
+  describe('input [persistence] (bundle di createPersistence)', () => {
+    function createWithBundle(enabled: boolean): {
+      created: NecRestoreSearchComponent<Coin>;
+      element: HTMLElement;
+      bundle: NecPersistence<Coin>;
+    } {
+      const bundle = createPersistence<Coin>({feature: 'coins', selectId: (c) => c.id, actions, enabled});
+      const fixture = TestBed.createComponent(NecRestoreSearchComponent<Coin>);
+      fixture.componentInstance.persistence = bundle;
+      fixture.detectChanges();
+      return {created: fixture.componentInstance, element: fixture.nativeElement, bundle};
+    }
+
+    beforeEach(() => {
+      select.mockClear();
+    });
+
+    it('legge sectionCheck dai selectors del bundle', () => {
+      const {bundle} = createWithBundle(true);
+      expect(select).toHaveBeenCalledWith(bundle.selectors.sectionCheck);
+    });
+
+    it('il toggle dispatcha SetSectionSaveMode del bundle, senza bisogno di [feature]', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+      try {
+        const {created, bundle} = createWithBundle(true);
+        created.toggleSaveMode('on-draft');
+
+        expect(dispatch).toHaveBeenCalledWith(bundle.actions.SetSectionSaveMode({mode: 'always'}));
+        expect(warn).not.toHaveBeenCalled();
+      } finally {
+        warn.mockRestore();
+      }
+    });
+
+    it('Restore dispatcha RestoreRequest delle azioni CRUD del bundle', () => {
+      const {created, bundle} = createWithBundle(true);
+      created.restore();
+      expect(dispatch).toHaveBeenCalledWith(bundle.crudActions.RestoreRequest());
+    });
+
+    it('enabled: false -> trasparente: solo il contenuto proiettato, nessun toggle, nessuna lettura dallo store', () => {
+      const {created, element} = createWithBundle(false);
+      let vm: NecRestoreSearchViewModel | undefined;
+      const sub = created.vm$.subscribe((value) => (vm = value));
+
+      expect(vm?.state).toBe('none');
+      expect(vm?.enabled).toBe(false);
+      expect(element.querySelector('button[aria-pressed]')).toBeNull();
+      expect(select).not.toHaveBeenCalled();
+      sub.unsubscribe();
+    });
   });
 
   it('[feature] vuoto: avvisa in console (il toggle saveMode non raggiungerebbe nessun effect)', () => {

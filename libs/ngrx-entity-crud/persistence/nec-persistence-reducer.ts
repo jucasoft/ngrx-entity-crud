@@ -1,6 +1,6 @@
 import {ActionReducer, createReducer, on} from '@ngrx/store';
 import {NecSectionCheck} from './models';
-import {createSectionCheckSuccessAction, createSetSectionSaveModeAction} from './nec-persistence-actions';
+import {createPersistenceActions, NecPersistenceActions} from './nec-persistence-actions';
 
 export interface NecPersistenceState {
   check: NecSectionCheck | null;
@@ -17,9 +17,16 @@ export function necPersistenceFeatureKey(feature: string): string {
   return `${feature}:persistence`;
 }
 
-export function createPersistenceReducer(feature: string): ActionReducer<NecPersistenceState> {
-  const sectionCheckSuccess = createSectionCheckSuccessAction(feature);
-  const setSectionSaveMode = createSetSectionSaveModeAction(feature);
+/**
+ * @param persistenceActions gruppo creato da `createPersistenceActions(feature)`: se omesso le azioni
+ *   vengono ricreate da `feature` (compatibilità con le beta precedenti).
+ */
+export function createPersistenceReducer(
+  feature: string,
+  persistenceActions: NecPersistenceActions = createPersistenceActions(feature)
+): ActionReducer<NecPersistenceState> {
+  const sectionCheckSuccess = persistenceActions.SectionCheckSuccess;
+  const setSectionSaveMode = persistenceActions.SetSectionSaveMode;
   return createReducer(
     NEC_PERSISTENCE_INITIAL_STATE,
     on(sectionCheckSuccess, (state, {check}): NecPersistenceState => ({...state, check})),

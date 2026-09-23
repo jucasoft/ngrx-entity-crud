@@ -1,4 +1,13 @@
-import {createSectionCheckSuccessAction, createSetSectionSaveModeAction} from './nec-persistence-actions';
+import {createPersistenceActions, createSectionCheckSuccessAction, createSetSectionSaveModeAction} from './nec-persistence-actions';
+
+describe('createPersistenceActions', () => {
+  it('raggruppa le azioni della persistenza per feature, con gli stessi type delle factory singole', () => {
+    const group = createPersistenceActions('coins');
+
+    expect(group.SectionCheckSuccess.type).toBe(createSectionCheckSuccessAction('coins').type);
+    expect(group.SetSectionSaveMode.type).toBe(createSetSectionSaveModeAction('coins').type);
+  });
+});
 
 describe('createSetSectionSaveModeAction', () => {
   it('produce un type scoped sulla feature', () => {

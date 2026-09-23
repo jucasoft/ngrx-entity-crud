@@ -1,7 +1,6 @@
 import {NEC_IDB_ADAPTER} from 'ngrx-entity-crud/devtools';
 import {provideNecIdbAdapterFromPersistence} from './nec-persistence-idb-adapter';
-import {NecPersistenceService} from './nec-persistence.service';
-import {NecSectionStats} from './models';
+import {NecPersistenceService, NecSectionStats} from 'ngrx-entity-crud/persistence';
 
 /**
  * `provideNecIdbAdapterFromPersistence` (Fase 4 del piano): ponte verso `NEC_IDB_ADAPTER` di

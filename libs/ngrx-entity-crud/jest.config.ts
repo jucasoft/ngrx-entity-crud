@@ -10,10 +10,12 @@ const config: Config = {
     'devtools/**/*.ts',
     'ui/**/*.ts',
     'persistence/**/*.ts',
+    'persistence-ui/**/*.ts',
     '!src/**/*.spec.ts',
     '!devtools/**/*.spec.ts',
     '!ui/**/*.spec.ts',
     '!persistence/**/*.spec.ts',
+    '!persistence-ui/**/*.spec.ts',
     '!src/test-setup.ts',
   ],
   transform: {
@@ -34,6 +36,7 @@ const config: Config = {
     // ristretto alla propria cartella): sotto Jest, che non passa da `dist/`, va risolto contro
     // la sorgente.
     '^ngrx-entity-crud/devtools$': '<rootDir>/devtools/public-api.ts',
+    '^ngrx-entity-crud/persistence$': '<rootDir>/persistence/public-api.ts',
     '^ngrx-entity-crud$': '<rootDir>/src/public-api.ts',
   },
   moduleFileExtensions: ['ts', 'html', 'js', 'json', 'mjs'],
