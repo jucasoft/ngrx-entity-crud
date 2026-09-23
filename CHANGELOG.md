@@ -8,6 +8,57 @@ Non sono incluse le versioni stabili (es. `v19.2.6`, `v19.1.0`, ecc.) né i comm
 a un bump di versione senza altro contenuto — per quelli vedi `git log` / `git tag`. Ogni voce
 riporta lo short hash del commit tra parentesi.
 
+## Migrazione da v19.2.6 (ultima stabile) a 19.4.0
+
+Cambi da conoscere prima di aggiornare un progetto consumer. Dettagli e test consigliati in
+`docs/code-review/2026-09-23-audit-best-practice-retrocompat.md` (sezioni 3 e 4).
+
+- **Selezione dopo un delete (cambio di comportamento, bug fix)** — `DeleteSuccess`,
+  `DeleteManySuccess` e `Delete` ora tolgono davvero gli id cancellati da `idsSelected` /
+  `entitiesSelected` e **mantengono** le altre selezioni. Prima, dopo `DeleteSuccess` la
+  selezione multipla conteneva solo l'id cancellato, e dopo `DeleteManySuccess` restavano
+  selezionati anche gli elementi cancellati (`id in ids` controllava gli indici dell'array, non i
+  valori). Gli id `0` e `''` ora sono trattati come id validi (prima `idSelected = 0` azzerava
+  `itemSelected`). Se la tua UI contava sull'azzeramento della selezione dopo un delete, dispatcha
+  esplicitamente `RemoveAllSelected()`.
+- **Loading/error globale e nuovi store (codice generato)** — lo schematic `store` non modifica più
+  `root-store/selectors.ts`. I progetti creati con un `ng add` precedente hanno un `selectors.ts`
+  che elenca gli store a mano: gli store generati da ora in poi **non** accendono il loading/errore
+  globale. Due opzioni: sostituire `root-store/selectors.ts` con il nuovo template agnostico
+  (`schematics/ng-add/files/src/app/root-store/selectors.ts`, che scandisce ogni slice con
+  `isLoading` e normalizza anche gli errori oggetto, es. `HttpErrorResponse`), oppure aggiungere a
+  mano `XxxStoreSelectors.selectIsLoading` / `selectError` al file esistente.
+- **Schematic `auth0` rimosso** — `ng g ngrx-entity-crud:auth0` non esiste più. Il codice già
+  generato non è toccato.
+- **Schematic `store`: due nuove domande** — `registration` (`eager` | `lazy`) e `persist`
+  (boolean). In modalità interattiva vengono chieste; gli script di scaffolding devono passarle
+  esplicitamente (`--registration=eager --persist=false` riproduce il comportamento storico) o
+  usare `--interactive=false`.
+- **Nuovi secondary entry point e versioni minime** — `ngrx-entity-crud/persistence`,
+  `/devtools`, `/ui`, `/form-clipboard` richiedono **Angular ≥ 16** (usano `signal`, `computed`,
+  `inject` e componenti standalone), anche se le peerDependencies del pacchetto restano `^11`
+  per il core. `persistence`, `devtools` e `form-clipboard` richiedono inoltre `primeng` (≥ 16) e
+  `primeicons`, dichiarate come peerDependencies **opzionali**: chi importa solo il core
+  (`ngrx-entity-crud`) non ne ha bisogno.
+
+## Non ancora rilasciato
+
+- fix(persistence): le bozze in debounce non vengono più riscritte dopo `RemoveManySelected`,
+  `RemoveAllSelected`, `DeleteSuccess`, `DeleteManySuccess` o una nuova `SearchRequest` (bozze
+  che ricomparivano al restore, bozze orfane senza blocco search).
+- fix(persistence): se la scrittura del blocco search fallisce, la bozza successiva la ritenta.
+- fix(persistence): `open()` non tiene in cache un'apertura fallita, ha un timeout
+  (`openTimeoutMs`, default 10000) e cede la connessione su `versionchange` (una scheda aperta con
+  una versione vecchia del DB non blocca più la persistenza di quella nuova).
+- fix(core): `RestoreSuccess` azzera `idSelected`/`itemSelected` se l'elemento non è tra quelli
+  ripristinati.
+- fix(core): `BaseSingularCrudService.select()` scrive in console solo con `debugMode()`.
+- fix(persistence): `<nec-restore-search>` avvisa in dev mode se `[feature]` è vuoto; README
+  corretto (`feature` identifica la sezione, non è un'etichetta).
+- fix(schematics): `ng-add` — `selectErrors` normalizza gli errori oggetto invece di scartarli.
+- fix(schematics): `section` — il pulsante delete scarta gli elementi selezionati non presenti in
+  `entities`.
+
 ## v19.4.0-beta.18 — 2026-07-20
 
 - feat(devtools): Copyable promote command in the Lazy sections panel (ad4a9e9)
