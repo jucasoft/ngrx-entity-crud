@@ -1,5 +1,5 @@
 import {ActionCreator, createAction, props} from '@ngrx/store';
-import {TypedAction} from 'ngrx-entity-crud';
+import {ICriteria, TypedAction} from 'ngrx-entity-crud';
 import {NecSaveMode, NecSectionCheck} from './models';
 
 /**
@@ -30,12 +30,26 @@ export function createSetSectionSaveModeAction(
   return createAction(`[${feature} Persistence] Set Section Save Mode`, props<{ mode: NecSaveMode }>());
 }
 
+/**
+ * Ricerca all'apertura della sezione, al posto di `SearchRequest` (stessi criteri): l'effect la
+ * traduce in `SearchRequest` solo se non ci sono dati locali da ripristinare. Una `SearchRequest`
+ * diretta cancellerebbe (`purgeSection`) bozze e ricerca salvate prima che l'utente possa
+ * ripristinarle. Con la persistenza spenta diventa subito `SearchRequest`.
+ */
+export function createInitialSearchAction(
+  feature: string
+): ActionCreator<string, (props: ICriteria) => ICriteria & TypedAction<string>> {
+  return createAction(`[${feature} Persistence] Initial Search`, props<ICriteria>());
+}
+
 /** Azioni della persistenza di una sezione, create una sola volta da `createPersistenceActions`. */
 export interface NecPersistenceActions {
   /** Esito del check eseguito alla creazione della sezione (dispatchata dagli effects). */
   SectionCheckSuccess: ActionCreator<string, (props: { check: NecSectionCheck }) => { check: NecSectionCheck } & TypedAction<string>>;
   /** Sceglie come salvare (`'on-draft'` | `'always'`): dal toggle di `<nec-restore-search>` o dall'app. */
   SetSectionSaveMode: ActionCreator<string, (props: { mode: NecSaveMode }) => { mode: NecSaveMode } & TypedAction<string>>;
+  /** Ricerca all'apertura della sezione: cerca solo se non ci sono dati locali da ripristinare. */
+  InitialSearch: ActionCreator<string, (props: ICriteria) => ICriteria & TypedAction<string>>;
 }
 
 /**
@@ -48,5 +62,6 @@ export function createPersistenceActions(feature: string): NecPersistenceActions
   return {
     SectionCheckSuccess: createSectionCheckSuccessAction(feature),
     SetSectionSaveMode: createSetSectionSaveModeAction(feature),
+    InitialSearch: createInitialSearchAction(feature),
   };
 }

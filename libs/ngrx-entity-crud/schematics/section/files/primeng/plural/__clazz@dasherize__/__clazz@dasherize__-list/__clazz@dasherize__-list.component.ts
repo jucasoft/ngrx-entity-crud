@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {select, Store} from '@ngrx/store';
-import {<%= clazz %>StoreActions, <%= clazz %>StoreSelectors, RootStoreState} from '@root-store/index';
+import {<%= clazz %>Persistence, <%= clazz %>StoreActions, <%= clazz %>StoreSelectors, RootStoreState} from '@root-store/index';
 import {combineLatest, Observable} from 'rxjs';
 import {<%= clazz %>} from '@models/vo/<%= dasherize(clazz) %>';
 import {RouterStoreActions} from '@root-store/router-store/index';
@@ -83,8 +83,10 @@ export class <%= clazz %>ListComponent implements OnInit {
       map(([entities, drafts]) => dirtyDraftIds(entities, drafts))
     );
 
+    // ricerca all'apertura: con dati locali da ripristinare non parte (una SearchRequest li
+    // cancellerebbe), li propone <nec-restore-search>. Con la persistenza spenta e' una SearchRequest.
     this.store$.dispatch(
-      <%= clazz %>StoreActions.SearchRequest({queryParams: {}})
+      <%= clazz %>Persistence.actions.InitialSearch({queryParams: {}})
     );
 
   }

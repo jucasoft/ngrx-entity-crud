@@ -3,6 +3,7 @@ import {
   manualStepHtml,
   manualStepTs,
   patchMainComponentHtml,
+  patchListComponentTs,
   patchMainComponentTs,
   patchSectionModule,
   patchStoreIndex,
@@ -119,6 +120,39 @@ const MAIN_HTML = `<p-confirmDialog />
   </ng-template>
 </p-toolbar>
 <app-coin-list></app-coin-list>
+`;
+
+const LIST_TS = `import {Component, OnInit} from '@angular/core';
+import {select, Store} from '@ngrx/store';
+import {CoinStoreActions, CoinStoreSelectors, RootStoreState} from '@root-store/index';
+import {Observable} from 'rxjs';
+import {Coin} from '@models/vo/coin';
+
+@Component({
+  selector: 'app-coin-list',
+  templateUrl: \`coin-list.component.html\`,
+})
+export class CoinListComponent implements OnInit {
+
+  collection$: Observable<Coin[]>;
+
+  constructor(private readonly store$: Store<RootStoreState.State>) {
+  }
+
+  ngOnInit(): void {
+    this.collection$ = this.store$.select(
+      CoinStoreSelectors.selectAll
+    );
+
+    this.store$.dispatch(
+      CoinStoreActions.SearchRequest({queryParams: {}})
+    );
+  }
+
+  onDelete(item: Coin): void {
+    this.store$.dispatch(CoinStoreActions.SearchRequest({queryParams: {reload: true}}));
+  }
+}
 `;
 
 describe('schematic persistence — marcatori di passo manuale', () => {
@@ -264,3 +298,60 @@ describe('patchMainComponentHtml', () => {
     expect(patchMainComponentHtml(doubled).manual).toHaveLength(1);
   });
 });
+
+describe('patchListComponentTs', () => {
+  it('sostituisce la SearchRequest di ngOnInit con CoinPersistence.actions.InitialSearch, stessi criteri', () => {
+    const result = patchListComponentTs(LIST_TS, 'Coin');
+
+    expect(result.manual).toEqual([]);
+    expect(result.content).toContain('import {CoinPersistence} from \'@root-store/index\';');
+    expect(result.content).toContain('CoinPersistence.actions.InitialSearch({queryParams: {}})');
+    expect(syntaxErrors(result.content)).toHaveLength(0);
+  });
+
+  it('non tocca le SearchRequest fuori da ngOnInit (ricerche volute dall\'utente)', () => {
+    const result = patchListComponentTs(LIST_TS, 'Coin');
+
+    expect(result.content).toContain('CoinStoreActions.SearchRequest({queryParams: {reload: true}})');
+  });
+
+  it('idempotente', () => {
+    const once = patchListComponentTs(LIST_TS, 'Coin').content;
+    const twice = patchListComponentTs(once, 'Coin');
+
+    expect(twice.content).toBe(once);
+    expect(twice.manual).toEqual([]);
+  });
+
+  it('nessuna SearchRequest in ngOnInit: marcatore', () => {
+    const modified = LIST_TS.replace(
+      '    this.store$.dispatch(\n      CoinStoreActions.SearchRequest({queryParams: {}})\n    );\n',
+      ''
+    );
+
+    const result = patchListComponentTs(modified, 'Coin');
+
+    expect(result.manual).toHaveLength(1);
+    expect(result.content).toMatch(/^NEC_PASSO_MANUALE__\w*InitialSearch\w*;$/m);
+    expect(syntaxErrors(result.content)).toHaveLength(0);
+  });
+
+  it('piu\' di una SearchRequest in ngOnInit: non sceglie a caso, marcatore', () => {
+    const doubled = LIST_TS.replace(
+      'CoinStoreActions.SearchRequest({queryParams: {}})\n    );',
+      'CoinStoreActions.SearchRequest({queryParams: {}})\n    );\n    this.store$.dispatch(CoinStoreActions.SearchRequest({queryParams: {b: 1}}));'
+    );
+
+    const result = patchListComponentTs(doubled, 'Coin');
+
+    expect(result.manual).toHaveLength(1);
+    expect(result.content).toContain('CoinStoreActions.SearchRequest({queryParams: {}})');
+  });
+
+  it('classe della lista rinominata a mano: marcatore', () => {
+    const result = patchListComponentTs(LIST_TS.replace('class CoinListComponent', 'class CoinGridComponent'), 'Coin');
+
+    expect(result.manual).toHaveLength(1);
+  });
+});
+

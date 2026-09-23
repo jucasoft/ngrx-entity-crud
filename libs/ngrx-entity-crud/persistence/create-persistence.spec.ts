@@ -41,6 +41,24 @@ describe('createPersistence', () => {
     expect(state.check?.saveMode).toBe('always');
   });
 
+  it('il reducer riceve anche le azioni CRUD: una SearchRequest azzera i dati locali del check', () => {
+    const persistence = createPersistence<Coin>({feature: 'coins', selectId: (c) => c.id, actions});
+    const stats = {feature: 'coins', count: 1, bytes: 10, draftCount: 1, at: Date.now()};
+    const afterCheck = persistence.reducer(undefined, persistence.actions.SectionCheckSuccess({
+      check: {stats, autoRestoreTriggered: false, saveMode: 'on-draft'},
+    }));
+
+    const state = persistence.reducer(afterCheck, actions.SearchRequest({queryParams: {}}));
+
+    expect(state.check?.stats).toBeNull();
+  });
+
+  it('espone InitialSearch per la ricerca all\'apertura della sezione', () => {
+    const persistence = createPersistence<Coin>({feature: 'coins', selectId: (c) => c.id, actions});
+
+    expect(persistence.actions.InitialSearch.type).toBe('[coins Persistence] Initial Search');
+  });
+
   it('enabled: false arriva agli effects: nessun accesso a IndexedDB', async () => {
     const persistence = createPersistence<Coin>({feature: 'coins', selectId: (c) => c.id, actions, enabled: false});
     const service = {stats: jest.fn().mockResolvedValue(null), getSaveMode: jest.fn().mockResolvedValue('on-draft')};

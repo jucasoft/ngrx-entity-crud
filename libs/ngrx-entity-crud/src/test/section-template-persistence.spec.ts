@@ -36,4 +36,12 @@ describe('section template — persistenza', () => {
     expect(code).toContain('import {NecRestoreSearchComponent} from \'ngrx-entity-crud/persistence-ui\';');
     expect(code).toMatch(/imports: \[[\s\S]*NecRestoreSearchComponent[\s\S]*\]/);
   });
+
+  it('la lista cerca all\'apertura con CoinPersistence.actions.InitialSearch, non con SearchRequest (che cancellerebbe i dati locali)', () => {
+    const code = render('__clazz@dasherize__-list/__clazz@dasherize__-list.component.ts');
+
+    expect(code).toMatch(/import \{[^}]*CoinPersistence[^}]*\} from '@root-store\/index';/);
+    expect(code).toContain('CoinPersistence.actions.InitialSearch({queryParams: {}})');
+    expect(code).not.toContain('SearchRequest(');
+  });
 });

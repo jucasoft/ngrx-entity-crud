@@ -2,6 +2,7 @@ import {chain, Rule, SchematicContext, SchematicsException, Tree} from '@angular
 import {normalize, strings} from '@angular-devkit/core';
 import {render} from '../my-utility';
 import {
+  patchListComponentTs,
   patchMainComponentHtml,
   patchMainComponentTs,
   PatchResult,
@@ -17,7 +18,8 @@ import {
  * hanno gia' dallo schematic `store`):
  * - crea `<clazz>.persistence.ts` nello store (stesso template dello schematic `store`);
  * - registra reducer ed effects in `<clazz>-store.module.ts` ed esporta il bundle da `index.ts`;
- * - con `--ui` (default) collega `<nec-restore-search>` al componente main della sezione.
+ * - con `--ui` (default) collega `<nec-restore-search>` al componente main della sezione e fa
+ *   cercare la lista all'apertura con `<Clazz>Persistence.actions.InitialSearch`.
  *
  * Le sezioni possono essere state modificate a mano: dove il punto d'aggancio non si trova lo
  * schematic non indovina, lascia un marcatore che non compila (`NEC_PASSO_MANUALE__...` nei file
@@ -91,6 +93,7 @@ export function addPersistence(options: CrudPersistence): Rule {
         rules.push(patchFile(`${sectionDir}/${dash}.module.ts`, (c) => patchSectionModule(c, clazz), 'error'));
         rules.push(patchFile(`${sectionDir}/${dash}-main/${dash}-main.component.ts`, (c) => patchMainComponentTs(c, clazz), 'error'));
         rules.push(patchFile(`${sectionDir}/${dash}-main/${dash}-main.component.html`, patchMainComponentHtml, 'error'));
+        rules.push(patchFile(`${sectionDir}/${dash}-list/${dash}-list.component.ts`, (c) => patchListComponentTs(c, clazz), 'error'));
       } else {
         context.logger.info(`- ${sectionDir}: sezione UI non trovata, collego solo lo store`);
       }

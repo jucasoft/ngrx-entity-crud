@@ -583,4 +583,101 @@ describe('createPersistenceEffects', () => {
       expect(persistence.writeSearch).toHaveBeenCalledWith(NAME, request, items, expect.any(Function));
     });
   });
+
+  /**
+   * La sezione generata cercava all'apertura con `SearchRequest`, che azzera (purgeSection) i dati
+   * locali prima che l'utente possa ripristinarli: al reload le bozze sparivano. `InitialSearch`
+   * cerca solo se non c'e' nulla da ripristinare.
+   */
+  describe('InitialSearch (ricerca all\'apertura della sezione)', () => {
+    const {InitialSearch} = createPersistenceActions(NAME);
+    const criteria = {queryParams: {q: 'x'}};
+    const withDrafts: NecSectionStats = {feature: NAME, count: 10, bytes: 500, draftCount: 1, at: Date.now()};
+
+    function run(overrides: Partial<Record<string, jest.Mock>> = {}, autoRestore?: NecAutoRestoreConfig) {
+      const context = setup(overrides, autoRestore);
+      const emitted: Action[] = [];
+      context.effects.autoRestoreCheckOn$.subscribe();
+      context.effects.searchRequestOn$.subscribe();
+      context.effects.restoreRequestOn$.subscribe();
+      context.effects.initialSearchOn$.subscribe((a) => emitted.push(a));
+      return {...context, emitted};
+    }
+
+    it('nessun dato locale: SearchRequest con gli stessi criteri', async () => {
+      const {actionsSubject, emitted} = run();
+      await flushPromises();
+
+      actionsSubject.next(InitialSearch(criteria));
+
+      expect(emitted).toEqual([actions.SearchRequest(criteria)]);
+    });
+
+    it('arrivata prima dell\'esito del check: aspetta il check, poi cerca', async () => {
+      const {actionsSubject, emitted} = run();
+
+      actionsSubject.next(InitialSearch(criteria));
+      expect(emitted).toEqual([]);
+      await flushPromises();
+
+      expect(emitted).toEqual([actions.SearchRequest(criteria)]);
+    });
+
+    it('dati locali da ripristinare: nessuna SearchRequest (niente purge), anche riaprendo la sezione', async () => {
+      const {actionsSubject, emitted, persistence} = run({stats: jest.fn().mockResolvedValue(withDrafts)});
+      await flushPromises();
+
+      actionsSubject.next(InitialSearch(criteria));
+      actionsSubject.next(InitialSearch(criteria));
+      await flushPromises();
+
+      expect(emitted).toEqual([]);
+      expect(persistence.purgeSection).not.toHaveBeenCalled();
+    });
+
+    it('dati locali con autoRestore scattato: nessuna SearchRequest (il ripristino e\' gia\' partito)', async () => {
+      const {actionsSubject, emitted} = run({stats: jest.fn().mockResolvedValue(withDrafts)}, {maxAgeMs: 60000});
+      await flushPromises();
+
+      actionsSubject.next(InitialSearch(criteria));
+
+      expect(emitted).toEqual([]);
+    });
+
+    it('check fallito: cerca comunque (nessun dato locale leggibile)', async () => {
+      const {actionsSubject, emitted} = run({stats: jest.fn().mockRejectedValue(new Error('idb'))});
+      await flushPromises();
+
+      actionsSubject.next(InitialSearch(criteria));
+
+      expect(emitted).toEqual([actions.SearchRequest(criteria)]);
+    });
+
+    it.each([
+      ['una ricerca', () => actions.SearchRequest({queryParams: {}})],
+      ['un ripristino', () => actions.RestoreRequest()],
+    ])('dopo %s nella sessione i dati locali sono gia\' decisi: riaprendo la sezione cerca', async (_label, decision) => {
+      const {actionsSubject, emitted} = run({stats: jest.fn().mockResolvedValue(withDrafts)});
+      await flushPromises();
+
+      actionsSubject.next(decision());
+      actionsSubject.next(InitialSearch(criteria));
+
+      expect(emitted).toEqual([actions.SearchRequest(criteria)]);
+    });
+
+    it('enabled: false: SearchRequest subito, senza accessi a IndexedDB', () => {
+      const persistence = fakePersistence();
+      const EffectsClass = createPersistenceEffects<Coin>({feature: NAME, selectId: (c) => c.id, actions, enabled: false});
+      const actionsSubject = new Subject<Action>();
+      const effects = new EffectsClass(new NgrxActionsClass(actionsSubject), persistence, null);
+      const emitted: Action[] = [];
+      effects.initialSearchOn$.subscribe((a) => emitted.push(a));
+
+      actionsSubject.next(InitialSearch(criteria));
+
+      expect(emitted).toEqual([actions.SearchRequest(criteria)]);
+      Object.values(persistence).forEach((fn) => expect(fn).not.toHaveBeenCalled());
+    });
+  });
 });

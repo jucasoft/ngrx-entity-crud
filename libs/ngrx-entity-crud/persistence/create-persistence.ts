@@ -21,7 +21,10 @@ export interface NecPersistence<T> {
   readonly enabled: boolean;
   /** Azioni CRUD della sezione (quelle di `createCrudActions`, con `Restore*`). */
   readonly crudActions: Actions<T>;
-  /** Azioni della persistenza (`SectionCheckSuccess`, `SetSectionSaveMode`). */
+  /**
+   * Azioni della persistenza (`SectionCheckSuccess`, `SetSectionSaveMode`, `InitialSearch`).
+   * `InitialSearch` va dispatchata all'apertura della sezione al posto di `SearchRequest`.
+   */
   readonly actions: NecPersistenceActions;
   readonly reducer: ActionReducer<NecPersistenceState>;
   readonly selectors: NecPersistenceSelectors;
@@ -44,7 +47,7 @@ export function createPersistence<T>(config: NecPersistenceConfigForSection<T>):
     enabled,
     crudActions: config.actions,
     actions,
-    reducer: createPersistenceReducer(config.feature, actions),
+    reducer: createPersistenceReducer<T>(config.feature, actions, config.actions),
     selectors: createPersistenceSelectors(config.feature),
     effects: createPersistenceEffects<T>({...config, enabled, persistenceActions: actions}),
   };

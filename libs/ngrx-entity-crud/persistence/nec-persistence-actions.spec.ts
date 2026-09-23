@@ -1,4 +1,9 @@
-import {createPersistenceActions, createSectionCheckSuccessAction, createSetSectionSaveModeAction} from './nec-persistence-actions';
+import {
+  createInitialSearchAction,
+  createPersistenceActions,
+  createSectionCheckSuccessAction,
+  createSetSectionSaveModeAction,
+} from './nec-persistence-actions';
 
 describe('createPersistenceActions', () => {
   it('raggruppa le azioni della persistenza per feature, con gli stessi type delle factory singole', () => {
@@ -6,6 +11,7 @@ describe('createPersistenceActions', () => {
 
     expect(group.SectionCheckSuccess.type).toBe(createSectionCheckSuccessAction('coins').type);
     expect(group.SetSectionSaveMode.type).toBe(createSetSectionSaveModeAction('coins').type);
+    expect(group.InitialSearch.type).toBe(createInitialSearchAction('coins').type);
   });
 });
 
@@ -37,5 +43,14 @@ describe('createSectionCheckSuccessAction', () => {
     const action = createSectionCheckSuccessAction('coins');
     const check = {stats: null, autoRestoreTriggered: false, saveMode: 'on-draft' as const};
     expect(action({check})).toEqual({type: '[coins Persistence] Section Check Success', check});
+  });
+});
+
+describe('createInitialSearchAction', () => {
+  it('produce un type scoped sulla feature e porta i criteri della ricerca come SearchRequest', () => {
+    const action = createInitialSearchAction('coins');
+
+    expect(action.type).toBe('[coins Persistence] Initial Search');
+    expect(action({queryParams: {q: 'x'}})).toEqual({type: '[coins Persistence] Initial Search', queryParams: {q: 'x'}});
   });
 });

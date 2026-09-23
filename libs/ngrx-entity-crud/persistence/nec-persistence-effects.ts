@@ -1,8 +1,8 @@
 import {Inject, Injectable, Optional, Type} from '@angular/core';
 import {Actions as NgrxActions, createEffect, ofType} from '@ngrx/effects';
 import {Action} from '@ngrx/store';
-import {defer, EMPTY, from, merge, Observable, of} from 'rxjs';
-import {catchError, debounceTime, filter, map, switchMap, tap} from 'rxjs/operators';
+import {defer, EMPTY, from, merge, Observable, of, ReplaySubject} from 'rxjs';
+import {catchError, debounceTime, filter, map, mergeMap, switchMap, take, tap} from 'rxjs/operators';
 import {Actions, ICriteria} from 'ngrx-entity-crud';
 import {NecAutoRestoreConfig, NecPersistenceConfig, NecSaveMode, NecSectionCheck, NecSectionStats} from './models';
 import {NEC_PERSISTENCE_CONFIG} from './persistence-config.token';
@@ -48,6 +48,8 @@ export interface NecPersistenceEffects {
   readonly deleteManySuccessOn$: Observable<unknown>;
   /** Persiste la scelta dell'utente su come salvare (`<nec-restore-search>`), vedi `NecSaveMode`. */
   readonly setSaveModeOn$: Observable<unknown>;
+  /** Traduce `InitialSearch` in `SearchRequest` solo se non ci sono dati locali da ripristinare. */
+  readonly initialSearchOn$: Observable<Action>;
 }
 
 /**
@@ -80,6 +82,13 @@ export function createPersistenceEffects<T>(config: NecPersistenceEffectsConfig<
     private searchPersisted = false;
     /** Letto dal check alla creazione della sezione, aggiornato a runtime da `setSaveModeOn$`. */
     private saveMode: NecSaveMode = DEFAULT_SAVE_MODE;
+    /** Esito del check alla creazione: `InitialSearch` puo' arrivare prima o dopo, lo aspetta qui. */
+    private readonly check$ = new ReplaySubject<NecSectionCheck>(1);
+    /**
+     * true dopo la prima `SearchRequest` o `RestoreRequest` della sessione: i dati locali trovati dal
+     * check sono stati cercati da capo o ripristinati, quindi riaprire la sezione torna a cercare.
+     */
+    private localDataSettled = false;
 
     // Dichiarati qui ma assegnati nel corpo del costruttore (non come field initializer): per una
     // classe senza `extends`, i field initializer girano PRIMA del corpo del costruttore (spec
@@ -97,6 +106,7 @@ export function createPersistenceEffects<T>(config: NecPersistenceEffectsConfig<
     readonly deleteSuccessOn$: Observable<unknown>;
     readonly deleteManySuccessOn$: Observable<unknown>;
     readonly setSaveModeOn$: Observable<unknown>;
+    readonly initialSearchOn$: Observable<Action>;
 
     constructor(
       private readonly actions$: NgrxActions,
@@ -122,6 +132,11 @@ export function createPersistenceEffects<T>(config: NecPersistenceEffectsConfig<
         this.deleteSuccessOn$ = inert();
         this.deleteManySuccessOn$ = inert();
         this.setSaveModeOn$ = inert();
+        // Unico effect attivo da spento: non tocca IndexedDB, la sezione cerca come senza persistenza.
+        this.initialSearchOn$ = createEffect(() => this.actions$.pipe(
+          ofType(persistenceActions.InitialSearch),
+          map(({type, ...criteria}) => actions.SearchRequest(criteria))
+        ));
         return;
       }
 
@@ -140,8 +155,21 @@ export function createPersistenceEffects<T>(config: NecPersistenceEffectsConfig<
           this.saveMode = saveMode;
         }),
         map(([stats, saveMode]) => this.evaluateAutoRestore(stats, saveMode)),
-        map((check) => sectionCheckSuccess({check})),
-        catchError(() => of(sectionCheckSuccess({check: {stats: null, autoRestoreTriggered: false, saveMode: this.saveMode}})))
+        catchError(() => of<NecSectionCheck>({stats: null, autoRestoreTriggered: false, saveMode: this.saveMode})),
+        tap((check) => this.check$.next(check)),
+        map((check) => sectionCheckSuccess({check}))
+      ));
+
+      // Ricerca all'apertura della sezione: una SearchRequest diretta farebbe purgeSection e
+      // cancellerebbe i dati locali prima che l'utente possa ripristinarli. Se il check ha trovato
+      // dati, la ricerca non parte: li ripristina autoRestore oppure l'utente da <nec-restore-search>
+      // (Restore / New search). Aspetta il check se non e' ancora arrivato (store lazy).
+      this.initialSearchOn$ = createEffect(() => this.actions$.pipe(
+        ofType(persistenceActions.InitialSearch),
+        switchMap(({type, ...criteria}) => this.check$.pipe(
+          take(1),
+          mergeMap((check) => this.localDataSettled || !check.stats ? of(actions.SearchRequest(criteria)) : EMPTY)
+        ))
       ));
 
       // Il toggle in `<nec-restore-search>` dispatcha questa action: aggiorna il comportamento a
@@ -166,6 +194,9 @@ export function createPersistenceEffects<T>(config: NecPersistenceEffectsConfig<
       // Traduce RestoreRequest in lettura da IndexedDB, che parta dal check sopra o dal componente.
       this.restoreRequestOn$ = createEffect(() => this.actions$.pipe(
         ofType(actions.RestoreRequest),
+        tap(() => {
+          this.localDataSettled = true;
+        }),
         switchMap(() => from(this.persistence.readSection<T, ICriteria>(feature)).pipe(
           map((section) => section
             ? actions.RestoreSuccess({
@@ -181,6 +212,7 @@ export function createPersistenceEffects<T>(config: NecPersistenceEffectsConfig<
       this.searchRequestOn$ = createEffect(() => this.actions$.pipe(
         ofType(actions.SearchRequest),
         tap(() => {
+          this.localDataSettled = true;
           this.lastSearch = null;
           this.searchPersisted = false;
           // Una bozza ancora in debounce appartiene alla ricerca precedente: scriverla dopo

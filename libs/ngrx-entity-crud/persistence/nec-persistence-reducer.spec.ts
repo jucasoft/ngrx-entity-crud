@@ -1,3 +1,4 @@
+import {createCrudEntityAdapter} from 'ngrx-entity-crud';
 import {createPersistenceActions, createSectionCheckSuccessAction, createSetSectionSaveModeAction} from './nec-persistence-actions';
 
 describe('createPersistenceReducer con il gruppo di azioni', () => {
@@ -63,6 +64,21 @@ describe('createPersistenceReducer', () => {
     const setSectionSaveMode = createSetSectionSaveModeAction('coins');
 
     const state = reducer(undefined, setSectionSaveMode({mode: 'always'}));
+
+    expect(state).toEqual({check: {stats: null, autoRestoreTriggered: false, saveMode: 'always'}});
+  });
+});
+
+describe('createPersistenceReducer con le azioni CRUD della sezione', () => {
+  const stats: NecSectionStats = {feature: 'coins', count: 10, bytes: 500, draftCount: 1, at: Date.now()};
+
+  it('SearchRequest azzera stats del check (purgeSection li ha cancellati), mantiene saveMode', () => {
+    const crudActions = createCrudEntityAdapter<{id: string}>({selectId: (c) => c.id}).createCrudActions('coins');
+    const group = createPersistenceActions('coins');
+    const reducer = createPersistenceReducer('coins', group, crudActions);
+    const afterCheck = reducer(undefined, group.SectionCheckSuccess({check: {stats, autoRestoreTriggered: true, saveMode: 'always'}}));
+
+    const state = reducer(afterCheck, crudActions.SearchRequest({queryParams: {}}));
 
     expect(state).toEqual({check: {stats: null, autoRestoreTriggered: false, saveMode: 'always'}});
   });

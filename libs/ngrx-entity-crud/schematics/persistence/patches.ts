@@ -241,7 +241,54 @@ export function patchMainComponentTs(content: string, clazz: string): PatchResul
   return result;
 }
 
-const APP_SEARCH = /<app-search\b[^>]*?(?:\/>|>[\s\S]*?<\/app-search>)/g;
+/**
+ * Lista della sezione: la ricerca all'apertura (`SearchRequest` in `ngOnInit`) diventa
+ * `<Clazz>Persistence.actions.InitialSearch`, con gli stessi criteri. Una `SearchRequest` diretta
+ * cancellerebbe i dati locali prima che l'utente possa ripristinarli.
+ */
+export function patchListComponentTs(content: string, clazz: string): PatchResult {
+  const bundle = `${clazz}Persistence`;
+  const initialSearch = `${bundle}.actions.InitialSearch`;
+  const result: PatchResult = {content, applied: [], manual: []};
+  if (content.includes(`${initialSearch}(`)) {
+    return result;
+  }
+
+  const className = `${clazz}ListComponent`;
+  const declaration = findNode(content, (node): node is ts.ClassDeclaration =>
+    ts.isClassDeclaration(node) && node.name?.getText() === className
+  );
+  const ngOnInit = declaration?.members.find((member): member is ts.MethodDeclaration =>
+    ts.isMethodDeclaration(member) && member.name.getText() === 'ngOnInit'
+  );
+  const searches: ts.PropertyAccessExpression[] = [];
+  const collect = (node: ts.Node): void => {
+    if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && node.expression.name.getText() === 'SearchRequest') {
+      searches.push(node.expression);
+    }
+    ts.forEachChild(node, collect);
+  };
+  if (ngOnInit?.body) {
+    collect(ngOnInit.body);
+  }
+
+  if (searches.length !== 1) {
+    addManualStepTs(
+      result,
+      `nella lista ${className} sostituisci la SearchRequest di ngOnInit con ${initialSearch} ` +
+      '(stessi criteri); se la sezione non cerca all apertura cancella questa riga'
+    );
+    return result;
+  }
+
+  const [search] = searches;
+  result.content = content.slice(0, search.getStart()) + initialSearch + content.slice(search.getEnd());
+  result.content = addImportLine(result.content, `import {${bundle}} from '@root-store/index';`);
+  result.applied.push(`ricerca all'apertura di ${className} sostituita con ${initialSearch}`);
+  return result;
+}
+
+const APP_SEARCH =/<app-search\b[^>]*?(?:\/>|>[\s\S]*?<\/app-search>)/g;
 
 /** Template del main: avvolge `<app-search>` con `<nec-restore-search [persistence]="persistence">`. */
 export function patchMainComponentHtml(content: string): PatchResult {
