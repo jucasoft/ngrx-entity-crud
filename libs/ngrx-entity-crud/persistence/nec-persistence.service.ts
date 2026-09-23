@@ -276,7 +276,20 @@ export class NecPersistenceService implements OnDestroy {
       this.dbPromise = Promise.reject(new Error('IndexedDB non disponibile in questo contesto'));
       return this.dbPromise;
     }
-    this.dbPromise = new Promise<IDBDatabase>((resolve, reject) => {
+    const opening = new Promise<IDBDatabase>((resolve, reject) => {
+      let settled = false;
+      const fail = (error: unknown): void => {
+        if (!settled) {
+          settled = true;
+          clearTimeout(timer);
+          reject(error);
+        }
+      };
+      const timeoutMs = this.config.openTimeoutMs ?? 0;
+      const timer = timeoutMs > 0
+        ? setTimeout(() => fail(new Error(`apertura IndexedDB: timeout dopo ${timeoutMs} ms`)), timeoutMs)
+        : undefined;
+
       const request = indexedDB.open(this.config.dbName as string, this.config.dbVersion);
 
       request.onupgradeneeded = () => {
@@ -296,10 +309,37 @@ export class NecPersistenceService implements OnDestroy {
         }
       };
       request.onblocked = () =>
-        reject(new Error('apertura IndexedDB bloccata (versionchange in un\'altra scheda)'));
-      request.onerror = () => reject(request.error ?? new Error('apertura IndexedDB fallita'));
-      request.onsuccess = () => resolve(request.result);
+        fail(new Error('apertura IndexedDB bloccata (versionchange in un\'altra scheda)'));
+      request.onerror = () => fail(request.error ?? new Error('apertura IndexedDB fallita'));
+      request.onsuccess = () => {
+        const db = request.result;
+        if (settled) {
+          // Arrivata dopo timeout/blocco: nessuno la usera', non deve restare aperta (bloccherebbe
+          // i futuri upgrade di versione).
+          db.close();
+          return;
+        }
+        settled = true;
+        clearTimeout(timer);
+        // Un'altra scheda sta aggiornando la versione del DB: cedere la connessione invece di
+        // bloccarla. La prossima operazione riaprira' (e fallira' con VersionError se questa build
+        // e' piu' vecchia: la persistenza di questa scheda si spegne, quella nuova funziona).
+        db.onversionchange = () => {
+          db.close();
+          if (this.dbPromise === opening) {
+            this.dbPromise = null;
+          }
+        };
+        resolve(db);
+      };
     });
+    // Un'apertura fallita non resta in cache: la prossima operazione ritenta.
+    opening.catch(() => {
+      if (this.dbPromise === opening) {
+        this.dbPromise = null;
+      }
+    });
+    this.dbPromise = opening;
     return this.dbPromise;
   }
 

@@ -738,7 +738,7 @@ import {CoinPersistenceSelectors} from '@root-store/coin-store';
 
 | Input | Type | Notes |
 | --- | --- | --- |
-| `feature` | `string` | Only used for display; must match the `feature` passed to `createPersistenceEffects`. |
+| `feature` | `string` | **Identifies the section, it is not a display label**: must match *exactly* the `feature` passed to `createPersistenceEffects` (it builds the `type` of the save-mode toggle action — a different value makes the toggle silently do nothing). An empty value logs a warning in dev mode. |
 | `selectors` | `NecPersistenceSelectors` | The object returned by `createPersistenceSelectors` (`CoinPersistenceSelectors` above). The component reads `sectionCheck` from the store — no `Injector`, no dependency on the Effects class. |
 | `actions` | `Actions<T>` | The section's action group (`actions` from `<clazz>.actions.ts`). |
 | `quotaWarningThreshold` | `number` | Default `0.9`. Fraction of `storage.estimate()` above which the "storage almost full" tag appears. |

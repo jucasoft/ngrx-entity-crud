@@ -203,6 +203,108 @@ describe('createPersistenceEffects', () => {
     });
   });
 
+  describe('bozze in attesa di debounce (race con rimozioni e nuove ricerche)', () => {
+    /** Sottoscrive tutti gli effect di scrittura, come farebbe EffectsModule. */
+    function setupAll() {
+      const ctx = setup({}, undefined, {debounceMs: 50});
+      const {effects} = ctx;
+      effects.searchRequestOn$.subscribe();
+      effects.searchSuccessOn$.subscribe();
+      effects.draftsPutOn$.subscribe();
+      effects.removeManySelectedOn$.subscribe();
+      effects.removeAllSelectedOn$.subscribe();
+      effects.deleteSuccessOn$.subscribe();
+      effects.deleteManySuccessOn$.subscribe();
+      return ctx;
+    }
+
+    async function editThen(action: Action) {
+      jest.useFakeTimers();
+      try {
+        const ctx = setupAll();
+        ctx.actionsSubject.next(actions.AddManySelected({items: [{id: '1', name: 'a-edit'}]}));
+        jest.advanceTimersByTime(10);
+        ctx.actionsSubject.next(action);
+        jest.advanceTimersByTime(50);
+        await Promise.resolve();
+        return ctx;
+      } finally {
+        jest.useRealTimers();
+      }
+    }
+
+    it('RemoveManySelected entro la finestra: la bozza annullata non viene riscritta', async () => {
+      const {persistence} = await editThen(actions.RemoveManySelected({ids: ['1']}));
+      expect(persistence.putDrafts).not.toHaveBeenCalled();
+    });
+
+    it('RemoveAllSelected entro la finestra: nessuna bozza riscritta', async () => {
+      const {persistence} = await editThen(actions.RemoveAllSelected());
+      expect(persistence.putDrafts).not.toHaveBeenCalled();
+    });
+
+    it('DeleteSuccess entro la finestra: la bozza della riga cancellata non viene riscritta', async () => {
+      const {persistence} = await editThen(actions.DeleteSuccess({id: '1', request: null}));
+      expect(persistence.putDrafts).not.toHaveBeenCalled();
+    });
+
+    it('DeleteManySuccess entro la finestra: la bozza delle righe cancellate non viene riscritta', async () => {
+      const {persistence} = await editThen(actions.DeleteManySuccess({ids: ['1'], request: null}));
+      expect(persistence.putDrafts).not.toHaveBeenCalled();
+    });
+
+    it('SearchRequest entro la finestra: nessuna bozza orfana scritta dopo purgeSection', async () => {
+      const {persistence} = await editThen(actions.SearchRequest({queryParams: {}}));
+      expect(persistence.putDrafts).not.toHaveBeenCalled();
+    });
+
+    it('la rimozione di una riga non scarta le bozze delle altre righe in attesa', async () => {
+      jest.useFakeTimers();
+      try {
+        const {persistence, actionsSubject} = setupAll();
+        actionsSubject.next(actions.AddManySelected({items: [{id: '1', name: 'a-edit'}, {id: '2', name: 'b-edit'}]}));
+        actionsSubject.next(actions.RemoveManySelected({ids: ['1']}));
+        jest.advanceTimersByTime(50);
+        await Promise.resolve();
+
+        expect(persistence.putDrafts).toHaveBeenCalledTimes(1);
+        expect((persistence.putDrafts as jest.Mock).mock.calls[0][1]).toEqual([{id: '2', name: 'b-edit'}]);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+  });
+
+  describe('scrittura del blocco search fallita', () => {
+    it('writeSearch rifiutata: la bozza successiva ritenta la scrittura del blocco search', async () => {
+      jest.useFakeTimers();
+      try {
+        const writeSearch = jest.fn()
+          .mockRejectedValueOnce(new Error('QuotaExceededError'))
+          .mockResolvedValue(undefined);
+        const {effects, persistence, actionsSubject} = setup({writeSearch}, undefined, {debounceMs: 50});
+        effects.searchSuccessOn$.subscribe();
+        effects.draftsPutOn$.subscribe();
+        const request = {queryParams: {q: 'x'}};
+        const items: Coin[] = [{id: '1', name: 'BTC'}];
+
+        actionsSubject.next(actions.SearchSuccess({items, request}));
+        actionsSubject.next(actions.AddManySelected({items: [{id: '1', name: 'BTC-edit'}]}));
+        jest.advanceTimersByTime(50);
+        await Promise.resolve();
+        await Promise.resolve();
+
+        actionsSubject.next(actions.AddManySelected({items: [{id: '1', name: 'BTC-edit-2'}]}));
+        jest.advanceTimersByTime(50);
+        await Promise.resolve();
+
+        expect(persistence.writeSearch).toHaveBeenCalledTimes(2);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+  });
+
   describe('RestoreRequest -> lettura', () => {
     it('sezione presente: RestoreSuccess con items/selected/criteria ricostruiti da entities+drafts', async () => {
       const criteria = {queryParams: {q: 'x'}};

@@ -155,6 +155,9 @@ export function createPersistenceEffects<T>(config: NecPersistenceEffectsConfig<
         tap(() => {
           this.lastSearch = null;
           this.searchPersisted = false;
+          // Una bozza ancora in debounce appartiene alla ricerca precedente: scriverla dopo
+          // purgeSection lascerebbe una bozza orfana senza blocco search.
+          this.pendingDrafts.clear();
         }),
         switchMap(() => from(this.persistence.purgeSection(feature)).pipe(catchError(() => EMPTY)))
       ), {dispatch: false});
@@ -194,21 +197,25 @@ export function createPersistenceEffects<T>(config: NecPersistenceEffectsConfig<
 
       this.removeManySelectedOn$ = createEffect(() => this.actions$.pipe(
         ofType(actions.RemoveManySelected),
+        tap(({ids}) => this.discardPendingDrafts(ids)),
         switchMap(({ids}) => from(this.persistence.deleteDrafts(feature, ids)).pipe(catchError(() => EMPTY)))
       ), {dispatch: false});
 
       this.removeAllSelectedOn$ = createEffect(() => this.actions$.pipe(
         ofType(actions.RemoveAllSelected),
+        tap(() => this.pendingDrafts.clear()),
         switchMap(() => from(this.persistence.deleteAllDrafts(feature)).pipe(catchError(() => EMPTY)))
       ), {dispatch: false});
 
       this.deleteSuccessOn$ = createEffect(() => this.actions$.pipe(
         ofType(actions.DeleteSuccess),
+        tap(({id}) => this.discardPendingDrafts([id])),
         switchMap(({id}) => from(this.persistence.deleteDrafts(feature, [id])).pipe(catchError(() => EMPTY)))
       ), {dispatch: false});
 
       this.deleteManySuccessOn$ = createEffect(() => this.actions$.pipe(
         ofType(actions.DeleteManySuccess),
+        tap(({ids}) => this.discardPendingDrafts(ids)),
         switchMap(({ids}) => from(this.persistence.deleteDrafts(feature, ids)).pipe(catchError(() => EMPTY)))
       ), {dispatch: false});
     }
@@ -220,7 +227,17 @@ export function createPersistenceEffects<T>(config: NecPersistenceEffectsConfig<
       }
       const {criteria, items} = this.lastSearch;
       this.searchPersisted = true;
-      return this.persistence.writeSearch<T, ICriteria>(feature, criteria, items, selectId);
+      // Se la scrittura fallisce il blocco va ritentato alla bozza successiva: senza di esso
+      // readSection() restituisce null e le bozze scritte dopo non sarebbero piu' ripristinabili.
+      return this.persistence.writeSearch<T, ICriteria>(feature, criteria, items, selectId).catch((error) => {
+        this.searchPersisted = false;
+        throw error;
+      });
+    }
+
+    /** Toglie dalle bozze in attesa di debounce le righe rimosse, cosi' non vengono riscritte dopo deleteDrafts. */
+    private discardPendingDrafts(ids: Array<string | number>): void {
+      (ids || []).forEach((id) => this.pendingDrafts.delete(String(id)));
     }
 
     private autoRestoreConfig(): NecAutoRestoreConfig | undefined {

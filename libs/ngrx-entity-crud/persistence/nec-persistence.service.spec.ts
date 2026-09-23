@@ -215,6 +215,73 @@ describe('NecPersistenceService', () => {
     upgraded.ngOnDestroy();
   });
 
+  describe('apertura del DB (open)', () => {
+    /** Richiesta finta che non chiama mai nessun callback finché il test non lo decide. */
+    function fakeOpenRequest(): IDBOpenDBRequest & Record<string, any> {
+      return {} as IDBOpenDBRequest & Record<string, any>;
+    }
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('un\'apertura fallita non resta in cache: la chiamata successiva ritenta', async () => {
+      const failing = fakeOpenRequest();
+      const realOpen = indexedDB.open.bind(indexedDB);
+      jest.spyOn(indexedDB, 'open')
+        .mockImplementationOnce(() => {
+          setTimeout(() => failing.onerror?.(new Event('error')));
+          return failing;
+        })
+        .mockImplementation(realOpen);
+
+      await expect(service.stats('coins')).rejects.toThrow();
+      await expect(service.stats('coins')).resolves.toBeNull();
+    });
+
+    it('un\'apertura che non risponde mai scade dopo openTimeoutMs e la chiamata successiva ritenta', async () => {
+      const timedService = makeService({openTimeoutMs: 20});
+      const hanging = fakeOpenRequest();
+      const realOpen = indexedDB.open.bind(indexedDB);
+      jest.spyOn(indexedDB, 'open')
+        .mockImplementationOnce(() => hanging)
+        .mockImplementation(realOpen);
+
+      await expect(timedService.stats('coins')).rejects.toThrow(/timeout/i);
+      await expect(timedService.stats('coins')).resolves.toBeNull();
+
+      timedService.ngOnDestroy();
+    });
+
+    it('una connessione aperta dopo il timeout viene chiusa, non resta orfana', async () => {
+      const timedService = makeService({openTimeoutMs: 20});
+      const late = fakeOpenRequest();
+      jest.spyOn(indexedDB, 'open').mockImplementationOnce(() => late);
+
+      await expect(timedService.stats('coins')).rejects.toThrow(/timeout/i);
+
+      const lateDb = {close: jest.fn()};
+      Object.defineProperty(late, 'result', {value: lateDb});
+      late.onsuccess?.(new Event('success'));
+
+      expect(lateDb.close).toHaveBeenCalled();
+      timedService.ngOnDestroy();
+    });
+
+    it('cede la connessione a una scheda che aggiorna la versione del DB (onversionchange)', async () => {
+      const dbName = `nec-persistence-versionchange-${Math.random().toString(36).slice(2)}`;
+      const oldTab = makeService({dbName, dbVersion: 1});
+      await oldTab.writeSearch('coins', {}, [{id: '1', name: 'BTC'}], selectId);
+
+      const newTab = makeService({dbName, dbVersion: 2});
+
+      expect((await newTab.stats('coins'))?.count).toBe(1);
+
+      oldTab.ngOnDestroy();
+      newTab.ngOnDestroy();
+    });
+  });
+
   it('con enabled: false ogni operazione è un no-op', async () => {
     const disabled = makeService({enabled: false});
 

@@ -8,6 +8,7 @@ export const NEC_DEFAULT_PERSISTENCE_CONFIG: NecPersistenceConfig = {
   // idempotente sugli store esistenti, chi ha gia' il DB in versione 1 aggiorna senza perdere dati.
   dbVersion: 2,
   debounceMs: 200,
+  openTimeoutMs: 10000,
   enabled: true,
 };
 

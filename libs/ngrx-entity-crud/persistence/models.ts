@@ -31,6 +31,11 @@ export interface NecPersistenceConfig {
   dbVersion?: number;
   /** Debounce (ms) che la effect factory applica alle scritture delle bozze. */
   debounceMs?: number;
+  /**
+   * Tempo massimo (ms) di attesa per l'apertura del DB: oltre, l'operazione fallisce e la chiamata
+   * successiva ritenta (navigazione privata, storage bloccato da un'estensione, ...).
+   */
+  openTimeoutMs?: number;
   /** `false` disattiva scritture e letture: ogni operazione diventa un no-op. */
   enabled?: boolean;
   /** Default globale, sovrascrivibile per sezione in `createPersistenceEffects`. Opt-in. */

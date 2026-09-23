@@ -84,10 +84,10 @@ describe('NecRestoreSearchComponent', () => {
   };
 
   /** `pendingWrites$` reale e' una BehaviorSubject (Fase 0): un fresh subscriber la vede subito. */
-  function createComponent(): NecRestoreSearchComponent<Coin> {
+  function createComponent(feature = 'coins'): NecRestoreSearchComponent<Coin> {
     const fixture = TestBed.createComponent(NecRestoreSearchComponent<Coin>);
     const created = fixture.componentInstance;
-    created.feature = 'coins';
+    created.feature = feature;
     created.selectors = selectors;
     created.actions = actions;
     fixture.detectChanges(); // esegue ngOnInit
@@ -226,6 +226,26 @@ describe('NecRestoreSearchComponent', () => {
 
     component.toggleSaveMode('always');
     expect(dispatch).toHaveBeenCalledWith({type: '[coins Persistence] Set Section Save Mode', mode: 'on-draft'});
+  });
+
+  it('[feature] vuoto: avvisa in console (il toggle saveMode non raggiungerebbe nessun effect)', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    try {
+      createComponent('');
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('[feature]'));
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it('[feature] valorizzato: nessun avviso in console', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    try {
+      createComponent('coins');
+      expect(warn).not.toHaveBeenCalled();
+    } finally {
+      warn.mockRestore();
+    }
   });
 
   it('quota quasi esaurita: quotaWarning true, letta una sola volta da estimateStorage', async () => {

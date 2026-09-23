@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, signal} from '@angular/core';
+import {ChangeDetectionStrategy, Component, Input, isDevMode, OnDestroy, OnInit, signal} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {ButtonModule} from 'primeng/button';
 import {TagModule} from 'primeng/tag';
@@ -165,6 +165,11 @@ function pluralize(count: number, singular: string, plural: string): string {
   `,
 })
 export class NecRestoreSearchComponent<T = unknown> implements OnInit, OnDestroy {
+  /**
+   * Identifica la sezione: deve coincidere ESATTAMENTE con la `feature` passata a
+   * `createPersistenceEffects`, perche' costruisce il `type` dell'azione dispatchata dal toggle
+   * saveMode. Non e' un'etichetta di sola visualizzazione.
+   */
   @Input() feature = '';
   @Input() selectors!: NecPersistenceSelectors;
   @Input() actions!: Actions<T>;
@@ -186,6 +191,12 @@ export class NecRestoreSearchComponent<T = unknown> implements OnInit, OnDestroy
   }
 
   ngOnInit(): void {
+    if (isDevMode() && !this.feature) {
+      console.warn(
+        '<nec-restore-search>: [feature] non valorizzato. Deve coincidere con la `feature` passata a ' +
+        'createPersistenceEffects, altrimenti il toggle saveMode non raggiunge nessun effect.'
+      );
+    }
     const check$: Observable<NecSectionCheck | null> = this.store.select(this.selectors.sectionCheck).pipe(startWith(null));
 
     const restoring$: Observable<boolean> = merge(
