@@ -19,6 +19,7 @@ export const {
   Reset,
 
   Edit,
+  SelectItem,
 } = actions;
 
 

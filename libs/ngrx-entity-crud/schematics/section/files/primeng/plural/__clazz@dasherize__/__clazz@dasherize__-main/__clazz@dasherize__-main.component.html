@@ -1,7 +1,10 @@
 <p-confirmDialog />
 <p-toolbar styleClass="mb-4">
   <ng-template pTemplate="left">
-    <app-search [actions]="actions"></app-search>
+    <!-- persistenza locale della sezione: con enabled: false (default) mostra solo la ricerca -->
+    <nec-restore-search [persistence]="persistence">
+      <app-search [actions]="actions"></app-search>
+    </nec-restore-search>
   </ng-template>
   <ng-template pTemplate="right">
     <app-button-new-<%= dasherize(clazz) %> class="mr-2"></app-button-new-<%= dasherize(clazz) %>>

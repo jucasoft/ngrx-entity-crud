@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "$id": "CrudPersistence",
+  "title": "Aggiunge la persistenza locale IndexedDB a una sezione CRUD-PLURAL esistente",
+  "type": "object",
+  "properties": {
+    "clazz": {
+      "description": "Nome dell'entita' della sezione (es. Coin).",
+      "type": "string",
+      "$default": {
+        "$source": "argv",
+        "index": 0
+      },
+      "x-prompt": "Nome dell'entita' della sezione:"
+    },
+    "enabled": {
+      "description": "Attiva subito la persistenza (enabled: true in <clazz>.persistence.ts). Default false: cablaggio presente ma spento.",
+      "type": "boolean",
+      "default": false
+    },
+    "ui": {
+      "description": "Collega anche la UI della sezione (<nec-restore-search> attorno ad <app-search>). Default true.",
+      "type": "boolean",
+      "default": true
+    },
+    "project": {
+      "type": "string",
+      "description": "The name of the project.",
+      "$default": {
+        "$source": "projectName"
+      }
+    }
+  },
+  "required": [
+    "clazz"
+  ]
+}

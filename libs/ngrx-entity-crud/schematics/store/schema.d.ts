@@ -33,9 +33,9 @@ declare interface CrudStore {
   registration?: 'eager' | 'lazy';
 
   /**
-   * Genera anche la registrazione di `createPersistenceEffects` (persistenza locale IndexedDB,
-   * vedi `ngrx-entity-crud/persistence` e `ngrx-entity-crud-persistence-plan.md`) nel modulo
-   * dello store. Opt-in: default `false`, nessuna dipendenza aggiunta se non richiesto.
+   * Attiva la persistenza locale IndexedDB (solo CRUD-PLURAL). Il cablaggio (`<clazz>.persistence.ts`,
+   * registrato nel modulo dello store) e' sempre generato: `true` imposta `enabled: true`, altrimenti
+   * resta `enabled: false`, spento ma attivabile in seguito cambiando solo quel valore.
    */
   persist?: boolean;
 }

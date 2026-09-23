@@ -11,6 +11,10 @@ export const {
   SearchFailure,
   SearchSuccess,
 
+  RestoreRequest,
+  RestoreFailure,
+  RestoreSuccess,
+
   DeleteRequest,
   DeleteFailure,
   DeleteSuccess,

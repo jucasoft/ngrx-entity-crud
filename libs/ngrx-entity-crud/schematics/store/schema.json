@@ -56,10 +56,10 @@
       }
     },
     "persist": {
-      "description": "Genera anche la registrazione di createPersistenceEffects (persistenza locale IndexedDB, solo per CRUD-PLURAL). Opt-in, default false.",
+      "description": "Attiva la persistenza locale IndexedDB (solo CRUD-PLURAL). Il cablaggio (<clazz>.persistence.ts) e' sempre generato: questo flag imposta enabled: true, altrimenti resta enabled: false (spento, attivabile in seguito). Default false.",
       "type": "boolean",
       "default": false,
-      "x-prompt": "Vuoi generare anche il wiring della persistenza locale (createPersistenceEffects, solo CRUD-PLURAL)?"
+      "x-prompt": "Vuoi attivare subito la persistenza locale IndexedDB (solo CRUD-PLURAL)? Il cablaggio viene generato comunque, spento."
     }
   },
   "required": [

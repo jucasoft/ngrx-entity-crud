@@ -31,6 +31,11 @@
       "factory": "./table-report/index#tableReport",
       "schema": "./table-report/schema.json"
     },
+    "persistence": {
+      "description": "Add local IndexedDB persistence to an existing CRUD-PLURAL section (store + optional UI).",
+      "factory": "./persistence/index#addPersistence",
+      "schema": "./persistence/schema.json"
+    },
     "dashboard": {
       "description": "Scaffold a project dashboard view (storage + lazy diagnostics) hosting <nec-dashboard>.",
       "factory": "./dashboard/index#makeDashboard",

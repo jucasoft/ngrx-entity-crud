@@ -7,6 +7,8 @@ export {
 	<%= clazz %>StoreModule
 } from './<%= dasherize(clazz) %>-store.module';
 
+export {<%= clazz %>Persistence} from './<%= dasherize(clazz) %>.persistence';
+
 export {
 	<%= clazz %>StoreActions,
 	<%= clazz %>StoreSelectors,

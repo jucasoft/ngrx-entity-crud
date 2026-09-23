@@ -21,6 +21,7 @@ import {ToolbarModule} from 'primeng/toolbar';
 import {HttpClientModule} from "@angular/common/http";
 import {ConfirmationService} from "primeng/api";
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import {NecRestoreSearchComponent} from 'ngrx-entity-crud/persistence-ui';
 
 @NgModule({
   declarations: [
@@ -47,7 +48,8 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
     SearchModule,
     NgLetModule,
     ToolbarModule,
-    ConfirmDialogModule
+    ConfirmDialogModule,
+    NecRestoreSearchComponent
   ],
   providers: [ConfirmationService],
 

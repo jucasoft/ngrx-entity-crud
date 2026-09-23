@@ -9,10 +9,10 @@ export function makeStore(options: CrudStore): Rule {
     options.name = options.name ? strings.underscore(options.name) : strings.underscore(options.clazz);
     const lazy = options.registration === 'lazy';
     options.persist = !!options.persist;
-    // createPersistenceEffects si aggancia a Actions<T> (Restore*, entitiesSelected): esiste solo
-    // per il tipo plurale. Per gli altri tipi il flag viene silenziosamente ignorato dai template
-    // (nessuno di essi referenzia `persist`), ma avvisiamo: e' piu' probabile un refuso che una
-    // scelta voluta.
+    // La persistenza (createPersistence) si aggancia a Actions<T> (Restore*, entitiesSelected):
+    // esiste solo per il tipo plurale, dove il cablaggio e' sempre generato e --persist decide
+    // solo `enabled`. Per gli altri tipi il flag e' ignorato, ma avvisiamo: e' piu' probabile un
+    // refuso che una scelta voluta.
     if (options.persist && options.type !== 'CRUD-PLURAL') {
       context.logger.warn(
         `--persist e' supportato solo per --type=CRUD-PLURAL: ignorato per --type=${options.type}.`
@@ -120,6 +120,8 @@ export function makeStore(options: CrudStore): Rule {
         ...genericRules,
         ...crudRules,
         render(options, './files/crud-store/plural', pathStore),
+        // persistenza locale sempre cablata: --persist decide solo `enabled` in <clazz>.persistence.ts
+        render(options, './files/crud-persistence', pathStore),
         render(options, './files/crud-service/plural', pathService)
       ]);
     }

@@ -6,29 +6,17 @@ import {<%= clazz %>StoreEffects} from './<%= dasherize(clazz) %>.effects';
 import {featureReducer} from './<%= dasherize(clazz) %>.reducer';
 import {State} from './<%= dasherize(clazz) %>.state';
 import {Names} from './<%= dasherize(clazz) %>.names';
-<% if (persist) { %>import {actions} from './<%= dasherize(clazz) %>.actions';
-import {<%= clazz %>} from '@models/vo/<%= dasherize(clazz) %>';
-import {createPersistenceEffects, createPersistenceReducer, createPersistenceSelectors, necPersistenceFeatureKey} from 'ngrx-entity-crud/persistence';
-<% } %>
+import {<%= clazz %>Persistence} from './<%= dasherize(clazz) %>.persistence';
+
 export const INJECTION_TOKEN = new InjectionToken<ActionReducer<State>>(`${Names.NAME}-store Reducers`);
-<% if (persist) { %>
-// Persistenza locale IndexedDB (opt-in, generata da --persist): vedi ngrx-entity-crud/persistence
-// e ngrx-entity-crud-persistence-plan.md. Effects/reducer/selectors sono chiusi su Names.NAME.
-// <nec-restore-search> legge lo stato via [selectors], che espone gli stessi selectors dello store.
-export const <%= clazz %>PersistenceEffects = createPersistenceEffects<<%= clazz %>>({
-	feature: Names.NAME,
-	selectId: <%= clazz %>.selectId,
-	actions,
-});
-export const <%= clazz %>PersistenceReducer = createPersistenceReducer(Names.NAME);
-export const <%= clazz %>PersistenceSelectors = createPersistenceSelectors(Names.NAME);
-<% } %>
+
 @NgModule({
 	imports: [
 		CommonModule,
 		StoreModule.forFeature(Names.NAME, INJECTION_TOKEN),
-		<% if (persist) { %>StoreModule.forFeature(necPersistenceFeatureKey(Names.NAME), <%= clazz %>PersistenceReducer),
-		<% } %>EffectsModule.forFeature([<%= clazz %>StoreEffects<% if (persist) { %>, <%= clazz %>PersistenceEffects<% } %>]),
+		// persistenza locale (vedi <%= dasherize(clazz) %>.persistence.ts): sempre registrata, attiva solo con enabled: true
+		StoreModule.forFeature(<%= clazz %>Persistence.featureKey, <%= clazz %>Persistence.reducer),
+		EffectsModule.forFeature([<%= clazz %>StoreEffects, <%= clazz %>Persistence.effects]),
 	],
 	declarations: [],
 	providers: [<%= clazz %>StoreEffects,
