@@ -1,0 +1,2 @@
+# graphify: aggiorna graphify-out/ dopo merge/pull (solo AST, non blocca mai).
+sh scripts/graphify-hook.sh ORIG_HEAD HEAD

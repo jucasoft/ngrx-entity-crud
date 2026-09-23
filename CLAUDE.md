@@ -20,7 +20,7 @@ Run from the workspace root unless noted.
 - `npm run publish` / `publish:beta` — builds + `npm publish` (latest / `beta` tag) from `dist/ngrx-entity-crud`.
 - Testing `ng-add` against a consumer app: `ng generate ngrx-entity-crud:ng-add` (after `npm link`).
 
-Husky 9 (`core.hooksPath=.husky/_`, set by `npm install` via `prepare`) runs lint-staged (Prettier + `eslint --fix` on staged `*.{ts,js,json,md}`) in pre-commit, and `graphify update . --force` in post-commit to refresh `graphify-out/` (AST only, never blocks; doc changes still need `/graphify --update`).
+Husky 9 (`core.hooksPath=.husky/_`, set by `npm install` via `prepare`) runs lint-staged (Prettier + `eslint --fix` on staged `*.{ts,js,json,md}`) in pre-commit. The post-commit/post-merge/post-checkout/post-rewrite hooks call `scripts/graphify-hook.sh <from> <to>`, which refreshes `graphify-out/` for the changed files (AST only, never blocks). Use it instead of `graphify update` / `graphify hook install`: `scripts/graphify-rebuild.py` works around graphify bugs that otherwise leave stale nodes for deleted/renamed code. Doc changes still need `/graphify --update`.
 
 ## Release procedure (publishing a new version)
 

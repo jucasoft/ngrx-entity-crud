@@ -1,0 +1,4 @@
+# graphify: aggiorna graphify-out/ a fine rebase (durante il rebase gli altri hook saltano).
+# L'amend è già coperto da post-commit.
+[ "$1" = "rebase" ] && sh scripts/graphify-hook.sh ORIG_HEAD HEAD
+exit 0

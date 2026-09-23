@@ -1,11 +1,3 @@
-# graphify: aggiorna il knowledge graph dopo il commit (solo codice/AST, non blocca mai).
+# graphify: aggiorna graphify-out/ con i file del commit (solo AST, non blocca mai).
 # Le modifiche ai documenti richiedono comunque `/graphify --update`.
-if command -v graphify >/dev/null 2>&1; then
-  if graphify update . --force >/dev/null 2>&1; then
-    echo "[graphify] knowledge graph aggiornato -> graphify-out/graph.json"
-  else
-    echo "[graphify] aggiornamento fallito (lancia 'graphify update . --force' per i dettagli)"
-  fi
-fi
-
-exit 0
+sh scripts/graphify-hook.sh HEAD~1 HEAD
