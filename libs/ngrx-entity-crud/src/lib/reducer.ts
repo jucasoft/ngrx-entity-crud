@@ -153,10 +153,17 @@ export function createCrudOns<T, S extends EntityCrudState<T>>(adapter: EntityAd
     const entitiesSelected = toDictionary(selected, adapter);
     const idsSelected = Object.keys(entitiesSelected);
 
+    // la selezione singola sopravvive solo se l'elemento e' ancora tra quelli ripristinati,
+    // altrimenti un form legato a itemSelected resterebbe su un elemento che non esiste piu'.
+    const keepSingle = hasId(state.idSelected)
+      && items.some((item) => String(adapter.selectId(item)) === String(state.idSelected));
+
     return adapter.setAll(items, {
       ...state,
       entitiesSelected,
       idsSelected,
+      idSelected: keepSingle ? state.idSelected : null,
+      itemSelected: keepSingle ? state.itemSelected : null,
       lastCriteria: criteria,
       isLoaded: true,
       isLoading: false,

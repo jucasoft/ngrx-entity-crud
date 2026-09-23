@@ -13,10 +13,8 @@ export class BaseSingularCrudService<T>
   implements IBaseCrudService<T>
 {
   select(opt: ICriteria): Observable<Response<T>> {
-    console.log('BaseSingularCrudService.select()');
-
     if (typeof console !== 'undefined' && this.debug) {
-      console.log('BaseCrudService.search()');
+      console.log('BaseSingularCrudService.select()');
       console.log('Extended from: ' + this.constructor.name);
     }
     const url =
@@ -33,9 +31,11 @@ export class BaseSingularCrudService<T>
       httpOptions = { ...httpOptions, ...{ params: opt.queryParams } };
     }
 
-    console.log('httpOptions', httpOptions);
-    console.log('url', url);
-    console.log('this.getUrl()', this.getUrl());
+    if (typeof console !== 'undefined' && this.debug) {
+      console.log('httpOptions', httpOptions);
+      console.log('url', url);
+      console.log('this.getUrl()', this.getUrl());
+    }
 
     return this.http
       .get(this.getUrl() + url, httpOptions)

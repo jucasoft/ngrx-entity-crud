@@ -94,6 +94,28 @@ describe('Reducers - Restore*', () => {
     });
   });
 
+  describe('RestoreSuccess - selezione singola', () => {
+    const criteria = {queryParams: {}};
+
+    it('azzera idSelected/itemSelected se l\'elemento selezionato non e\' tra quelli ripristinati', () => {
+      const fromState = {...state, idSelected: 99, itemSelected: {id: 99, name: 'gone'}};
+
+      const result = featureReducer(fromState, actions.RestoreSuccess({items: pizzas, selected: [], criteria}));
+
+      expect(result.idSelected).toBeNull();
+      expect(result.itemSelected).toBeNull();
+    });
+
+    it('mantiene idSelected/itemSelected se l\'elemento selezionato e\' tra quelli ripristinati (anche con id 0)', () => {
+      const fromState = {...state, idSelected: 0, itemSelected: pizzas[0]};
+
+      const result = featureReducer(fromState, actions.RestoreSuccess({items: pizzas, selected: [], criteria}));
+
+      expect(result.idSelected).toBe(0);
+      expect(result.itemSelected).toEqual(pizzas[0]);
+    });
+  });
+
   describe('RestoreFailure', () => {
     it('sets the error and stops loading, without touching entities', () => {
       const fromState = {...adapter.setAll(pizzas, state), isLoading: true};
