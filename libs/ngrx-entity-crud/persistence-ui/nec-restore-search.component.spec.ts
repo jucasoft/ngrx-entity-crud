@@ -1,9 +1,14 @@
-import {TestBed} from '@angular/core/testing';
-import {Action, Store} from '@ngrx/store';
-import {Actions as NgrxActionsClass} from '@ngrx/effects';
-import {BehaviorSubject, Subject, Subscription} from 'rxjs';
-import {createCrudEntityAdapter} from 'ngrx-entity-crud';
-import {formatAge, formatBytes, NecRestoreSearchComponent, NecRestoreSearchViewModel} from './nec-restore-search.component';
+import { TestBed } from '@angular/core/testing';
+import { Action, Store } from '@ngrx/store';
+import { Actions as NgrxActionsClass } from '@ngrx/effects';
+import { BehaviorSubject, Subject, Subscription } from 'rxjs';
+import { createCrudEntityAdapter } from 'ngrx-entity-crud';
+import {
+  formatAge,
+  formatBytes,
+  NecRestoreSearchComponent,
+  NecRestoreSearchViewModel,
+} from './nec-restore-search.component';
 import {
   createPersistence,
   createPersistenceSelectors,
@@ -14,7 +19,8 @@ import {
   NecSectionStats,
 } from 'ngrx-entity-crud/persistence';
 
-const flush = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
+const flush = (): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, 0));
 
 describe('formatBytes', () => {
   it('mostra i byte sotto 1 KB', () => {
@@ -63,13 +69,14 @@ describe('NecRestoreSearchComponent', () => {
     name: string;
   }
 
-  const adapter = createCrudEntityAdapter<Coin>({selectId: (m) => m.id});
+  const adapter = createCrudEntityAdapter<Coin>({ selectId: (m) => m.id });
   const actions = adapter.createCrudActions('coins');
 
   // `NecPersistenceSelectors.sectionCheck` e' un vero MemoizedSelector (`.release`/`.projector`,
   // non solo una call signature): il doppio si costruisce con la stessa factory di produzione
   // (Task 4), non con una arrow function fatta a mano che non implementerebbe l'interfaccia.
-  const selectors: NecPersistenceSelectors = createPersistenceSelectors('coins');
+  const selectors: NecPersistenceSelectors =
+    createPersistenceSelectors('coins');
 
   let dispatch: jest.Mock;
   let select: jest.Mock;
@@ -113,11 +120,14 @@ describe('NecRestoreSearchComponent', () => {
     TestBed.configureTestingModule({
       imports: [NecRestoreSearchComponent],
       providers: [
-        {provide: Store, useValue: {dispatch, select}},
-        {provide: NgrxActionsClass, useValue: new NgrxActionsClass(actionsSubject)},
+        { provide: Store, useValue: { dispatch, select } },
+        {
+          provide: NgrxActionsClass,
+          useValue: new NgrxActionsClass(actionsSubject),
+        },
         {
           provide: NecPersistenceService,
-          useValue: {pendingWrites$, estimateStorage},
+          useValue: { pendingWrites$, estimateStorage },
         },
       ],
     });
@@ -147,32 +157,54 @@ describe('NecRestoreSearchComponent', () => {
   });
 
   it('check senza dati locali: none', () => {
-    checkSubject.next({stats: null, autoRestoreTriggered: false, saveMode: 'on-draft'});
+    checkSubject.next({
+      stats: null,
+      autoRestoreTriggered: false,
+      saveMode: 'on-draft',
+    });
     expect(currentVm().state).toBe('none');
   });
 
   it('check con dati locali, fuori soglia: prompt con le stats', () => {
-    checkSubject.next({stats, autoRestoreTriggered: false, saveMode: 'on-draft'});
+    checkSubject.next({
+      stats,
+      autoRestoreTriggered: false,
+      saveMode: 'on-draft',
+    });
     const vm = currentVm();
     expect(vm.state).toBe('prompt');
     expect(vm.stats).toEqual(stats);
   });
 
   it('check con autoRestoreTriggered + RestoreRequest in volo: auto-restoring', () => {
-    checkSubject.next({stats, autoRestoreTriggered: true, saveMode: 'on-draft'});
+    checkSubject.next({
+      stats,
+      autoRestoreTriggered: true,
+      saveMode: 'on-draft',
+    });
     actionsSubject.next(actions.RestoreRequest());
     expect(currentVm().state).toBe('auto-restoring');
   });
 
   it('auto-restoring seguito da RestoreSuccess: torna a none, non a prompt', () => {
-    checkSubject.next({stats, autoRestoreTriggered: true, saveMode: 'on-draft'});
+    checkSubject.next({
+      stats,
+      autoRestoreTriggered: true,
+      saveMode: 'on-draft',
+    });
     actionsSubject.next(actions.RestoreRequest());
-    actionsSubject.next(actions.RestoreSuccess({items: [], selected: [], criteria: {}}));
+    actionsSubject.next(
+      actions.RestoreSuccess({ items: [], selected: [], criteria: {} })
+    );
     expect(currentVm().state).toBe('none');
   });
 
   it('click su Restore: dispaccia RestoreRequest e passa a manual-restoring', () => {
-    checkSubject.next({stats, autoRestoreTriggered: false, saveMode: 'on-draft'});
+    checkSubject.next({
+      stats,
+      autoRestoreTriggered: false,
+      saveMode: 'on-draft',
+    });
     expect(currentVm().state).toBe('prompt');
 
     component.restore();
@@ -183,11 +215,17 @@ describe('NecRestoreSearchComponent', () => {
   });
 
   it('RestoreFailure durante un restore manuale: torna a prompt con l\'errore visibile', () => {
-    checkSubject.next({stats, autoRestoreTriggered: false, saveMode: 'on-draft'});
+    checkSubject.next({
+      stats,
+      autoRestoreTriggered: false,
+      saveMode: 'on-draft',
+    });
     component.restore();
     actionsSubject.next(actions.RestoreRequest());
 
-    actionsSubject.next(actions.RestoreFailure({error: 'IndexedDB non disponibile'}));
+    actionsSubject.next(
+      actions.RestoreFailure({ error: 'IndexedDB non disponibile' })
+    );
 
     const vm = currentVm();
     expect(vm.state).toBe('prompt');
@@ -195,7 +233,11 @@ describe('NecRestoreSearchComponent', () => {
   });
 
   it('New search chiede conferma prima di scartare le bozze, poi torna a none', () => {
-    checkSubject.next({stats, autoRestoreTriggered: false, saveMode: 'on-draft'});
+    checkSubject.next({
+      stats,
+      autoRestoreTriggered: false,
+      saveMode: 'on-draft',
+    });
 
     expect(component.dismissPending()).toBe(false);
     component.requestNewSearch();
@@ -212,7 +254,11 @@ describe('NecRestoreSearchComponent', () => {
   });
 
   it('pendingWrites si riflette nella vm indipendentemente dallo stato principale', () => {
-    checkSubject.next({stats: null, autoRestoreTriggered: false, saveMode: 'on-draft'});
+    checkSubject.next({
+      stats: null,
+      autoRestoreTriggered: false,
+      saveMode: 'on-draft',
+    });
     pendingWrites$.next(3);
 
     expect(currentVm().pendingWrites).toBe(3);
@@ -221,17 +267,27 @@ describe('NecRestoreSearchComponent', () => {
   it('saveMode nella vm riflette il check, default "on-draft" prima di ogni check', () => {
     expect(currentVm().saveMode).toBe('on-draft');
 
-    checkSubject.next({stats: null, autoRestoreTriggered: false, saveMode: 'always'});
+    checkSubject.next({
+      stats: null,
+      autoRestoreTriggered: false,
+      saveMode: 'always',
+    });
 
     expect(currentVm().saveMode).toBe('always');
   });
 
   it('toggleSaveMode dispaccia SetSectionSaveMode invertendo lo stato corrente', () => {
     component.toggleSaveMode('on-draft');
-    expect(dispatch).toHaveBeenCalledWith({type: '[coins Persistence] Set Section Save Mode', mode: 'always'});
+    expect(dispatch).toHaveBeenCalledWith({
+      type: '[coins Persistence] Set Section Save Mode',
+      mode: 'always',
+    });
 
     component.toggleSaveMode('always');
-    expect(dispatch).toHaveBeenCalledWith({type: '[coins Persistence] Set Section Save Mode', mode: 'on-draft'});
+    expect(dispatch).toHaveBeenCalledWith({
+      type: '[coins Persistence] Set Section Save Mode',
+      mode: 'on-draft',
+    });
   });
 
   describe('input [persistence] (bundle di createPersistence)', () => {
@@ -240,11 +296,20 @@ describe('NecRestoreSearchComponent', () => {
       element: HTMLElement;
       bundle: NecPersistence<Coin>;
     } {
-      const bundle = createPersistence<Coin>({feature: 'coins', selectId: (c) => c.id, actions, enabled});
+      const bundle = createPersistence<Coin>({
+        feature: 'coins',
+        selectId: (c) => c.id,
+        actions,
+        enabled,
+      });
       const fixture = TestBed.createComponent(NecRestoreSearchComponent<Coin>);
       fixture.componentInstance.persistence = bundle;
       fixture.detectChanges();
-      return {created: fixture.componentInstance, element: fixture.nativeElement, bundle};
+      return {
+        created: fixture.componentInstance,
+        element: fixture.nativeElement,
+        bundle,
+      };
     }
 
     beforeEach(() => {
@@ -252,17 +317,21 @@ describe('NecRestoreSearchComponent', () => {
     });
 
     it('legge sectionCheck dai selectors del bundle', () => {
-      const {bundle} = createWithBundle(true);
+      const { bundle } = createWithBundle(true);
       expect(select).toHaveBeenCalledWith(bundle.selectors.sectionCheck);
     });
 
     it('il toggle dispatcha SetSectionSaveMode del bundle, senza bisogno di [feature]', () => {
-      const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const warn = jest
+        .spyOn(console, 'warn')
+        .mockImplementation(() => undefined);
       try {
-        const {created, bundle} = createWithBundle(true);
+        const { created, bundle } = createWithBundle(true);
         created.toggleSaveMode('on-draft');
 
-        expect(dispatch).toHaveBeenCalledWith(bundle.actions.SetSectionSaveMode({mode: 'always'}));
+        expect(dispatch).toHaveBeenCalledWith(
+          bundle.actions.SetSectionSaveMode({ mode: 'always' })
+        );
         expect(warn).not.toHaveBeenCalled();
       } finally {
         warn.mockRestore();
@@ -270,13 +339,40 @@ describe('NecRestoreSearchComponent', () => {
     });
 
     it('Restore dispatcha RestoreRequest delle azioni CRUD del bundle', () => {
-      const {created, bundle} = createWithBundle(true);
+      const { created, bundle } = createWithBundle(true);
       created.restore();
-      expect(dispatch).toHaveBeenCalledWith(bundle.crudActions.RestoreRequest());
+      expect(dispatch).toHaveBeenCalledWith(
+        bundle.crudActions.RestoreRequest()
+      );
+    });
+
+    it('layout di default "inline": nessuna classe nec-block sull\'host', () => {
+      const { element } = createWithBundle(true);
+
+      expect(element.classList.contains('nec-block')).toBe(false);
+    });
+
+    it('layout "block" (form di ricerca a tutta larghezza): classe nec-block sull\'host, contenuto in .nec-content', () => {
+      const bundle = createPersistence<Coin>({
+        feature: 'coins',
+        selectId: (c) => c.id,
+        actions,
+      });
+      const fixture = TestBed.createComponent(NecRestoreSearchComponent<Coin>);
+      fixture.componentInstance.persistence = bundle;
+      fixture.componentInstance.layout = 'block';
+      fixture.detectChanges();
+      const element: HTMLElement = fixture.nativeElement;
+
+      expect(element.classList.contains('nec-block')).toBe(true);
+      expect(element.querySelector('.nec-content')).not.toBeNull();
+      expect(
+        element.querySelector('.nec-indicators button[aria-pressed]')
+      ).not.toBeNull();
     });
 
     it('enabled: false -> trasparente: solo il contenuto proiettato, nessun toggle, nessuna lettura dallo store', () => {
-      const {created, element} = createWithBundle(false);
+      const { created, element } = createWithBundle(false);
       let vm: NecRestoreSearchViewModel | undefined;
       const sub = created.vm$.subscribe((value) => (vm = value));
 
@@ -289,7 +385,9 @@ describe('NecRestoreSearchComponent', () => {
   });
 
   it('[feature] vuoto: avvisa in console (il toggle saveMode non raggiungerebbe nessun effect)', () => {
-    const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const warn = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
     try {
       createComponent('');
       expect(warn).toHaveBeenCalledWith(expect.stringContaining('[feature]'));
@@ -299,7 +397,9 @@ describe('NecRestoreSearchComponent', () => {
   });
 
   it('[feature] valorizzato: nessun avviso in console', () => {
-    const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const warn = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
     try {
       createComponent('coins');
       expect(warn).not.toHaveBeenCalled();
@@ -309,7 +409,7 @@ describe('NecRestoreSearchComponent', () => {
   });
 
   it('quota quasi esaurita: quotaWarning true, letta una sola volta da estimateStorage', async () => {
-    estimateStorage.mockResolvedValue({quota: 100, usage: 95});
+    estimateStorage.mockResolvedValue({ quota: 100, usage: 95 });
 
     const freshComponent = createComponent();
     let freshVm: NecRestoreSearchViewModel | undefined;

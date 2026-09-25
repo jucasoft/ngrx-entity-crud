@@ -1,4 +1,4 @@
-import {strings} from '@angular-devkit/core';
+import { strings } from '@angular-devkit/core';
 import * as ts from 'typescript/lib/tsserverlibrary';
 
 /**
@@ -71,7 +71,9 @@ function addImportLine(content: string, line: string): string {
     return content;
   }
   const end = lastImportEnd(content);
-  return end === 0 ? `${line}\n${content}` : insertAt(content, end, `\n${line}`);
+  return end === 0
+    ? `${line}\n${content}`
+    : insertAt(content, end, `\n${line}`);
 }
 
 function addManualStepTs(result: PatchResult, step: string): void {
@@ -80,12 +82,16 @@ function addManualStepTs(result: PatchResult, step: string): void {
     return;
   }
   const end = lastImportEnd(result.content);
-  result.content = end === 0
-    ? `${manualStepTs(step)}\n${result.content}`
-    : insertAt(result.content, end, `\n\n${manualStepTs(step)}`);
+  result.content =
+    end === 0
+      ? `${manualStepTs(step)}\n${result.content}`
+      : insertAt(result.content, end, `\n\n${manualStepTs(step)}`);
 }
 
-function findNode<T extends ts.Node>(content: string, predicate: (node: ts.Node) => node is T): T | undefined {
+function findNode<T extends ts.Node>(
+  content: string,
+  predicate: (node: ts.Node) => node is T
+): T | undefined {
   let found: T | undefined;
   const visit = (node: ts.Node): void => {
     if (!found && predicate(node)) {
@@ -101,20 +107,29 @@ function findNode<T extends ts.Node>(content: string, predicate: (node: ts.Node)
 }
 
 /** Array letterale `prop: [...]` dentro `@NgModule({...})`. */
-function findNgModuleArray(content: string, prop: string): ts.ArrayLiteralExpression | undefined {
-  const decorator = findNode(content, (node): node is ts.Decorator =>
-    ts.isDecorator(node) &&
-    ts.isCallExpression(node.expression) &&
-    node.expression.expression.getText() === 'NgModule'
+function findNgModuleArray(
+  content: string,
+  prop: string
+): ts.ArrayLiteralExpression | undefined {
+  const decorator = findNode(
+    content,
+    (node): node is ts.Decorator =>
+      ts.isDecorator(node) &&
+      ts.isCallExpression(node.expression) &&
+      node.expression.expression.getText() === 'NgModule'
   );
-  const arg = decorator && (decorator.expression as ts.CallExpression).arguments[0];
+  const arg =
+    decorator && (decorator.expression as ts.CallExpression).arguments[0];
   if (!arg || !ts.isObjectLiteralExpression(arg)) {
     return undefined;
   }
-  const property = arg.properties.find((p): p is ts.PropertyAssignment =>
-    ts.isPropertyAssignment(p) && p.name.getText() === prop
+  const property = arg.properties.find(
+    (p): p is ts.PropertyAssignment =>
+      ts.isPropertyAssignment(p) && p.name.getText() === prop
   );
-  return property && ts.isArrayLiteralExpression(property.initializer) ? property.initializer : undefined;
+  return property && ts.isArrayLiteralExpression(property.initializer)
+    ? property.initializer
+    : undefined;
 }
 
 function indentOf(content: string, pos: number): string {
@@ -123,12 +138,21 @@ function indentOf(content: string, pos: number): string {
 }
 
 /** Aggiunge `element` all'array, su una nuova riga dopo `after` (o dopo l'ultimo elemento). */
-function appendToArrayOnNewLine(content: string, array: ts.ArrayLiteralExpression, element: string, after?: ts.Expression): string {
+function appendToArrayOnNewLine(
+  content: string,
+  array: ts.ArrayLiteralExpression,
+  element: string,
+  after?: ts.Expression
+): string {
   const anchor = after ?? array.elements[array.elements.length - 1];
   if (!anchor) {
     return insertAt(content, array.getStart() + 1, element);
   }
-  return insertAt(content, anchor.getEnd(), `,\n${indentOf(content, anchor.getStart())}${element}`);
+  return insertAt(
+    content,
+    anchor.getEnd(),
+    `,\n${indentOf(content, anchor.getStart())}${element}`
+  );
 }
 
 /**
@@ -138,7 +162,7 @@ function appendToArrayOnNewLine(content: string, array: ts.ArrayLiteralExpressio
 export function patchStoreModule(content: string, clazz: string): PatchResult {
   const bundle = `${clazz}Persistence`;
   const dash = strings.dasherize(clazz);
-  const result: PatchResult = {content, applied: [], manual: []};
+  const result: PatchResult = { content, applied: [], manual: [] };
 
   if (/\bcreatePersistence(Effects|Reducer)\b/.test(content)) {
     // Cablaggio delle beta precedenti (--persist): aggiungerne un secondo registrerebbe due volte
@@ -146,35 +170,47 @@ export function patchStoreModule(content: string, clazz: string): PatchResult {
     addManualStepTs(
       result,
       'rimuovi il vecchio cablaggio createPersistenceEffects/createPersistenceReducer/createPersistenceSelectors ' +
-      `e registra ${bundle}.reducer e ${bundle}.effects (vedi ${dash}.persistence.ts)`
+        `e registra ${bundle}.reducer e ${bundle}.effects (vedi ${dash}.persistence.ts)`
     );
     return result;
   }
 
-  result.content = addImportLine(result.content, `import {${bundle}} from './${dash}.persistence';`);
+  result.content = addImportLine(
+    result.content,
+    `import {${bundle}} from './${dash}.persistence';`
+  );
 
   if (!result.content.includes(`${bundle}.reducer`)) {
     const imports = findNgModuleArray(result.content, 'imports');
     if (imports) {
-      const storeForFeature = imports.elements.find((e) => e.getText().startsWith('StoreModule.forFeature('));
+      const storeForFeature = imports.elements.find((e) =>
+        e.getText().startsWith('StoreModule.forFeature(')
+      );
       result.content = appendToArrayOnNewLine(
         result.content,
         imports,
         `StoreModule.forFeature(${bundle}.featureKey, ${bundle}.reducer)`,
         storeForFeature
       );
-      result.applied.push(`reducer di ${bundle} registrato in StoreModule.forFeature`);
+      result.applied.push(
+        `reducer di ${bundle} registrato in StoreModule.forFeature`
+      );
     } else {
-      addManualStepTs(result, `registra StoreModule.forFeature(${bundle}.featureKey, ${bundle}.reducer) negli imports del NgModule`);
+      addManualStepTs(
+        result,
+        `registra StoreModule.forFeature(${bundle}.featureKey, ${bundle}.reducer) negli imports del NgModule`
+      );
     }
   }
 
   if (!result.content.includes(`${bundle}.effects`)) {
-    const call = findNode(result.content, (node): node is ts.CallExpression =>
-      ts.isCallExpression(node) &&
-      node.expression.getText() === 'EffectsModule.forFeature' &&
-      node.arguments.length > 0 &&
-      ts.isArrayLiteralExpression(node.arguments[0])
+    const call = findNode(
+      result.content,
+      (node): node is ts.CallExpression =>
+        ts.isCallExpression(node) &&
+        node.expression.getText() === 'EffectsModule.forFeature' &&
+        node.arguments.length > 0 &&
+        ts.isArrayLiteralExpression(node.arguments[0])
     );
     if (call) {
       const array = call.arguments[0] as ts.ArrayLiteralExpression;
@@ -182,9 +218,14 @@ export function patchStoreModule(content: string, clazz: string): PatchResult {
       result.content = last
         ? insertAt(result.content, last.getEnd(), `, ${bundle}.effects`)
         : insertAt(result.content, array.getStart() + 1, `${bundle}.effects`);
-      result.applied.push(`effects di ${bundle} registrati in EffectsModule.forFeature`);
+      result.applied.push(
+        `effects di ${bundle} registrati in EffectsModule.forFeature`
+      );
     } else {
-      addManualStepTs(result, `registra ${bundle}.effects in EffectsModule.forFeature`);
+      addManualStepTs(
+        result,
+        `registra ${bundle}.effects in EffectsModule.forFeature`
+      );
     }
   }
 
@@ -193,129 +234,224 @@ export function patchStoreModule(content: string, clazz: string): PatchResult {
 
 /** `index.ts` dello store: esporta `<Clazz>Persistence` (arriva cosi' anche a `@root-store/index`). */
 export function patchStoreIndex(content: string, clazz: string): PatchResult {
-  const line = `export {${clazz}Persistence} from './${strings.dasherize(clazz)}.persistence';`;
+  const line = `export {${clazz}Persistence} from './${strings.dasherize(
+    clazz
+  )}.persistence';`;
   if (content.includes(line)) {
-    return {content, applied: [], manual: []};
+    return { content, applied: [], manual: [] };
   }
   const separator = content.endsWith('\n') ? '' : '\n';
-  return {content: `${content}${separator}\n${line}\n`, applied: [`export di ${clazz}Persistence`], manual: []};
+  return {
+    content: `${content}${separator}\n${line}\n`,
+    applied: [`export di ${clazz}Persistence`],
+    manual: [],
+  };
 }
 
 /** Modulo della sezione: importa `NecRestoreSearchComponent` (standalone) negli imports del NgModule. */
-export function patchSectionModule(content: string, _clazz: string): PatchResult {
+export function patchSectionModule(
+  content: string,
+  _clazz: string
+): PatchResult {
   const component = 'NecRestoreSearchComponent';
-  const result: PatchResult = {content, applied: [], manual: []};
-  result.content = addImportLine(result.content, `import {${component}} from 'ngrx-entity-crud/persistence-ui';`);
+  const result: PatchResult = { content, applied: [], manual: [] };
+  result.content = addImportLine(
+    result.content,
+    `import {${component}} from 'ngrx-entity-crud/persistence-ui';`
+  );
 
   const imports = findNgModuleArray(result.content, 'imports');
   if (!imports) {
-    addManualStepTs(result, `aggiungi ${component} agli imports del NgModule della sezione`);
+    addManualStepTs(
+      result,
+      `aggiungi ${component} agli imports del NgModule della sezione`
+    );
   } else if (!imports.elements.some((e) => e.getText() === component)) {
     result.content = appendToArrayOnNewLine(result.content, imports, component);
-    result.applied.push(`${component} aggiunto agli imports del modulo della sezione`);
+    result.applied.push(
+      `${component} aggiunto agli imports del modulo della sezione`
+    );
   }
   return result;
 }
 
 /** Componente main della sezione: proprieta' `persistence = <Clazz>Persistence` per il template. */
-export function patchMainComponentTs(content: string, clazz: string): PatchResult {
+export function patchMainComponentTs(
+  content: string,
+  clazz: string
+): PatchResult {
   const bundle = `${clazz}Persistence`;
   const property = `persistence = ${bundle};`;
   if (content.includes(property)) {
-    return {content, applied: [], manual: []};
+    return { content, applied: [], manual: [] };
   }
-  const result: PatchResult = {content, applied: [], manual: []};
-  result.content = addImportLine(result.content, `import {${bundle}} from '@root-store/index';`);
+  const result: PatchResult = { content, applied: [], manual: [] };
+  result.content = addImportLine(
+    result.content,
+    `import {${bundle}} from '@root-store/index';`
+  );
 
   const className = `${clazz}MainComponent`;
-  const declaration = findNode(result.content, (node): node is ts.ClassDeclaration =>
-    ts.isClassDeclaration(node) && node.name?.getText() === className
+  const declaration = findNode(
+    result.content,
+    (node): node is ts.ClassDeclaration =>
+      ts.isClassDeclaration(node) && node.name?.getText() === className
   );
-  const openBrace = declaration?.getChildren().find((child) => child.kind === ts.SyntaxKind.OpenBraceToken);
+  const openBrace = declaration
+    ?.getChildren()
+    .find((child) => child.kind === ts.SyntaxKind.OpenBraceToken);
   if (openBrace) {
-    result.content = insertAt(result.content, openBrace.getEnd(), `\n\n  ${property}`);
+    result.content = insertAt(
+      result.content,
+      openBrace.getEnd(),
+      `\n\n  ${property}`
+    );
     result.applied.push(`proprieta' persistence aggiunta a ${className}`);
   } else {
-    addManualStepTs(result, `aggiungi la proprieta ${property} al componente main della sezione (${className} non trovato)`);
+    addManualStepTs(
+      result,
+      `aggiungi la proprieta ${property} al componente main della sezione (${className} non trovato)`
+    );
   }
   return result;
 }
 
-/**
- * Lista della sezione: la ricerca all'apertura (`SearchRequest` in `ngOnInit`) diventa
- * `<Clazz>Persistence.actions.InitialSearch`, con gli stessi criteri. Una `SearchRequest` diretta
- * cancellerebbe i dati locali prima che l'utente possa ripristinarli.
- */
-export function patchListComponentTs(content: string, clazz: string): PatchResult {
-  const bundle = `${clazz}Persistence`;
-  const initialSearch = `${bundle}.actions.InitialSearch`;
-  const result: PatchResult = {content, applied: [], manual: []};
-  if (content.includes(`${initialSearch}(`)) {
-    return result;
-  }
-
-  const className = `${clazz}ListComponent`;
-  const declaration = findNode(content, (node): node is ts.ClassDeclaration =>
-    ts.isClassDeclaration(node) && node.name?.getText() === className
-  );
-  const ngOnInit = declaration?.members.find((member): member is ts.MethodDeclaration =>
-    ts.isMethodDeclaration(member) && member.name.getText() === 'ngOnInit'
-  );
+/** Chiamate `X.SearchRequest(...)` nel corpo di `ngOnInit` delle classi indicate. */
+function searchRequestsInNgOnInit(
+  classes: ts.ClassDeclaration[]
+): ts.PropertyAccessExpression[] {
   const searches: ts.PropertyAccessExpression[] = [];
   const collect = (node: ts.Node): void => {
-    if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && node.expression.name.getText() === 'SearchRequest') {
+    if (
+      ts.isCallExpression(node) &&
+      ts.isPropertyAccessExpression(node.expression) &&
+      node.expression.name.getText() === 'SearchRequest'
+    ) {
       searches.push(node.expression);
     }
     ts.forEachChild(node, collect);
   };
-  if (ngOnInit?.body) {
-    collect(ngOnInit.body);
+  classes.forEach((declaration) =>
+    declaration.members
+      .filter(
+        (member): member is ts.MethodDeclaration =>
+          ts.isMethodDeclaration(member) && member.name.getText() === 'ngOnInit'
+      )
+      .forEach((ngOnInit) => ngOnInit.body && collect(ngOnInit.body))
+  );
+  return searches;
+}
+
+/**
+ * Ricerca all'apertura della sezione (`SearchRequest` in `ngOnInit`, di solito nella lista):
+ * diventa `<Clazz>Persistence.actions.InitialSearch`, con gli stessi criteri. Una `SearchRequest`
+ * diretta cancellerebbe i dati locali prima che l'utente possa ripristinarli.
+ *
+ * Nessuna `SearchRequest` in `ngOnInit` (sezioni che cercano solo su gesto dell'utente, es. form di
+ * ricerca + griglia): nessuna modifica. Se `className` non c'e' (classe rinominata a mano) guarda
+ * l'`ngOnInit` di tutte le classi del file.
+ */
+export function patchInitialSearch(
+  content: string,
+  clazz: string,
+  className: string
+): PatchResult {
+  const bundle = `${clazz}Persistence`;
+  const initialSearch = `${bundle}.actions.InitialSearch`;
+  const result: PatchResult = { content, applied: [], manual: [] };
+  if (content.includes(`${initialSearch}(`)) {
+    return result;
   }
 
-  if (searches.length !== 1) {
+  const classes: ts.ClassDeclaration[] = parse(content).statements.filter(
+    ts.isClassDeclaration
+  );
+  const named = classes.filter(
+    (declaration) => declaration.name?.getText() === className
+  );
+  const searches = searchRequestsInNgOnInit(named.length ? named : classes);
+
+  if (searches.length === 0) {
+    return result;
+  }
+  if (searches.length > 1) {
     addManualStepTs(
       result,
-      `nella lista ${className} sostituisci la SearchRequest di ngOnInit con ${initialSearch} ` +
-      '(stessi criteri); se la sezione non cerca all apertura cancella questa riga'
+      `${className}: ${searches.length} SearchRequest in ngOnInit, sostituisci quella della ricerca all apertura ` +
+        `con ${initialSearch} (stessi criteri)`
     );
     return result;
   }
 
   const [search] = searches;
-  result.content = content.slice(0, search.getStart()) + initialSearch + content.slice(search.getEnd());
-  result.content = addImportLine(result.content, `import {${bundle}} from '@root-store/index';`);
-  result.applied.push(`ricerca all'apertura di ${className} sostituita con ${initialSearch}`);
+  result.content =
+    content.slice(0, search.getStart()) +
+    initialSearch +
+    content.slice(search.getEnd());
+  result.content = addImportLine(
+    result.content,
+    `import {${bundle}} from '@root-store/index';`
+  );
+  result.applied.push(
+    `ricerca all'apertura di ${className} sostituita con ${initialSearch}`
+  );
   return result;
 }
 
-const APP_SEARCH =/<app-search\b[^>]*?(?:\/>|>[\s\S]*?<\/app-search>)/g;
+function elementPattern(tag: string): RegExp {
+  return new RegExp(`<${tag}\\b[^>]*?(?:\\/>|>[\\s\\S]*?<\\/${tag}>)`, 'g');
+}
 
-/** Template del main: avvolge `<app-search>` con `<nec-restore-search [persistence]="persistence">`. */
-export function patchMainComponentHtml(content: string): PatchResult {
+/**
+ * Template del main: avvolge la ricerca con `<nec-restore-search [persistence]="persistence">`.
+ * - `<app-search>` (sezione generata da `ngrx-entity-crud:section`): layout inline di default;
+ * - altrimenti il componente di ricerca proprio della sezione, `<app-<dash>-search>` (form di ricerca
+ *   + griglia): `layout="block"`, cosi' il form resta a tutta larghezza.
+ */
+export function patchMainComponentHtml(
+  content: string,
+  clazz: string
+): PatchResult {
   if (content.includes('<nec-restore-search')) {
-    return {content, applied: [], manual: []};
+    return { content, applied: [], manual: [] };
   }
-  const matches = content.match(APP_SEARCH) ?? [];
+  const sectionSearchTag = `app-${strings.dasherize(clazz)}-search`;
+  const appSearch = content.match(elementPattern('app-search')) ?? [];
+  const sectionSearch = appSearch.length
+    ? []
+    : content.match(elementPattern(sectionSearchTag)) ?? [];
+  const matches = appSearch.length ? appSearch : sectionSearch;
+
   if (matches.length === 1) {
     const [search] = matches;
+    const tag = appSearch.length ? 'app-search' : sectionSearchTag;
+    const opening = appSearch.length
+      ? '<nec-restore-search [persistence]="persistence">'
+      : '<nec-restore-search [persistence]="persistence" layout="block">';
     const start = content.indexOf(search);
     const indent = indentOf(content, start);
-    const wrapped =
-      '<nec-restore-search [persistence]="persistence">\n' +
-      `${indent}  ${search}\n` +
-      `${indent}</nec-restore-search>`;
+    const wrapped = `${opening}\n${indent}  ${search}\n${indent}</nec-restore-search>`;
     return {
-      content: content.slice(0, start) + wrapped + content.slice(start + search.length),
-      applied: ['<app-search> avvolto con <nec-restore-search>'],
+      content:
+        content.slice(0, start) +
+        wrapped +
+        content.slice(start + search.length),
+      applied: [`<${tag}> avvolto con <nec-restore-search>`],
       manual: [],
     };
   }
 
-  const step = 'avvolgi il pulsante di ricerca con nec-restore-search [persistence]="persistence"';
-  const reason = matches.length === 0 ? '<app-search> non trovato' : `${matches.length} <app-search> trovati`;
-  const tag = manualStepHtmlTag(step);
+  const step =
+    'avvolgi il pulsante di ricerca con nec-restore-search [persistence]="persistence"';
+  const reason =
+    matches.length === 0
+      ? `ne' <app-search> ne' <${sectionSearchTag}> trovati`
+      : `${matches.length} elementi di ricerca trovati`;
+  const markerTag = manualStepHtmlTag(step);
   return {
-    content: content.includes(`<${tag}>`) ? content : `${manualStepHtml(step)}${content}`,
+    content: content.includes(`<${markerTag}>`)
+      ? content
+      : `${manualStepHtml(step)}${content}`,
     applied: [],
     manual: [`${step} (${reason})`],
   };

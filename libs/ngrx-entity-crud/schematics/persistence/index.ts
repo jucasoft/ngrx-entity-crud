@@ -1,8 +1,14 @@
-import {chain, Rule, SchematicContext, SchematicsException, Tree} from '@angular-devkit/schematics';
-import {normalize, strings} from '@angular-devkit/core';
-import {render} from '../my-utility';
 import {
-  patchListComponentTs,
+  chain,
+  Rule,
+  SchematicContext,
+  SchematicsException,
+  Tree,
+} from '@angular-devkit/schematics';
+import { normalize, strings } from '@angular-devkit/core';
+import { render } from '../my-utility';
+import {
+  patchInitialSearch,
   patchMainComponentHtml,
   patchMainComponentTs,
   PatchResult,
@@ -19,7 +25,9 @@ import {
  * - crea `<clazz>.persistence.ts` nello store (stesso template dello schematic `store`);
  * - registra reducer ed effects in `<clazz>-store.module.ts` ed esporta il bundle da `index.ts`;
  * - con `--ui` (default) collega `<nec-restore-search>` al componente main della sezione e fa
- *   cercare la lista all'apertura con `<Clazz>Persistence.actions.InitialSearch`.
+ *   cercare la sezione all'apertura con `<Clazz>Persistence.actions.InitialSearch`. Riconosce sia la
+ *   ricerca `<app-search>` (schematic `section`) sia un componente di ricerca proprio
+ *   `<app-<dash>-search>` (form di ricerca + griglia, avvolto con `layout="block"`).
  *
  * Le sezioni possono essere state modificate a mano: dove il punto d'aggancio non si trova lo
  * schematic non indovina, lascia un marcatore che non compila (`NEC_PASSO_MANUALE__...` nei file
@@ -53,12 +61,19 @@ export function addPersistence(options: CrudPersistence): Rule {
     }
 
     const manual: string[] = [];
-    const patchFile = (path: string, patch: (content: string) => PatchResult, missing: 'error' | 'skip'): Rule =>
+    const patchFile =
+      (
+        path: string,
+        patch: (content: string) => PatchResult,
+        missing: 'error' | 'skip'
+      ): Rule =>
       (host: Tree) => {
         const buffer = host.read(path);
         if (!buffer) {
           if (missing === 'error') {
-            manual.push(`${path}: file non trovato, collega a mano ${clazz}Persistence`);
+            manual.push(
+              `${path}: file non trovato, collega a mano ${clazz}Persistence`
+            );
           } else {
             context.logger.info(`- ${path}: non trovato, saltato`);
           }
@@ -68,7 +83,9 @@ export function addPersistence(options: CrudPersistence): Rule {
         if (result.content !== buffer.toString()) {
           host.overwrite(path, result.content);
         }
-        result.applied.forEach((step) => context.logger.info(`✔ ${path}: ${step}`));
+        result.applied.forEach((step) =>
+          context.logger.info(`✔ ${path}: ${step}`)
+        );
         result.manual.forEach((step) => manual.push(`${path}: ${step}`));
         return host;
       };
@@ -77,25 +94,88 @@ export function addPersistence(options: CrudPersistence): Rule {
 
     const persistenceFile = `${storeDir}/${dash}.persistence.ts`;
     if (tree.exists(persistenceFile)) {
-      context.logger.info(`- ${persistenceFile}: esiste gia', lasciato invariato`);
+      context.logger.info(
+        `- ${persistenceFile}: esiste gia', lasciato invariato`
+      );
     } else {
-      rules.push(render({clazz, persist: !!options.enabled}, '../store/files/crud-persistence', pathStore));
-      context.logger.info(`✔ ${persistenceFile}: creato (enabled: ${!!options.enabled})`);
+      rules.push(
+        render(
+          { clazz, persist: !!options.enabled },
+          '../store/files/crud-persistence',
+          pathStore
+        )
+      );
+      context.logger.info(
+        `✔ ${persistenceFile}: creato (enabled: ${!!options.enabled})`
+      );
     }
 
-    rules.push(patchFile(`${storeDir}/${dash}-store.module.ts`, (c) => patchStoreModule(c, clazz), 'error'));
-    rules.push(patchFile(`${storeDir}/index.ts`, (c) => patchStoreIndex(c, clazz), 'error'));
-    rules.push(patchFile(`${storeDir}/index.d.ts`, (c) => patchStoreIndex(c, clazz), 'skip'));
+    rules.push(
+      patchFile(
+        `${storeDir}/${dash}-store.module.ts`,
+        (c) => patchStoreModule(c, clazz),
+        'error'
+      )
+    );
+    rules.push(
+      patchFile(
+        `${storeDir}/index.ts`,
+        (c) => patchStoreIndex(c, clazz),
+        'error'
+      )
+    );
+    rules.push(
+      patchFile(
+        `${storeDir}/index.d.ts`,
+        (c) => patchStoreIndex(c, clazz),
+        'skip'
+      )
+    );
 
     if (options.ui !== false) {
       const sectionDir = normalize(`${pathView}/${dash}`);
       if (tree.exists(`${sectionDir}/${dash}.module.ts`)) {
-        rules.push(patchFile(`${sectionDir}/${dash}.module.ts`, (c) => patchSectionModule(c, clazz), 'error'));
-        rules.push(patchFile(`${sectionDir}/${dash}-main/${dash}-main.component.ts`, (c) => patchMainComponentTs(c, clazz), 'error'));
-        rules.push(patchFile(`${sectionDir}/${dash}-main/${dash}-main.component.html`, patchMainComponentHtml, 'error'));
-        rules.push(patchFile(`${sectionDir}/${dash}-list/${dash}-list.component.ts`, (c) => patchListComponentTs(c, clazz), 'error'));
+        rules.push(
+          patchFile(
+            `${sectionDir}/${dash}.module.ts`,
+            (c) => patchSectionModule(c, clazz),
+            'error'
+          )
+        );
+        rules.push(
+          patchFile(
+            `${sectionDir}/${dash}-main/${dash}-main.component.ts`,
+            (c) => patchMainComponentTs(c, clazz),
+            'error'
+          )
+        );
+        rules.push(
+          patchFile(
+            `${sectionDir}/${dash}-main/${dash}-main.component.html`,
+            (c) => patchMainComponentHtml(c, clazz),
+            'error'
+          )
+        );
+        // ricerca all'apertura: di solito nella lista (section), assente nelle sezioni che cercano
+        // solo su gesto dell'utente (form di ricerca + griglia)
+        rules.push(
+          patchFile(
+            `${sectionDir}/${dash}-main/${dash}-main.component.ts`,
+            (c) => patchInitialSearch(c, clazz, `${clazz}MainComponent`),
+            'skip'
+          )
+        );
+        rules.push(
+          patchFile(
+            `${sectionDir}/${dash}-list/${dash}-list.component.ts`,
+            (c) => patchInitialSearch(c, clazz, `${clazz}ListComponent`),
+            'skip'
+          )
+        );
       } else {
-        context.logger.info(`- ${sectionDir}: sezione UI non trovata, collego solo lo store`);
+        context.logger.info(
+          `- ${sectionDir}: sezione UI non trovata, collego solo lo store`
+        );
       }
     }
 
@@ -103,12 +183,17 @@ export function addPersistence(options: CrudPersistence): Rule {
       if (manual.length) {
         context.logger.warn(
           `Passi da completare a mano (${manual.length}). La compilazione fallisce apposta sui marcatori ` +
-          'NEC_PASSO_MANUALE__* (file .ts) e <nec-passo-manuale-*> (template) finche\' non li completi e li cancelli:\n' +
-          manual.map((step) => `  - ${step}`).join('\n')
+            'NEC_PASSO_MANUALE__* (file .ts) e <nec-passo-manuale-*> (template) finche\' non li completi e li cancelli:\n' +
+            manual.map((step) => `  - ${step}`).join('\n')
         );
       } else {
         context.logger.info(
-          `Persistenza di ${clazz} collegata. ${options.enabled ? 'Attiva' : 'Spenta: per attivarla imposta enabled: true in ' + persistenceFile}.`
+          `Persistenza di ${clazz} collegata. ${
+            options.enabled
+              ? 'Attiva'
+              : 'Spenta: per attivarla imposta enabled: true in ' +
+                persistenceFile
+          }.`
         );
       }
       return host;

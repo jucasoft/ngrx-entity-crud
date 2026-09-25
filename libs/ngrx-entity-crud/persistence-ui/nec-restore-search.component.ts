@@ -1,12 +1,29 @@
-import {ChangeDetectionStrategy, Component, Input, isDevMode, OnDestroy, OnInit, signal} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {ButtonModule} from 'primeng/button';
-import {TagModule} from 'primeng/tag';
-import {Store} from '@ngrx/store';
-import {Actions as NgrxActions, ofType} from '@ngrx/effects';
-import {BehaviorSubject, combineLatest, from, merge, Observable, of, Subject} from 'rxjs';
-import {map, startWith, takeUntil} from 'rxjs/operators';
-import {Actions} from 'ngrx-entity-crud';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostBinding,
+  Input,
+  isDevMode,
+  OnDestroy,
+  OnInit,
+  signal,
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ButtonModule } from 'primeng/button';
+import { TagModule } from 'primeng/tag';
+import { Store } from '@ngrx/store';
+import { Actions as NgrxActions, ofType } from '@ngrx/effects';
+import {
+  BehaviorSubject,
+  combineLatest,
+  from,
+  merge,
+  Observable,
+  of,
+  Subject,
+} from 'rxjs';
+import { map, startWith, takeUntil } from 'rxjs/operators';
+import { Actions } from 'ngrx-entity-crud';
 import {
   createSetSectionSaveModeAction,
   NecPersistence,
@@ -18,7 +35,18 @@ import {
   NecSectionStats,
 } from 'ngrx-entity-crud/persistence';
 
-export type NecRestoreSearchState = 'none' | 'prompt' | 'auto-restoring' | 'manual-restoring';
+export type NecRestoreSearchState =
+  | 'none'
+  | 'prompt'
+  | 'auto-restoring'
+  | 'manual-restoring';
+
+/**
+ * `inline` (default): una riga con il pulsante di ricerca avvolto, come in una toolbar.
+ * `block`: il contenuto avvolto (es. un form di ricerca intero) resta a tutta larghezza e gli
+ * indicatori (toggle salvataggio, sync, quota) vanno su una riga sotto, allineati a destra.
+ */
+export type NecRestoreSearchLayout = 'inline' | 'block';
 
 export interface NecRestoreSearchViewModel {
   state: NecRestoreSearchState;
@@ -54,7 +82,10 @@ export function formatBytes(bytes: number): string {
 export function formatAge(at: number, now: number = Date.now()): string {
   const date = new Date(at);
   const today = new Date(now);
-  const time = date.toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'});
+  const time = date.toLocaleTimeString(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
   if (isSameDay(date, today)) {
     return `today ${time}`;
   }
@@ -123,66 +154,150 @@ function pluralize(count: number, singular: string, plural: string): string {
       .nec-ml {
         margin-left: 6px;
       }
+      .nec-content,
+      .nec-indicators {
+        display: contents;
+      }
+      :host(.nec-block) {
+        display: block;
+      }
+      :host(.nec-block) .nec-content {
+        display: block;
+        flex: 1 1 100%;
+        min-width: 0;
+      }
+      :host(.nec-block) .nec-indicators {
+        display: flex;
+        align-items: center;
+        margin-left: auto;
+      }
     `,
   ],
   template: `
     <ng-container *ngIf="vm$ | async as vm">
       <div class="nec-row">
         <ng-container [ngSwitch]="vm.state">
-          <ng-container *ngSwitchCase="'none'">
+          <div *ngSwitchCase="'none'" class="nec-content">
             <ng-content></ng-content>
-          </ng-container>
+          </div>
 
-          <p-tag *ngSwitchCase="'auto-restoring'" severity="info" icon="pi pi-spin pi-spinner"
-                 value="Restoring saved data…"></p-tag>
+          <p-tag
+            *ngSwitchCase="'auto-restoring'"
+            severity="info"
+            icon="pi pi-spin pi-spinner"
+            value="Restoring saved data…"
+          ></p-tag>
 
-          <button *ngSwitchCase="'manual-restoring'" type="button" pButton class="p-button-sm"
-                  icon="pi pi-spin pi-spinner" label="Restoring…" [disabled]="true"></button>
+          <button
+            *ngSwitchCase="'manual-restoring'"
+            type="button"
+            pButton
+            class="p-button-sm"
+            icon="pi pi-spin pi-spinner"
+            label="Restoring…"
+            [disabled]="true"
+          ></button>
 
           <ng-container *ngSwitchCase="'prompt'">
             <p-tag severity="info" [value]="statsSummary(vm.stats)"></p-tag>
-            <p-tag *ngIf="vm.stats && vm.stats.draftCount" severity="warn" [value]="draftsSummary(vm.stats)"></p-tag>
-            <p-tag *ngIf="vm.stats" severity="secondary" [value]="ageSummary(vm.stats)"></p-tag>
-            <p-tag *ngIf="vm.restoreError" severity="danger" icon="pi pi-exclamation-triangle"
-                   [value]="'Restore failed: ' + vm.restoreError"></p-tag>
+            <p-tag
+              *ngIf="vm.stats && vm.stats.draftCount"
+              severity="warn"
+              [value]="draftsSummary(vm.stats)"
+            ></p-tag>
+            <p-tag
+              *ngIf="vm.stats"
+              severity="secondary"
+              [value]="ageSummary(vm.stats)"
+            ></p-tag>
+            <p-tag
+              *ngIf="vm.restoreError"
+              severity="danger"
+              icon="pi pi-exclamation-triangle"
+              [value]="'Restore failed: ' + vm.restoreError"
+            ></p-tag>
 
             <ng-container *ngIf="!dismissPending(); else confirmDismiss">
-              <button type="button" pButton class="p-button-sm" icon="pi pi-history" label="Restore"
-                      (click)="restore()"></button>
-              <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm"
-                      icon="pi pi-search" label="New search" (click)="requestNewSearch()"></button>
+              <button
+                type="button"
+                pButton
+                class="p-button-sm"
+                icon="pi pi-history"
+                label="Restore"
+                (click)="restore()"
+              ></button>
+              <button
+                type="button"
+                pButton
+                class="p-button-secondary p-button-outlined p-button-sm"
+                icon="pi pi-search"
+                label="New search"
+                (click)="requestNewSearch()"
+              ></button>
             </ng-container>
             <ng-template #confirmDismiss>
-              <span class="nec-note" role="alert">Discard {{ draftCountOf(vm.stats) }} unsaved change(s)?</span>
-              <button type="button" pButton class="p-button-danger p-button-sm" icon="pi pi-check" label="Yes"
-                      (click)="confirmNewSearch()"></button>
-              <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm"
-                      icon="pi pi-times" label="Cancel" (click)="cancelNewSearch()"></button>
+              <span class="nec-note" role="alert"
+                >Discard {{ draftCountOf(vm.stats) }} unsaved change(s)?</span
+              >
+              <button
+                type="button"
+                pButton
+                class="p-button-danger p-button-sm"
+                icon="pi pi-check"
+                label="Yes"
+                (click)="confirmNewSearch()"
+              ></button>
+              <button
+                type="button"
+                pButton
+                class="p-button-secondary p-button-outlined p-button-sm"
+                icon="pi pi-times"
+                label="Cancel"
+                (click)="cancelNewSearch()"
+              ></button>
             </ng-template>
           </ng-container>
         </ng-container>
 
-        <ng-container *ngIf="vm.enabled">
-        <p-tag *ngIf="vm.pendingWrites > 0" styleClass="nec-ml" severity="secondary" icon="pi pi-spin pi-sync"
-               value="Saving…"></p-tag>
-        <p-tag *ngIf="vm.quotaWarning" styleClass="nec-ml" severity="warn" icon="pi pi-exclamation-triangle"
-               value="Storage almost full"></p-tag>
+        <span *ngIf="vm.enabled" class="nec-indicators">
+          <p-tag
+            *ngIf="vm.pendingWrites > 0"
+            styleClass="nec-ml"
+            severity="secondary"
+            icon="pi pi-spin pi-sync"
+            value="Saving…"
+          ></p-tag>
+          <p-tag
+            *ngIf="vm.quotaWarning"
+            styleClass="nec-ml"
+            severity="warn"
+            icon="pi pi-exclamation-triangle"
+            value="Storage almost full"
+          ></p-tag>
 
-        <button type="button" pButton class="p-button-sm nec-ml"
-                [class.p-button-outlined]="vm.saveMode !== 'always'"
-                [class.p-button-secondary]="vm.saveMode !== 'always'"
-                icon="pi pi-save"
-                [attr.aria-pressed]="vm.saveMode === 'always'"
-                [title]="vm.saveMode === 'always'
-                  ? 'Salva sempre i risultati della ricerca — clic per disattivare'
-                  : 'Salva i risultati solo alla prima modifica — clic per salvarli sempre'"
-                (click)="toggleSaveMode(vm.saveMode)"></button>
-        </ng-container>
+          <button
+            type="button"
+            pButton
+            class="p-button-sm nec-ml"
+            [class.p-button-outlined]="vm.saveMode !== 'always'"
+            [class.p-button-secondary]="vm.saveMode !== 'always'"
+            icon="pi pi-save"
+            [attr.aria-pressed]="vm.saveMode === 'always'"
+            [title]="
+              vm.saveMode === 'always'
+                ? 'Salva sempre i risultati della ricerca — clic per disattivare'
+                : 'Salva i risultati solo alla prima modifica — clic per salvarli sempre'
+            "
+            (click)="toggleSaveMode(vm.saveMode)"
+          ></button>
+        </span>
       </div>
     </ng-container>
   `,
 })
-export class NecRestoreSearchComponent<T = unknown> implements OnInit, OnDestroy {
+export class NecRestoreSearchComponent<T = unknown>
+  implements OnInit, OnDestroy
+{
   /**
    * Bundle della sezione creato da `createPersistence` (`ngrx-entity-crud/persistence`): da solo
    * sostituisce `feature`, `selectors` e `actions`. Con `enabled: false` il componente e'
@@ -201,10 +316,17 @@ export class NecRestoreSearchComponent<T = unknown> implements OnInit, OnDestroy
   @Input() selectors!: NecPersistenceSelectors;
   /** @deprecated usare `[persistence]`. */
   @Input() actions!: Actions<T>;
+  /** `block` per avvolgere un form di ricerca a tutta larghezza, vedi `NecRestoreSearchLayout`. */
+  @Input() layout: NecRestoreSearchLayout = 'inline';
   /** Frazione (0-1) di `storage.estimate()` oltre la quale compare l'avviso di quota. */
   @Input() quotaWarningThreshold = 0.9;
 
   vm$!: Observable<NecRestoreSearchViewModel>;
+
+  @HostBinding('class.nec-block')
+  get blockLayout(): boolean {
+    return this.layout === 'block';
+  }
   readonly dismissPending = signal(false);
 
   private readonly manualInFlight$ = new BehaviorSubject<boolean>(false);
@@ -216,12 +338,11 @@ export class NecRestoreSearchComponent<T = unknown> implements OnInit, OnDestroy
     private readonly store: Store,
     private readonly ngrxActions: NgrxActions,
     private readonly persistenceService: NecPersistenceService
-  ) {
-  }
+  ) {}
 
   ngOnInit(): void {
     this.section = this.resolveSection();
-    const {enabled, selectors, crudActions} = this.section;
+    const { enabled, selectors, crudActions } = this.section;
 
     if (!enabled) {
       this.vm$ = of({
@@ -236,29 +357,48 @@ export class NecRestoreSearchComponent<T = unknown> implements OnInit, OnDestroy
       return;
     }
 
-    const check$: Observable<NecSectionCheck | null> = this.store.select(selectors.sectionCheck).pipe(startWith(null));
+    const check$: Observable<NecSectionCheck | null> = this.store
+      .select(selectors.sectionCheck)
+      .pipe(startWith(null));
 
     const restoring$: Observable<boolean> = merge(
-      this.ngrxActions.pipe(ofType(crudActions.RestoreRequest), map(() => true)),
-      this.ngrxActions.pipe(ofType(crudActions.RestoreSuccess, crudActions.RestoreFailure), map(() => false))
+      this.ngrxActions.pipe(
+        ofType(crudActions.RestoreRequest),
+        map(() => true)
+      ),
+      this.ngrxActions.pipe(
+        ofType(crudActions.RestoreSuccess, crudActions.RestoreFailure),
+        map(() => false)
+      )
     ).pipe(startWith(false));
 
     const restoreError$: Observable<string | null> = merge(
-      this.ngrxActions.pipe(ofType(crudActions.RestoreRequest, crudActions.RestoreSuccess), map(() => null)),
-      this.ngrxActions.pipe(ofType(crudActions.RestoreFailure), map(({error}) => error))
+      this.ngrxActions.pipe(
+        ofType(crudActions.RestoreRequest, crudActions.RestoreSuccess),
+        map(() => null)
+      ),
+      this.ngrxActions.pipe(
+        ofType(crudActions.RestoreFailure),
+        map(({ error }) => error)
+      )
     ).pipe(startWith(null));
 
     // Un restore riuscito (automatico o manuale) chiude il prompt: i dati sono gia' applicati,
     // mostrare di nuovo "Restore" sarebbe fuorviante. Riusa `dismissed$`, stesso significato per
     // la vm: "niente altro da proporre qui", si torna al pulsante avvolto (stato 'none').
-    this.ngrxActions.pipe(ofType(crudActions.RestoreSuccess), takeUntil(this.destroyed$)).subscribe(() => {
-      this.manualInFlight$.next(false);
-      this.dismissed$.next(true);
-    });
-    this.ngrxActions.pipe(ofType(crudActions.RestoreFailure), takeUntil(this.destroyed$))
+    this.ngrxActions
+      .pipe(ofType(crudActions.RestoreSuccess), takeUntil(this.destroyed$))
+      .subscribe(() => {
+        this.manualInFlight$.next(false);
+        this.dismissed$.next(true);
+      });
+    this.ngrxActions
+      .pipe(ofType(crudActions.RestoreFailure), takeUntil(this.destroyed$))
       .subscribe(() => this.manualInFlight$.next(false));
 
-    const quotaWarning$: Observable<boolean> = from(this.persistenceService.estimateStorage()).pipe(
+    const quotaWarning$: Observable<boolean> = from(
+      this.persistenceService.estimateStorage()
+    ).pipe(
       map((estimate) => this.isQuotaLow(estimate)),
       startWith(false)
     );
@@ -272,20 +412,62 @@ export class NecRestoreSearchComponent<T = unknown> implements OnInit, OnDestroy
       this.persistenceService.pendingWrites$,
       quotaWarning$,
     ]).pipe(
-      map(([check, restoring, manualInFlight, dismissed, restoreError, pendingWrites, quotaWarning]) => {
-        const stats = check?.stats ?? null;
-        const saveMode = check?.saveMode ?? 'on-draft';
-        if (restoring && manualInFlight) {
-          return {state: 'manual-restoring', stats, restoreError: null, pendingWrites, quotaWarning, saveMode, enabled} as const;
+      map(
+        ([
+          check,
+          restoring,
+          manualInFlight,
+          dismissed,
+          restoreError,
+          pendingWrites,
+          quotaWarning,
+        ]) => {
+          const stats = check?.stats ?? null;
+          const saveMode = check?.saveMode ?? 'on-draft';
+          if (restoring && manualInFlight) {
+            return {
+              state: 'manual-restoring',
+              stats,
+              restoreError: null,
+              pendingWrites,
+              quotaWarning,
+              saveMode,
+              enabled,
+            } as const;
+          }
+          if (restoring && check?.autoRestoreTriggered) {
+            return {
+              state: 'auto-restoring',
+              stats,
+              restoreError: null,
+              pendingWrites,
+              quotaWarning,
+              saveMode,
+              enabled,
+            } as const;
+          }
+          if (dismissed || !stats) {
+            return {
+              state: 'none',
+              stats: null,
+              restoreError: null,
+              pendingWrites,
+              quotaWarning,
+              saveMode,
+              enabled,
+            } as const;
+          }
+          return {
+            state: 'prompt',
+            stats,
+            restoreError,
+            pendingWrites,
+            quotaWarning,
+            saveMode,
+            enabled,
+          } as const;
         }
-        if (restoring && check?.autoRestoreTriggered) {
-          return {state: 'auto-restoring', stats, restoreError: null, pendingWrites, quotaWarning, saveMode, enabled} as const;
-        }
-        if (dismissed || !stats) {
-          return {state: 'none', stats: null, restoreError: null, pendingWrites, quotaWarning, saveMode, enabled} as const;
-        }
-        return {state: 'prompt', stats, restoreError, pendingWrites, quotaWarning, saveMode, enabled} as const;
-      })
+      )
     );
   }
 
@@ -314,7 +496,11 @@ export class NecRestoreSearchComponent<T = unknown> implements OnInit, OnDestroy
 
   /** Inverte 'on-draft'/'always' per questa sezione — il toggle nella riga del pulsante Search. */
   toggleSaveMode(current: NecSaveMode): void {
-    this.store.dispatch(this.section.setSaveMode({mode: current === 'always' ? 'on-draft' : 'always'}));
+    this.store.dispatch(
+      this.section.setSaveMode({
+        mode: current === 'always' ? 'on-draft' : 'always',
+      })
+    );
   }
 
   private resolveSection(): NecResolvedSection<T> {
@@ -330,8 +516,8 @@ export class NecRestoreSearchComponent<T = unknown> implements OnInit, OnDestroy
     if (isDevMode() && !this.feature) {
       console.warn(
         '<nec-restore-search>: [feature] non valorizzato. Deve coincidere con la `feature` passata a ' +
-        'createPersistenceEffects, altrimenti il toggle saveMode non raggiunge nessun effect. ' +
-        'Meglio passare [persistence] (createPersistence).'
+          'createPersistenceEffects, altrimenti il toggle saveMode non raggiunge nessun effect. ' +
+          'Meglio passare [persistence] (createPersistence).'
       );
     }
     return {
@@ -351,7 +537,9 @@ export class NecRestoreSearchComponent<T = unknown> implements OnInit, OnDestroy
   }
 
   ageSummary(stats: NecSectionStats | null): string {
-    return `${formatBytes(stats?.bytes ?? 0)} — ${formatAge(stats?.at ?? Date.now())}`;
+    return `${formatBytes(stats?.bytes ?? 0)} — ${formatAge(
+      stats?.at ?? Date.now()
+    )}`;
   }
 
   draftCountOf(stats: NecSectionStats | null): number {
