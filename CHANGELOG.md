@@ -82,10 +82,18 @@ Cambi da conoscere prima di aggiornare un progetto consumer. Dettagli e test con
   `SearchRequest` di `ngOnInit` nella lista delle sezioni esistenti (marcatore se non la trova).
   Chi ha generato una sezione con beta.21 deve fare la stessa sostituzione (o rilanciare
   `ng g ngrx-entity-crud:persistence --clazz=X`).
+- feat(persistence-ui): `<nec-restore-search layout="block">` per avvolgere un form di ricerca a tutta
+  larghezza (sezioni form di ricerca + griglia): il contenuto resta a tutta larghezza, gli indicatori
+  vanno su una riga sotto. Default `inline`, invariato.
+- feat(schematics): `persistence` riconosce anche le sezioni con un componente di ricerca proprio
+  (`<app-<dash>-search>` nel main al posto di `<app-search>`, avvolto con `layout="block"`) e cerca la
+  ricerca all'apertura nell'`ngOnInit` di main e lista: se non c'e' (sezione che cerca solo su gesto
+  dell'utente) non tocca nulla e non lascia marcatori.
 - fix(persistence): una `SearchRequest` azzera `stats` del check nello store: riaprendo la sezione
   `<nec-restore-search>` non propone più il ripristino di dati appena cancellati.
 
 **Rotture rispetto alle beta precedenti (la persistenza non esiste in v19.2.6):**
+
 - `NecRestoreSearchComponent` e `provideNecIdbAdapterFromPersistence` si importano da
   `ngrx-entity-crud/persistence-ui`, non più da `ngrx-entity-crud/persistence`.
 - Gli store generati con `--persist` dalle beta precedenti (`createPersistenceEffects` nel modulo)

@@ -1,17 +1,20 @@
 # ngrx-entity-crud
+
 This library helps create the CRUD Angular application that makes use of NgRx.
 Commands for code generation:
- - `store`: Generates a feature set containing an `entity`, `actions`, `reducer`, ... file.
- - `section`: Generates a new Angular CRUD page containing an `list`, `detail`, `search`, ... file.
- - `auth`: Generates a boilerplate for authentication implementation containing an `store section` and `components` file.
- - `lazy-report`: Scans the project and reports which stores are good candidates to become lazy.
+
+- `store`: Generates a feature set containing an `entity`, `actions`, `reducer`, ... file.
+- `section`: Generates a new Angular CRUD page containing an `list`, `detail`, `search`, ... file.
+- `auth`: Generates a boilerplate for authentication implementation containing an `store section` and `components` file.
+- `lazy-report`: Scans the project and reports which stores are good candidates to become lazy.
 
 # How to use it?
+
 To create your first project, follow this [guide](https://github.com/jucasoft/ngrx-entity-crud-prime-ng-boilerplate).
 
 # Command detail for generation
 
-## store   
+## store
 
 ---
 
@@ -28,21 +31,23 @@ ng generate ngrx-entity-crud:store  [options]
 ### Options
 
 Name of the store section
+
 - `--name`
   - Type: `string`
   - Default: `false`
 
-Name of the class that will be managed 
+Name of the class that will be managed
+
 - `--clazz`
   - Type: `string`
   - Default: `false`
 
 Store type:
-  - CRUD-PLURAL: generate action, effect and reducer for the crud management of the entity.
-  - CRUD-SINGULAR: generate action, effect and reducer for the crud management of the entity.
-  - CRUD+GRAPHQL: generate action, effect and reducer for the crud management of the entity.
-  - BASE: generate an empty boilerplate
-  
+
+- CRUD-PLURAL: generate action, effect and reducer for the crud management of the entity.
+- CRUD-SINGULAR: generate action, effect and reducer for the crud management of the entity.
+- CRUD+GRAPHQL: generate action, effect and reducer for the crud management of the entity.
+- BASE: generate an empty boilerplate
 
 - `--type`
   - Type: `string`
@@ -50,8 +55,9 @@ Store type:
   - Default: `false`
 
 Store registration strategy:
-  - `eager`: the store is declared in the application `RootStoreModule` (historical behavior); reducers/effects are loaded at startup.
-  - `lazy`: the store is **not** registered in the root; the view feature module is responsible for importing `<Clazz>StoreModule`, so reducers/effects are loaded only when the section is opened.
+
+- `eager`: the store is declared in the application `RootStoreModule` (historical behavior); reducers/effects are loaded at startup.
+- `lazy`: the store is **not** registered in the root; the view feature module is responsible for importing `<Clazz>StoreModule`, so reducers/effects are loaded only when the section is opened.
 
 - `--registration`
   - Type: `string`
@@ -59,6 +65,7 @@ Store registration strategy:
   - Optional. If omitted, the schematic asks interactively. In non-interactive runs (CI/scripts) it falls back to `eager`, so existing pipelines keep working unchanged.
 
 > **Lazy mode notes**
+>
 > - With `--registration=lazy` nothing registers the store automatically: you must import `<Clazz>StoreModule` in the feature module generated for the view (e.g. `coin.module.ts`).
 > - The generated slice is declared as **optional** in `root-store/state.ts`, because it does not exist in the runtime state until the section is loaded.
 > - `root-store/selectors.ts` exposes the global loading/error selectors (`selectIsLoading`, `selectError`, `selectLoadingNames`) in a **store-agnostic** way: they scan the root state using the `EntityCrudBaseState` convention (every CRUD slice exposes `isLoading`/`error` at the top level), so lazily-registered stores contribute to the global loading/error state without coupling the root to any specific domain.
@@ -66,12 +73,13 @@ Store registration strategy:
 Local persistence (search results + drafts saved to IndexedDB, see the
 [`ngrx-entity-crud/persistence`](#secondary-entry-point-ngrx-entity-crudpersistence) section below).
 For `--type=CRUD-PLURAL` the wiring is **always generated**, switched off by default:
-  - `<clazz>.persistence.ts` exports `<Clazz>Persistence = createPersistence<Clazz>({..., enabled})`,
-    registered in `<clazz>-store.module.ts` (`StoreModule.forFeature` + `EffectsModule.forFeature`,
-    same registration point for eager and lazy stores) and exported from the store `index.ts`;
-  - with `enabled: false` nothing touches IndexedDB; to turn it on later change only that value;
-  - the other types don't have `entitiesSelected`/`Restore*`: the flag is ignored, with a warning in
-    the schematic log.
+
+- `<clazz>.persistence.ts` exports `<Clazz>Persistence = createPersistence<Clazz>({..., enabled})`,
+  registered in `<clazz>-store.module.ts` (`StoreModule.forFeature` + `EffectsModule.forFeature`,
+  same registration point for eager and lazy stores) and exported from the store `index.ts`;
+- with `enabled: false` nothing touches IndexedDB; to turn it on later change only that value;
+- the other types don't have `entitiesSelected`/`Restore*`: the flag is ignored, with a warning in
+  the schematic log.
 
 - `--persist`
   - Type: `boolean`
@@ -83,20 +91,22 @@ For `--type=CRUD-PLURAL` the wiring is **always generated**, switched off by def
 ```sh
 ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=CRUD-PLURAL --registration=lazy
 ```
+
 With `--registration=lazy` the store is not added to `RootStoreModule`; remember to import `CoinStoreModule` in the view feature module.
 
 ```sh
 ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=CRUD-PLURAL --persist=true
 ```
+
 Same files as without the flag, with `enabled: true` in `coin.persistence.ts`. Sections generated
 by `ng generate ngrx-entity-crud:section` already wrap the search with `<nec-restore-search>`; for
 sections generated before this version use the
 [`persistence`](#adding-persistence-to-an-existing-section) schematic.
 
-
 ```sh
 ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=CRUD-PLURAL
 ```
+
 <details><summary>Show files generated/changed</summary>
 
 ```shell
@@ -119,11 +129,13 @@ UPDATE src/app/root-store/selectors.ts (665 bytes)
 UPDATE src/app/root-store/root-store.module.ts (1051 bytes)
 
 ```
+
 </details>
 
 ```sh
 ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=CRUD-SINGULAR
 ```
+
 <details><summary>Show files generated/changed</summary>
 
 ```shell
@@ -146,11 +158,13 @@ UPDATE src/app/root-store/selectors.ts (665 bytes)
 UPDATE src/app/root-store/root-store.module.ts (1051 bytes)
 
 ```
+
 </details>
 
 ```sh
 ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=CRUD+GRAPHQL
 ```
+
 <details><summary>Show files generated/changed</summary>
 
 </details>
@@ -158,6 +172,7 @@ ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=CRUD+GRAPHQL
 ```sh
 ng generate ngrx-entity-crud:store --name=coin --clazz=Coin --type=BASE
 ```
+
 <details><summary>Show files generated/changed</summary>
 
 ```shell
@@ -177,6 +192,7 @@ UPDATE src/app/root-store/index.d.ts (309 bytes)
 UPDATE src/app/root-store/state.ts (184 bytes)
 UPDATE src/app/root-store/root-store.module.ts (1051 bytes)
 ```
+
 </details>
 
 #### Files generated/changed by the “:store” command
@@ -198,11 +214,13 @@ ng generate ngrx-entity-crud:section  [options]
 ### Options
 
 Name of the class that will be managed
+
 - `--clazz`
   - Type: `string`
   - Default: `false`
 
 Allows you to decide whether to use the graphic components of PrimeNg, or to create an empty boilerplate
+
 - `--lib`
   - Type: `string`
   - Enum: `"primeng" or "no-libs"`
@@ -297,6 +315,7 @@ the sections that use it, then suggests which stores are good candidates to be r
 generated report file: you decide what to convert.
 
 How a store is classified:
+
 - **lazy candidate**: used by exactly one section, and that section is on a lazy route (`loadChildren`).
 - **multi-section**: used by more than one section (evaluate a shared lazy module).
 - **keep eager (used by the shell)**: referenced by the app shell (`core/`, `main/components`, `app.component`) — must stay eager.
@@ -317,22 +336,26 @@ ng generate ngrx-entity-crud:lazy-report [options]
 ### Options
 
 Report file to write (relative to the workspace root); empty string = console only.
+
 - `--output`
   - Type: `string`
   - Default: `lazy-report.<format>` (`lazy-report.md` or `lazy-report.json`)
 
 Format of the written report.
+
 - `--format`
   - Type: `string`
   - Enum: `"md", "json"`
   - Default: `md`
 
 Infrastructure stores excluded from lazy candidates (folder names).
+
 - `--infra-stores`
   - Type: `string[]`
   - Default: `["router-store"]`
 
 Include detected persistence providers (localStorage/IndexedDB) from `package.json` in the report.
+
 - `--storage`
   - Type: `boolean`
   - Default: `true`
@@ -354,11 +377,11 @@ ng generate ngrx-entity-crud:lazy-report --output=        # solo console
 Example output (excerpt):
 
 ```md
-| store | clazz | type | sections | n | lazy route | shell | verdict |
-|---|---|---|---|---|---|---|---|
-| coin-store | Coin | CRUD-PLURAL | coin | 1 | yes | no | lazy candidate |
-| currency-store | Currency | CRUD-PLURAL | coin, invoice | 2 | yes | no | multi-section (2) -> consider a shared module |
-| menu-store | Menu | CRUD-PLURAL | - | 0 | - | yes | keep eager (used by the shell) |
+| store          | clazz    | type        | sections      | n   | lazy route | shell | verdict                                       |
+| -------------- | -------- | ----------- | ------------- | --- | ---------- | ----- | --------------------------------------------- |
+| coin-store     | Coin     | CRUD-PLURAL | coin          | 1   | yes        | no    | lazy candidate                                |
+| currency-store | Currency | CRUD-PLURAL | coin, invoice | 2   | yes        | no    | multi-section (2) -> consider a shared module |
+| menu-store     | Menu     | CRUD-PLURAL | -             | 0   | -          | yes   | keep eager (used by the shell)                |
 ```
 
 ## table-report
@@ -374,6 +397,7 @@ and **PrimeNG `p-table`** (the kind generated by the `section` schematic). Nothi
 except the generated report file.
 
 For each grid it reports:
+
 - the component, its selector, template kind (inline/external) and location (section under the
   views path, `core`, shell);
 - the **columns extracted from the TypeScript AST** of `columnDefs` (both class-property
@@ -400,22 +424,26 @@ ng generate ngrx-entity-crud:table-report [options]
 ### Options
 
 Report file to write (relative to the workspace root); empty string = console only.
+
 - `--output`
   - Type: `string`
   - Default: `table-report.<format>` (`table-report.md` or `table-report.json`)
 
 Format of the written report.
+
 - `--format`
   - Type: `string`
   - Enum: `"md", "json"`
   - Default: `md`
 
 Include the per-column details extracted from the AST.
+
 - `--columns`
   - Type: `boolean`
   - Default: `true`
 
 Include PrimeNG `p-table` components (set to `false` for an ag-Grid-only report).
+
 - `--p-table`
   - Type: `boolean`
   - Default: `true`
@@ -437,11 +465,11 @@ ng generate ngrx-entity-crud:table-report --p-table=false --columns=false
 Example output (excerpt):
 
 ```md
-| component | kind | where | template | stores | columns | referenced | verdict |
-|---|---|---|---|---|---|---|---|
-| ProductBrowserListComponent | ag-grid | views/product-browser | external | product-browser | 4 | yes | ok |
-| ShowDiffDialogComponent | ag-grid | core/components/show-diff | inline | - | 4 | yes | ok |
-| LogListComponent | ag-grid | core/components/log | inline | - | 5 | no | orphan? (not referenced by any used template/module) |
+| component                   | kind    | where                     | template | stores          | columns | referenced | verdict                                              |
+| --------------------------- | ------- | ------------------------- | -------- | --------------- | ------- | ---------- | ---------------------------------------------------- |
+| ProductBrowserListComponent | ag-grid | views/product-browser     | external | product-browser | 4       | yes        | ok                                                   |
+| ShowDiffDialogComponent     | ag-grid | core/components/show-diff | inline   | -               | 4       | yes        | ok                                                   |
+| LogListComponent            | ag-grid | core/components/log       | inline   | -               | 5       | no         | orphan? (not referenced by any used template/module) |
 ```
 
 ## dashboard
@@ -462,7 +490,7 @@ tested), not in generated code.
 `<nec-dashboard>` is built on **PrimeNG** components (`p-card`, `p-table`, `p-tag`, `p-tree`, the
 `pButton` directive), so the `ngrx-entity-crud/devtools` entry-point requires `primeng` and
 `primeicons` in your app (declared as **optional** peerDependencies — the core entry-point does
-not need them). The component uses the `pButton` severity *classes* and the `success`/`info`/
+not need them). The component uses the `pButton` severity _classes_ and the `success`/`info`/
 `danger` tag severities, an idiom compatible with PrimeNG 16 (the consumer baseline) through the
 later majors.
 
@@ -488,26 +516,31 @@ ng generate ngrx-entity-crud:dashboard [options]
 ### Options
 
 Feature name (drives the lazy route and the generated file names).
+
 - `--clazz`
   - Type: `string`
   - Default: `Dashboard`
 
 Generate the lazy-report JSON read by the dashboard.
+
 - `--include-lazy-report`
   - Type: `boolean`
   - Default: `true`
 
 Path of the generated lazy-report JSON.
+
 - `--lazy-report-output`
   - Type: `string`
   - Default: `src/assets/lazy-report.json`
 
 Generate the table-report JSON read by the Tables panel.
+
 - `--include-table-report`
   - Type: `boolean`
   - Default: `true`
 
 Path of the generated table-report JSON.
+
 - `--table-report-output`
   - Type: `string`
   - Default: `src/assets/table-report.json`
@@ -518,11 +551,13 @@ output paths above (with the `src/` prefix stripped), so custom `--lazy-report-o
 `--include-*-report=false` yields an empty URL, which turns that panel off.
 
 Include the `<nec-scaffold>` panel in the generated wrapper.
+
 - `--include-scaffold`
   - Type: `boolean`
   - Default: `true`
 
 The name of the project.
+
 - `--project`
   - Type: `string`
 
@@ -542,7 +577,8 @@ import { NecDashboardComponent } from 'ngrx-entity-crud/devtools';
     [idbDatabaseNames]="['NgRxStateStore']"
     [allowRevealValues]="false"
     [pollingMs]="0"
-    (sliceReset)="onSliceReset($event)"></nec-dashboard>`,
+    (sliceReset)="onSliceReset($event)"
+  ></nec-dashboard>`,
 })
 export class DevPanelComponent {
   onSliceReset(sliceKey: string): void {
@@ -567,6 +603,7 @@ Outputs: `sliceReset` (`EventEmitter<string>`) emits the slice key whenever a fu
 dispatched (including via the global **Reset all** button).
 
 Notes:
+
 - The **Store NgRx** panel exposes per-row actions: **reset** dispatches the library's `Reset`
   action (`[key] Reset`), restoring the slice to its `initialState` (empty entities, selection,
   criteria and responses); **reset responses** dispatches the lighter `ResetResponses`
@@ -626,6 +663,7 @@ Notes:
   **deselect** row actions. Every handle call is defensive: a missing or throwing method
   degrades to `–`, a destroyed grid (`isDestroyed()`) is evicted automatically even without
   unregister. Values refresh with the dashboard (manual or `pollingMs`).
+
 - The **Scaffold** panel (`<nec-scaffold>`, its own standalone component, included in the
   generated wrapper unless `--include-scaffold=false`) assists the "new section" flow of the
   consumer schematics: type the entity name (live `classify`/`dasherize` preview, mirroring
@@ -656,6 +694,7 @@ at the repository root. Tree-shakable: importing it costs nothing to consumers w
 
 The entry-point is split in two, so that every store can import the store side without pulling
 PrimeNG:
+
 - `ngrx-entity-crud/persistence` — store side: `createPersistence`, service, actions, reducer,
   selectors, effects. No PrimeNG, no `ngrx-entity-crud/devtools`.
 - `ngrx-entity-crud/persistence-ui` — `<nec-restore-search>` (PrimeNG `p-button`/`p-tag`) and the
@@ -666,17 +705,17 @@ PrimeNG:
 The global configuration is optional: without it the defaults below apply.
 
 ```ts
-import {NecPersistenceModule} from 'ngrx-entity-crud/persistence';
+import { NecPersistenceModule } from 'ngrx-entity-crud/persistence';
 
 @NgModule({
   imports: [
     NecPersistenceModule.forRoot({
       // tutti i campi sono opzionali; questi sono i default.
       dbName: 'nec-persistence',
-      dbVersion: 2,          // non fissarlo a 1: la versione 2 aggiunge lo store sectionPrefs
+      dbVersion: 2, // non fissarlo a 1: la versione 2 aggiunge lo store sectionPrefs
       debounceMs: 200,
-      openTimeoutMs: 10000,  // oltre, l'apertura del DB fallisce e la chiamata successiva ritenta
-      enabled: true,         // false spegne la persistenza di TUTTE le sezioni
+      openTimeoutMs: 10000, // oltre, l'apertura del DB fallisce e la chiamata successiva ritenta
+      enabled: true, // false spegne la persistenza di TUTTE le sezioni
       // autoRestore e' assente di default: il ripristino resta sempre un gesto esplicito
       // finche' non lo abiliti, qui (default globale) o per sezione (vedi sotto).
     }),
@@ -695,10 +734,10 @@ effects) on the same feature as the store, so no `feature` string has to be repe
 sync by hand. Generated by the `store` schematic in `<clazz>.persistence.ts`:
 
 ```ts
-import {createPersistence} from 'ngrx-entity-crud/persistence';
-import {Coin} from '@models/vo/coin';
-import {actions} from './coin.actions';
-import {Names} from './coin.names';
+import { createPersistence } from 'ngrx-entity-crud/persistence';
+import { Coin } from '@models/vo/coin';
+import { actions } from './coin.actions';
+import { Names } from './coin.names';
 
 export const CoinPersistence = createPersistence<Coin>({
   feature: Names.NAME,
@@ -717,18 +756,20 @@ export const CoinPersistence = createPersistence<Coin>({
     StoreModule.forFeature(CoinPersistence.featureKey, CoinPersistence.reducer),
     EffectsModule.forFeature([CoinStoreEffects, CoinPersistence.effects]),
   ],
-  providers: [CoinStoreEffects /* CoinPersistence.effects doesn't go in providers */],
+  providers: [
+    CoinStoreEffects /* CoinPersistence.effects doesn't go in providers */,
+  ],
 })
 export class CoinStoreModule {}
 ```
 
-| Member | Notes |
-| --- | --- |
-| `feature` / `featureKey` | The store feature and the key of the persistence slice (`<feature>:persistence`). |
-| `enabled` | `false`: effects are inert (no IndexedDB access at all) and `<nec-restore-search>` only renders its projected content. |
-| `crudActions` | The section's CRUD actions (with `RestoreRequest/Success/Failure`). |
-| `actions` | `SectionCheckSuccess`, `SetSectionSaveMode`, `InitialSearch`, e.g. `store.dispatch(CoinPersistence.actions.SetSectionSaveMode({mode: 'always'}))`. |
-| `reducer` / `selectors` / `effects` | To register as shown above; `selectors.sectionCheck`, `selectors.saveMode`. |
+| Member                              | Notes                                                                                                                                              |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `feature` / `featureKey`            | The store feature and the key of the persistence slice (`<feature>:persistence`).                                                                  |
+| `enabled`                           | `false`: effects are inert (no IndexedDB access at all) and `<nec-restore-search>` only renders its projected content.                             |
+| `crudActions`                       | The section's CRUD actions (with `RestoreRequest/Success/Failure`).                                                                                |
+| `actions`                           | `SectionCheckSuccess`, `SetSectionSaveMode`, `InitialSearch`, e.g. `store.dispatch(CoinPersistence.actions.SetSectionSaveMode({mode: 'always'}))`. |
+| `reducer` / `selectors` / `effects` | To register as shown above; `selectors.sectionCheck`, `selectors.saveMode`.                                                                        |
 
 Once enabled, the effects write on their own following the CRUD action lifecycle
 (`SearchRequest` purges, the search block is saved with the first draft, or on every
@@ -764,8 +805,8 @@ Wraps the section's existing search button (pass it as projected content, it's l
 untouched: building the search criteria is your form's job):
 
 ```ts
-import {NecRestoreSearchComponent} from 'ngrx-entity-crud/persistence-ui'; // standalone: add it to the NgModule imports
-import {CoinPersistence} from '@root-store/index';
+import { NecRestoreSearchComponent } from 'ngrx-entity-crud/persistence-ui'; // standalone: add it to the NgModule imports
+import { CoinPersistence } from '@root-store/index';
 
 export class CoinMainComponent {
   persistence = CoinPersistence;
@@ -778,11 +819,12 @@ export class CoinMainComponent {
 </nec-restore-search>
 ```
 
-| Input | Type | Notes |
-| --- | --- | --- |
-| `persistence` | `NecPersistence<T>` | The object returned by `createPersistence`. With `enabled: false` the component is transparent: it only renders the projected content. |
-| `quotaWarningThreshold` | `number` | Default `0.9`. Fraction of `storage.estimate()` above which the "storage almost full" tag appears. |
-| `feature`, `selectors`, `actions` | | **Deprecated**, kept for sections wired with previous betas: use `[persistence]`. `feature` must match *exactly* the `feature` of the effects (an empty value logs a warning in dev mode). |
+| Input                             | Type                  | Notes                                                                                                                                                                                                                                                     |
+| --------------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `persistence`                     | `NecPersistence<T>`   | The object returned by `createPersistence`. With `enabled: false` the component is transparent: it only renders the projected content.                                                                                                                    |
+| `layout`                          | `'inline' \| 'block'` | Default `'inline'` (a row with the wrapped search button, e.g. in a toolbar). `'block'` keeps the wrapped content full width (e.g. a whole search form above a grid) and puts the indicators (save toggle, sync, quota) on a row below it, right-aligned. |
+| `quotaWarningThreshold`           | `number`              | Default `0.9`. Fraction of `storage.estimate()` above which the "storage almost full" tag appears.                                                                                                                                                        |
+| `feature`, `selectors`, `actions` |                       | **Deprecated**, kept for sections wired with previous betas: use `[persistence]`. `feature` must match _exactly_ the `feature` of the effects (an empty value logs a warning in dev mode).                                                                |
 
 Only `p-button`/`p-tag` (identical classes across PrimeNG v16→v19; `primeng` stays an optional peer
 dependency). When there's nothing saved locally it just renders the projected button; with local
@@ -805,12 +847,20 @@ It creates `coin.persistence.ts`, registers reducer/effects in `coin-store.modul
 `CoinPersistence` from the store `index.ts` and (unless `--ui=false`) imports
 `NecRestoreSearchComponent` in the section module, adds `persistence = CoinPersistence` to
 `CoinMainComponent`, wraps `<app-search>` in its template and replaces the `SearchRequest` in
-`CoinListComponent.ngOnInit` with `CoinPersistence.actions.InitialSearch`. Running it twice changes
-nothing.
+`ngOnInit` (list or main component) with `CoinPersistence.actions.InitialSearch`. Running it twice
+changes nothing.
+
+**Sections with their own search component** (a search form above a grid, where the main template
+has `<app-<dash>-search (onSearch)="search($event)">` instead of `<app-search>` and the section only
+searches when the user asks): the schematic wraps that element with
+`<nec-restore-search [persistence]="persistence" layout="block">`, and leaves the component alone
+when no `SearchRequest` runs in `ngOnInit` (a `SearchRequest` in a `search()` method is the user's
+own search and stays as it is). While local data is waiting, the wrapped form is hidden behind
+`Restore`/`New search`, exactly like the search button of generated sections.
 
 **Sections modified by hand.** Where the expected code isn't found (e.g. effects registered through
 a constant instead of an array literal, a renamed main component, a custom search instead of
-`<app-search>`, zero or several `SearchRequest` in the list's `ngOnInit`, the wiring of a previous beta with `createPersistenceEffects`), the schematic does
+`<app-search>` nor `<app-<dash>-search>`, several `SearchRequest` in the same `ngOnInit`, the wiring of a previous beta with `createPersistenceEffects`), the schematic does
 not guess: it leaves a marker that **does not compile** and lists it in the log.
 
 ```ts
@@ -829,7 +879,7 @@ If you also use [`<nec-dashboard>`](#dashboard), this makes its IndexedDB panel 
 (names, saved/drafts counts) instead of relying only on the native fallback:
 
 ```ts
-import {provideNecIdbAdapterFromPersistence} from 'ngrx-entity-crud/persistence-ui';
+import { provideNecIdbAdapterFromPersistence } from 'ngrx-entity-crud/persistence-ui';
 
 @NgModule({
   providers: [provideNecIdbAdapterFromPersistence()],
@@ -850,7 +900,7 @@ the library — so the entry-point stays tree-shakable and theme-independent.
 
 The look is reconstructed from the original bitmaps, not from memory: 7x9 px boxes with a 1px
 black frame and a 5x7 core, 1-pixel checkerboards where the original dithered, and the 16-colour
-VGA palette. Note the colour semantics, which most remakes get backwards: the *before* map is
+VGA palette. Note the colour semantics, which most remakes get backwards: the _before_ map is
 cyan/teal (unoptimized data, coloured by the part of the volume it belongs to), blue is what is
 **already optimized**, green is a read and red is a write.
 
@@ -882,27 +932,27 @@ reading of the progress:
 <nec-defrag-loader *ngIf="busy" [overlay]="true"></nec-defrag-loader>
 ```
 
-| Input | Type | Default | Notes |
-| --- | --- | --- | --- |
-| `title` | `string` | `'Defragmenting Drive C'` | Title bar text, also the accessible label. |
-| `status` | `string` | `''` | Status line under the grid; hidden when empty. |
-| `progress` | `number \| null` | `null` | `0..100` switches to determinate mode; `null` loops. |
-| `running` | `boolean` | `true` | Freezes the animation without unmounting. |
-| `cols` / `rows` | `number` | `48` / `12` | Map size in clusters. |
-| `cellWidth` / `cellHeight` | `number` | `7` / `9` | Native box size in px, black frame included — the original bitmap is taller than wide. |
-| `scale` | `number` | `2` | Integer zoom; pixels stay crisp (no smoothing). |
-| `density` | `number` | `0.62` | Share of the disk that starts out occupied. |
-| `seed` | `number` | `1` | Same seed, same fragmentation (deterministic). |
-| `clustersPerSecond` | `number` | `30` | Animation speed. |
-| `showChrome` | `boolean` | `true` | Windows 98 window frame and title bar. |
-| `showProgress` | `boolean` | `true` | Blocky progress bar and `xx% Complete`. |
-| `showLegend` | `boolean` | `false` | Colour legend, like the original *Legend* window. |
-| `loop` | `boolean` | `true` | Indeterminate mode: restart after each pass. |
-| `overlay` | `boolean` | `false` | Covers the page and centres the window. |
-| `palette` | `Partial<NecDefragPalette>` | `null` | Overrides single colours; missing ones stay Win98. |
+| Input                      | Type                        | Default                   | Notes                                                                                  |
+| -------------------------- | --------------------------- | ------------------------- | -------------------------------------------------------------------------------------- |
+| `title`                    | `string`                    | `'Defragmenting Drive C'` | Title bar text, also the accessible label.                                             |
+| `status`                   | `string`                    | `''`                      | Status line under the grid; hidden when empty.                                         |
+| `progress`                 | `number \| null`            | `null`                    | `0..100` switches to determinate mode; `null` loops.                                   |
+| `running`                  | `boolean`                   | `true`                    | Freezes the animation without unmounting.                                              |
+| `cols` / `rows`            | `number`                    | `48` / `12`               | Map size in clusters.                                                                  |
+| `cellWidth` / `cellHeight` | `number`                    | `7` / `9`                 | Native box size in px, black frame included — the original bitmap is taller than wide. |
+| `scale`                    | `number`                    | `2`                       | Integer zoom; pixels stay crisp (no smoothing).                                        |
+| `density`                  | `number`                    | `0.62`                    | Share of the disk that starts out occupied.                                            |
+| `seed`                     | `number`                    | `1`                       | Same seed, same fragmentation (deterministic).                                         |
+| `clustersPerSecond`        | `number`                    | `30`                      | Animation speed.                                                                       |
+| `showChrome`               | `boolean`                   | `true`                    | Windows 98 window frame and title bar.                                                 |
+| `showProgress`             | `boolean`                   | `true`                    | Blocky progress bar and `xx% Complete`.                                                |
+| `showLegend`               | `boolean`                   | `false`                   | Colour legend, like the original _Legend_ window.                                      |
+| `loop`                     | `boolean`                   | `true`                    | Indeterminate mode: restart after each pass.                                           |
+| `overlay`                  | `boolean`                   | `false`                   | Covers the page and centres the window.                                                |
+| `palette`                  | `Partial<NecDefragPalette>` | `null`                    | Overrides single colours; missing ones stay Win98.                                     |
 
-| Output | Payload | Notes |
-| --- | --- | --- |
+| Output          | Payload  | Notes                                                         |
+| --------------- | -------- | ------------------------------------------------------------- |
 | `passCompleted` | `number` | Emitted at the end of each pass, with its progressive number. |
 
 The animation runs on a `<canvas>` **outside the Angular zone** — no change detection per
@@ -917,9 +967,11 @@ The simulation is exported on its own (`necCreateDefragField`, `necDefragStep`,
 to drive a different renderer with it.
 
 ## Running unit tests
+
 Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
 
 ## Help
+
 If you need help, or want to help me: [https://github.com/jucasoft/ngrx-entity-crud/issues](https://github.com/jucasoft/ngrx-entity-crud/issues)
 
 ## MIT License
