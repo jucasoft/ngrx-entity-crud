@@ -304,8 +304,7 @@ export interface NecScaffoldField {
                 pButton
                 class="p-button-sm"
                 [class.p-button-outlined]="!f.isKey"
-                icon="pi pi-key"
-                [label]="f.isKey ? 'key' : ''"
+                [class.p-button-icon-only]="!f.isKey"
                 [disabled]="f.origin === 'manual'"
                 [title]="
                   f.origin === 'manual'
@@ -314,7 +313,13 @@ export interface NecScaffoldField {
                 "
                 [attr.aria-label]="'Toggle key for field ' + f.name"
                 (click)="toggleKey(f)"
-              ></button>
+              >
+                <span
+                  class="p-button-icon p-button-icon-left pi pi-key"
+                  aria-hidden="true"
+                ></span
+                ><span *ngIf="f.isKey" class="p-button-label">key</span>
+              </button>
             </td>
             <td>
               <button
@@ -322,20 +327,24 @@ export interface NecScaffoldField {
                 pButton
                 class="p-button-sm"
                 [class.p-button-outlined]="!f.inSearch"
-                icon="pi pi-search"
-                [label]="f.inSearch ? 'search' : ''"
+                [class.p-button-icon-only]="!f.inSearch"
                 [attr.aria-label]="
                   'Toggle search condition for field ' + f.name
                 "
                 (click)="toggleSearch(f)"
-              ></button>
+              >
+                <span
+                  class="p-button-icon p-button-icon-left pi pi-search"
+                  aria-hidden="true"
+                ></span
+                ><span *ngIf="f.inSearch" class="p-button-label">search</span>
+              </button>
             </td>
             <td>
               <button
                 type="button"
                 pButton
                 class="p-button-secondary p-button-outlined p-button-sm"
-                [label]="f.searchType"
                 [disabled]="!f.inSearch"
                 title="cycle string → number → date"
                 [attr.aria-label]="
@@ -346,18 +355,24 @@ export interface NecScaffoldField {
                   ')'
                 "
                 (click)="cycleSearchType(f)"
-              ></button>
+              >
+                <span class="p-button-label">{{ f.searchType }}</span>
+              </button>
             </td>
             <td>
               <button
                 type="button"
                 pButton
-                class="p-button-danger p-button-outlined p-button-sm"
-                icon="pi pi-times"
+                class="p-button-danger p-button-outlined p-button-sm p-button-icon-only"
                 *ngIf="f.origin === 'manual'"
                 [attr.aria-label]="'Remove manual field ' + f.name"
                 (click)="removeField(f)"
-              ></button>
+              >
+                <span
+                  class="p-button-icon p-button-icon-left pi pi-times"
+                  aria-hidden="true"
+                ></span>
+              </button>
             </td>
           </tr>
         </ng-template>
@@ -383,10 +398,14 @@ export interface NecScaffoldField {
           type="button"
           pButton
           class="p-button-sm"
-          icon="pi pi-plus"
-          label="Add"
           (click)="addManualField()"
-        ></button>
+        >
+          <span
+            class="p-button-icon p-button-icon-left pi pi-plus"
+            aria-hidden="true"
+          ></span
+          ><span class="p-button-label">Add</span>
+        </button>
         <span class="nec-note" *ngIf="fieldError()" role="alert">{{
           fieldError()
         }}</span>
@@ -415,8 +434,6 @@ export interface NecScaffoldField {
               type="button"
               pButton
               class="p-button-sm"
-              icon="pi pi-download"
-              label="Download conf"
               [disabled]="!confFileName()"
               [title]="
                 confFileName()
@@ -424,16 +441,28 @@ export interface NecScaffoldField {
                   : 'enter the entity name first'
               "
               (click)="downloadConf()"
-            ></button>
+            >
+              <span
+                class="p-button-icon p-button-icon-left pi pi-download"
+                aria-hidden="true"
+              ></span
+              ><span class="p-button-label">Download conf</span>
+            </button>
             <button
               type="button"
               pButton
               class="p-button-secondary p-button-outlined p-button-sm"
-              icon="pi pi-copy"
-              [label]="copiedWhat() === 'conf' ? 'Copied' : 'Copy conf'"
               aria-label="Copy the configuration JSON to the clipboard"
               (click)="copyConf()"
-            ></button>
+            >
+              <span
+                class="p-button-icon p-button-icon-left pi pi-copy"
+                aria-hidden="true"
+              ></span
+              ><span class="p-button-label">{{
+                copiedWhat() === 'conf' ? 'Copied' : 'Copy conf'
+              }}</span>
+            </button>
           </div>
           <div class="nec-note nec-mb" *ngIf="confFileName()">
             save as <code>{{ confPath() }}</code> — the view schematic resolves
@@ -452,11 +481,17 @@ export interface NecScaffoldField {
                 type="button"
                 pButton
                 class="p-button-secondary p-button-outlined p-button-sm"
-                icon="pi pi-copy"
-                [label]="copiedWhat() === 'cmd-' + i ? 'Copied' : 'Copy'"
                 [attr.aria-label]="'Copy command: ' + c.command"
                 (click)="copyCommand(c.command, i)"
-              ></button>
+              >
+                <span
+                  class="p-button-icon p-button-icon-left pi pi-copy"
+                  aria-hidden="true"
+                ></span
+                ><span class="p-button-label">{{
+                  copiedWhat() === 'cmd-' + i ? 'Copied' : 'Copy'
+                }}</span>
+              </button>
               <code class="nec-cmd">{{ c.command }}</code>
               <span class="nec-note" *ngIf="c.note">{{ c.note }}</span>
             </div>

@@ -236,30 +236,49 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
         type="button"
         pButton
         class="p-button-sm"
-        icon="pi pi-refresh"
-        [label]="busy() ? 'Refreshing…' : 'Refresh'"
         [disabled]="busy()"
         (click)="refresh()"
-      ></button>
+      >
+        <span
+          class="p-button-icon p-button-icon-left pi pi-refresh"
+          aria-hidden="true"
+        ></span
+        ><span class="p-button-label">{{
+          busy() ? 'Refreshing…' : 'Refresh'
+        }}</span>
+      </button>
       <button
         type="button"
         pButton
         class="p-button-secondary p-button-outlined p-button-sm"
-        icon="pi pi-copy"
-        [label]="copied() ? 'Copied' : 'Copy report'"
         aria-label="Copy the diagnostic report (metadata only) to the clipboard"
         (click)="copyReport()"
-      ></button>
+      >
+        <span
+          class="p-button-icon p-button-icon-left pi pi-copy"
+          aria-hidden="true"
+        ></span
+        ><span class="p-button-label">{{
+          copied() ? 'Copied' : 'Copy report'
+        }}</span>
+      </button>
       <ng-container *ngIf="pollingMs > 0">
         <button
           type="button"
           pButton
           class="p-button-secondary p-button-outlined p-button-sm"
-          [icon]="paused() ? 'pi pi-play' : 'pi pi-pause'"
-          [label]="paused() ? 'Resume' : 'Pause'"
           aria-label="Pause or resume auto-refresh"
           (click)="togglePaused()"
-        ></button>
+        >
+          <span
+            class="p-button-icon p-button-icon-left"
+            [ngClass]="paused() ? 'pi pi-play' : 'pi pi-pause'"
+            aria-hidden="true"
+          ></span
+          ><span class="p-button-label">{{
+            paused() ? 'Resume' : 'Pause'
+          }}</span>
+        </button>
         <p-tag
           severity="info"
           [value]="
@@ -397,10 +416,14 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
                       type="button"
                       pButton
                       class="p-button-secondary p-button-outlined p-button-sm"
-                      icon="pi pi-eye"
-                      label="show"
                       (click)="reveal(e.key)"
-                    ></button>
+                    >
+                      <span
+                        class="p-button-icon p-button-icon-left pi pi-eye"
+                        aria-hidden="true"
+                      ></span
+                      ><span class="p-button-label">show</span>
+                    </button>
                   </ng-template>
                 </td>
               </tr>
@@ -436,15 +459,19 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
                 type="button"
                 pButton
                 class="p-button-secondary p-button-outlined p-button-sm"
-                icon="pi pi-code"
-                [label]="
+                aria-label="Copy the full Python snippet (variables + requests example) to the clipboard"
+                (click)="copyPythonSnippet()"
+              >
+                <span
+                  class="p-button-icon p-button-icon-left pi pi-code"
+                  aria-hidden="true"
+                ></span
+                ><span class="p-button-label">{{
                   copiedPython() === 'snippet'
                     ? 'Copied'
                     : 'Copy Python snippet'
-                "
-                aria-label="Copy the full Python snippet (variables + requests example) to the clipboard"
-                (click)="copyPythonSnippet()"
-              ></button>
+                }}</span>
+              </button>
             </div>
             <pre class="nec-code">{{ pythonSnippetPreview() }}</pre>
           </div>
@@ -454,13 +481,17 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
                 type="button"
                 pButton
                 class="p-button-secondary p-button-outlined p-button-sm"
-                icon="pi pi-copy"
-                [label]="
-                  copiedPython() === 'vars' ? 'Copied' : 'Copy variables only'
-                "
                 aria-label="Copy only the refreshed variables block to the clipboard"
                 (click)="copyPythonVariables()"
-              ></button>
+              >
+                <span
+                  class="p-button-icon p-button-icon-left pi pi-copy"
+                  aria-hidden="true"
+                ></span
+                ><span class="p-button-label">{{
+                  copiedPython() === 'vars' ? 'Copied' : 'Copy variables only'
+                }}</span>
+              </button>
             </div>
             <pre class="nec-code">{{ pythonVariablesPreview() }}</pre>
           </div>
@@ -590,30 +621,42 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
                     type="button"
                     pButton
                     class="p-button-danger p-button-sm"
-                    icon="pi pi-check"
-                    label="Yes"
                     aria-label="Confirm resetting all slices"
                     (click)="confirmResetAll()"
-                  ></button>
+                  >
+                    <span
+                      class="p-button-icon p-button-icon-left pi pi-check"
+                      aria-hidden="true"
+                    ></span
+                    ><span class="p-button-label">Yes</span>
+                  </button>
                   <button
                     type="button"
                     pButton
                     class="p-button-secondary p-button-outlined p-button-sm"
-                    icon="pi pi-times"
-                    label="Cancel"
                     aria-label="Cancel reset"
                     (click)="cancelPending()"
-                  ></button>
+                  >
+                    <span
+                      class="p-button-icon p-button-icon-left pi pi-times"
+                      aria-hidden="true"
+                    ></span
+                    ><span class="p-button-label">Cancel</span>
+                  </button>
                 </ng-container>
                 <ng-template #resetAllBtn>
                   <button
                     type="button"
                     pButton
                     class="p-button-danger p-button-sm"
-                    icon="pi pi-trash"
-                    label="Reset all"
                     (click)="requestResetAll()"
-                  ></button>
+                  >
+                    <span
+                      class="p-button-icon p-button-icon-left pi pi-trash"
+                      aria-hidden="true"
+                    ></span
+                    ><span class="p-button-label">Reset all</span>
+                  </button>
                 </ng-template>
               </div>
             </div>
@@ -631,14 +674,21 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
                 pButton
                 class="p-button-sm"
                 [class.p-button-outlined]="!onlyWithData()"
-                [icon]="onlyWithData() ? 'pi pi-filter-slash' : 'pi pi-filter'"
-                [label]="
+                (click)="toggleOnlyWithData()"
+              >
+                <span
+                  class="p-button-icon p-button-icon-left"
+                  [ngClass]="
+                    onlyWithData() ? 'pi pi-filter-slash' : 'pi pi-filter'
+                  "
+                  aria-hidden="true"
+                ></span
+                ><span class="p-button-label">{{
                   onlyWithData()
                     ? 'Show all slices'
                     : 'Show only slices with data'
-                "
-                (click)="toggleOnlyWithData()"
-              ></button>
+                }}</span>
+              </button>
               <span class="nec-note" *ngIf="onlyWithData()">
                 {{ visibleSlices().length }} of
                 {{ storeReport()!.slices.length }} slices
@@ -719,20 +769,28 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
                           type="button"
                           pButton
                           class="p-button-danger p-button-sm"
-                          icon="pi pi-check"
-                          label="Yes"
                           [attr.aria-label]="'Confirm resetting slice ' + s.key"
                           (click)="confirmReset(s.key)"
-                        ></button>
+                        >
+                          <span
+                            class="p-button-icon p-button-icon-left pi pi-check"
+                            aria-hidden="true"
+                          ></span
+                          ><span class="p-button-label">Yes</span>
+                        </button>
                         <button
                           type="button"
                           pButton
                           class="p-button-secondary p-button-outlined p-button-sm"
-                          icon="pi pi-times"
-                          label="Cancel"
                           aria-label="Cancel reset"
                           (click)="cancelPending()"
-                        ></button>
+                        >
+                          <span
+                            class="p-button-icon p-button-icon-left pi pi-times"
+                            aria-hidden="true"
+                          ></span
+                          ><span class="p-button-label">Cancel</span>
+                        </button>
                       </ng-container>
                       <ng-container *ngIf="pendingResponsesKey() === s.key">
                         <span class="nec-note" role="alert"
@@ -742,22 +800,30 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
                           type="button"
                           pButton
                           class="p-button-danger p-button-sm"
-                          icon="pi pi-check"
-                          label="Yes"
                           [attr.aria-label]="
                             'Confirm resetting the responses of ' + s.key
                           "
                           (click)="confirmResetResponses(s.key)"
-                        ></button>
+                        >
+                          <span
+                            class="p-button-icon p-button-icon-left pi pi-check"
+                            aria-hidden="true"
+                          ></span
+                          ><span class="p-button-label">Yes</span>
+                        </button>
                         <button
                           type="button"
                           pButton
                           class="p-button-secondary p-button-outlined p-button-sm"
-                          icon="pi pi-times"
-                          label="Cancel"
                           aria-label="Cancel reset"
                           (click)="cancelPending()"
-                        ></button>
+                        >
+                          <span
+                            class="p-button-icon p-button-icon-left pi pi-times"
+                            aria-hidden="true"
+                          ></span
+                          ><span class="p-button-label">Cancel</span>
+                        </button>
                       </ng-container>
                       <ng-container
                         *ngIf="
@@ -769,20 +835,28 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
                           type="button"
                           pButton
                           class="p-button-danger p-button-outlined p-button-sm"
-                          icon="pi pi-trash"
-                          label="reset"
                           [attr.aria-label]="'Reset slice ' + s.key"
                           (click)="requestReset(s.key)"
-                        ></button>
+                        >
+                          <span
+                            class="p-button-icon p-button-icon-left pi pi-trash"
+                            aria-hidden="true"
+                          ></span
+                          ><span class="p-button-label">reset</span>
+                        </button>
                         <button
                           type="button"
                           pButton
                           class="p-button-secondary p-button-outlined p-button-sm"
-                          icon="pi pi-eraser"
-                          label="reset responses"
                           [attr.aria-label]="'Reset the responses of ' + s.key"
                           (click)="requestResetResponses(s.key)"
-                        ></button>
+                        >
+                          <span
+                            class="p-button-icon p-button-icon-left pi pi-eraser"
+                            aria-hidden="true"
+                          ></span
+                          ><span class="p-button-label">reset responses</span>
+                        </button>
                       </ng-container>
                     </div>
                   </td>
@@ -851,15 +925,21 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
                       type="button"
                       pButton
                       class="p-button-secondary p-button-outlined p-button-sm"
-                      icon="pi pi-copy"
                       *ngIf="l.isLazyCandidate"
-                      [label]="copiedLazy() === l.name ? 'Copied' : 'Copy'"
                       [title]="lazyStoreCommand(l)"
                       [attr.aria-label]="
                         'Copy the promote command for store ' + l.name
                       "
                       (click)="copyLazyCommand(l)"
-                    ></button>
+                    >
+                      <span
+                        class="p-button-icon p-button-icon-left pi pi-copy"
+                        aria-hidden="true"
+                      ></span
+                      ><span class="p-button-label">{{
+                        copiedLazy() === l.name ? 'Copied' : 'Copy'
+                      }}</span>
+                    </button>
                     <span class="nec-note" *ngIf="!l.isLazyCandidate">–</span>
                   </td>
                 </tr>
@@ -1098,11 +1178,15 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
                     type="button"
                     pButton
                     class="p-button-secondary p-button-outlined p-button-sm"
-                    icon="pi pi-arrows-h"
-                    label="autosize"
                     [attr.aria-label]="'Autosize the columns of grid ' + g.key"
                     (click)="autoSizeLiveGrid(g)"
-                  ></button>
+                  >
+                    <span
+                      class="p-button-icon p-button-icon-left pi pi-arrows-h"
+                      aria-hidden="true"
+                    ></span
+                    ><span class="p-button-label">autosize</span>
+                  </button>
                   <!-- Disabilitati SOLO a contatore 0 certo: null = non leggibile, e l'azione
                        di scrittura potrebbe comunque funzionare (letture e scritture degradano
                        in modo indipendente sull'handle). -->
@@ -1110,22 +1194,30 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
                     type="button"
                     pButton
                     class="p-button-secondary p-button-outlined p-button-sm"
-                    icon="pi pi-filter-slash"
-                    label="clear filters"
                     [disabled]="g.filterCount === 0"
                     [attr.aria-label]="'Clear the filters of grid ' + g.key"
                     (click)="clearLiveGridFilters(g)"
-                  ></button>
+                  >
+                    <span
+                      class="p-button-icon p-button-icon-left pi pi-filter-slash"
+                      aria-hidden="true"
+                    ></span
+                    ><span class="p-button-label">clear filters</span>
+                  </button>
                   <button
                     type="button"
                     pButton
                     class="p-button-secondary p-button-outlined p-button-sm"
-                    icon="pi pi-minus-circle"
-                    label="deselect"
                     [disabled]="g.selectedCount === 0"
                     [attr.aria-label]="'Deselect all rows of grid ' + g.key"
                     (click)="clearLiveGridSelection(g)"
-                  ></button>
+                  >
+                    <span
+                      class="p-button-icon p-button-icon-left pi pi-minus-circle"
+                      aria-hidden="true"
+                    ></span
+                    ><span class="p-button-label">deselect</span>
+                  </button>
                 </div>
               </td>
             </tr>

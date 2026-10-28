@@ -19,7 +19,12 @@
       "ngrx-entity-crud/*": ["dist/ngrx-entity-crud/*"]
     },
     "allowJs": true,
-    "rootDir": "."
+    "rootDir": ".",
+    "strict": false,
+    "noUncheckedSideEffectImports": false,
+    "types": ["*"],
+    "esModuleInterop": false,
+    "ignoreDeprecations": "6.0"
   },
   "angularCompilerOptions": {
     "fullTemplateTypeCheck": true,

@@ -193,10 +193,14 @@ function pluralize(count: number, singular: string, plural: string): string {
             type="button"
             pButton
             class="p-button-sm"
-            icon="pi pi-spin pi-spinner"
-            label="Restoring…"
             [disabled]="true"
-          ></button>
+          >
+            <span
+              class="p-button-icon p-button-icon-left pi pi-spin pi-spinner"
+              aria-hidden="true"
+            ></span
+            ><span class="p-button-label">Restoring…</span>
+          </button>
 
           <ng-container *ngSwitchCase="'prompt'">
             <p-tag severity="info" [value]="statsSummary(vm.stats)"></p-tag>
@@ -222,18 +226,26 @@ function pluralize(count: number, singular: string, plural: string): string {
                 type="button"
                 pButton
                 class="p-button-sm"
-                icon="pi pi-history"
-                label="Restore"
                 (click)="restore()"
-              ></button>
+              >
+                <span
+                  class="p-button-icon p-button-icon-left pi pi-history"
+                  aria-hidden="true"
+                ></span
+                ><span class="p-button-label">Restore</span>
+              </button>
               <button
                 type="button"
                 pButton
                 class="p-button-secondary p-button-outlined p-button-sm"
-                icon="pi pi-search"
-                label="New search"
                 (click)="requestNewSearch()"
-              ></button>
+              >
+                <span
+                  class="p-button-icon p-button-icon-left pi pi-search"
+                  aria-hidden="true"
+                ></span
+                ><span class="p-button-label">New search</span>
+              </button>
             </ng-container>
             <ng-template #confirmDismiss>
               <span class="nec-note" role="alert"
@@ -243,18 +255,26 @@ function pluralize(count: number, singular: string, plural: string): string {
                 type="button"
                 pButton
                 class="p-button-danger p-button-sm"
-                icon="pi pi-check"
-                label="Yes"
                 (click)="confirmNewSearch()"
-              ></button>
+              >
+                <span
+                  class="p-button-icon p-button-icon-left pi pi-check"
+                  aria-hidden="true"
+                ></span
+                ><span class="p-button-label">Yes</span>
+              </button>
               <button
                 type="button"
                 pButton
                 class="p-button-secondary p-button-outlined p-button-sm"
-                icon="pi pi-times"
-                label="Cancel"
                 (click)="cancelNewSearch()"
-              ></button>
+              >
+                <span
+                  class="p-button-icon p-button-icon-left pi pi-times"
+                  aria-hidden="true"
+                ></span
+                ><span class="p-button-label">Cancel</span>
+              </button>
             </ng-template>
           </ng-container>
         </ng-container>
@@ -278,10 +298,9 @@ function pluralize(count: number, singular: string, plural: string): string {
           <button
             type="button"
             pButton
-            class="p-button-sm nec-ml"
+            class="p-button-sm nec-ml p-button-icon-only"
             [class.p-button-outlined]="vm.saveMode !== 'always'"
             [class.p-button-secondary]="vm.saveMode !== 'always'"
-            icon="pi pi-save"
             [attr.aria-pressed]="vm.saveMode === 'always'"
             [title]="
               vm.saveMode === 'always'
@@ -289,7 +308,12 @@ function pluralize(count: number, singular: string, plural: string): string {
                 : 'Salva i risultati solo alla prima modifica — clic per salvarli sempre'
             "
             (click)="toggleSaveMode(vm.saveMode)"
-          ></button>
+          >
+            <span
+              class="p-button-icon p-button-icon-left pi pi-save"
+              aria-hidden="true"
+            ></span>
+          </button>
         </span>
       </div>
     </ng-container>

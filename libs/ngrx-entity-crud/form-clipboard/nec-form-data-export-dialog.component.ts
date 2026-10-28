@@ -107,21 +107,21 @@ import { necAllSelected, necToggleAll, necToggleItem } from './selection';
     ></textarea>
 
     <div class="nec-actions">
+      <button type="button" pButton class="p-button-text" (click)="cancel()">
+        <span class="p-button-label">Cancel</span>
+      </button>
       <button
         type="button"
         pButton
-        class="p-button-text"
-        label="Cancel"
-        (click)="cancel()"
-      ></button>
-      <button
-        type="button"
-        pButton
-        icon="pi pi-copy"
-        label="Copy"
         [disabled]="selection.length === 0"
         (click)="copy()"
-      ></button>
+      >
+        <span
+          class="p-button-icon p-button-icon-left pi pi-copy"
+          aria-hidden="true"
+        ></span
+        ><span class="p-button-label">Copy</span>
+      </button>
     </div>
   `,
 })

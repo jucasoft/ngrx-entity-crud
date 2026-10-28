@@ -27,8 +27,10 @@ const config: Config = {
       },
     ],
   },
+  // Pacchetti distribuiti solo come ESM, da trasformare: @primeui/@primeicons arrivano con
+  // PrimeNG 22, magic-string con i pacchetti devkit/schematics di Angular 22.
   transformIgnorePatterns: [
-    'node_modules/(?!(@angular|@ngrx|rxjs|tslib|primeng|@primeuix)/)',
+    'node_modules/(?!(@angular|@ngrx|rxjs|tslib|primeng|@primeuix|@primeui|@primeicons|magic-string)/)',
   ],
   moduleNameMapper: {
     // `persistence/` importa il core e `devtools/` tramite il nome del pacchetto (unico modo per
@@ -44,4 +46,4 @@ const config: Config = {
   testMatch: ['**/*.spec.ts'],
 };
 
-export default config;
+module.exports = config;

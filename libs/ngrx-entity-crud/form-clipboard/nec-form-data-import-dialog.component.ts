@@ -138,21 +138,21 @@ import { necAllSelected, necToggleAll, necToggleItem } from './selection';
     </p-table>
 
     <div class="nec-actions">
+      <button type="button" pButton class="p-button-text" (click)="cancel()">
+        <span class="p-button-label">Cancel</span>
+      </button>
       <button
         type="button"
         pButton
-        class="p-button-text"
-        label="Cancel"
-        (click)="cancel()"
-      ></button>
-      <button
-        type="button"
-        pButton
-        icon="pi pi-check"
-        label="Apply"
         [disabled]="!!error || selection.length === 0"
         (click)="apply()"
-      ></button>
+      >
+        <span
+          class="p-button-icon p-button-icon-left pi pi-check"
+          aria-hidden="true"
+        ></span
+        ><span class="p-button-label">Apply</span>
+      </button>
     </div>
   `,
 })
