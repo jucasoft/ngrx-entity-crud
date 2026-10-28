@@ -36,10 +36,7 @@ import {
 } from 'ngrx-entity-crud/persistence';
 
 export type NecRestoreSearchState =
-  | 'none'
-  | 'prompt'
-  | 'auto-restoring'
-  | 'manual-restoring';
+  'none' | 'prompt' | 'auto-restoring' | 'manual-restoring';
 
 /**
  * `inline` (default): una riga con il pulsante di ricerca avvolto, come in una toolbar.

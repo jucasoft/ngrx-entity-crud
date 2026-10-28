@@ -89,6 +89,10 @@ export default [
 
       // Regole per variabili
       camelcase: ['error', {allow: ['^_']}],
+
+      // Nuova in eslint:recommended con ESLint 10: segnala le inizializzazioni difensive
+      // (`let x = null; try { x = ... } catch { return }`) usate nel codice esistente.
+      'no-useless-assignment': 'off',
     },
   },
   {

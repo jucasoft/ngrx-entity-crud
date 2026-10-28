@@ -1,8 +1,6 @@
 /** Classi primeicons dell'icona di ordinamento di una colonna `pSortableColumn`. */
 export type NecSortIconClass =
-  | 'pi-sort-alt'
-  | 'pi-sort-amount-up-alt'
-  | 'pi-sort-amount-down';
+  'pi-sort-alt' | 'pi-sort-amount-up-alt' | 'pi-sort-amount-down';
 
 /**
  * Icona di ordinamento di una colonna, letta dallo stato della `p-table` (sort singolo).
