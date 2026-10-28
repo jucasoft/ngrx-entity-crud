@@ -4,13 +4,13 @@ import {
   Component,
   OnInit,
 } from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {FormsModule} from '@angular/forms';
-import {ButtonModule} from 'primeng/button';
-import {TableModule} from 'primeng/table';
-import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
-import {NecFormClipboardService} from './nec-form-clipboard.service';
-import {NecFormClipboardField} from './models';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { TableModule } from 'primeng/table';
+import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { NecFormClipboardService } from './nec-form-clipboard.service';
+import { NecFormClipboardField } from './models';
 
 /**
  * Dialog di importazione dei criteri di ricerca: textarea per il JSON
@@ -178,7 +178,7 @@ export class NecFormDataImportDialogComponent implements OnInit {
       return;
     }
 
-    const {payload, error} = this.formClipboard.parse(this.text);
+    const { payload, error } = this.formClipboard.parse(this.text);
     if (error || !payload) {
       this.error = error || 'Unrecognized payload';
       return;
@@ -207,7 +207,7 @@ export class NecFormDataImportDialogComponent implements OnInit {
       this.revivedFormData,
       this.selection.map((field) => field.path)
     );
-    this.ref.close({formData, count: this.selection.length});
+    this.ref.close({ formData, count: this.selection.length });
   }
 
   cancel(): void {

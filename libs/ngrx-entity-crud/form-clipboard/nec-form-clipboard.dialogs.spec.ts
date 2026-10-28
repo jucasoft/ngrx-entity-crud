@@ -1,9 +1,9 @@
-import {TestBed} from '@angular/core/testing';
-import {NoopAnimationsModule} from '@angular/platform-browser/animations';
-import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
-import {NecFormClipboardService} from './nec-form-clipboard.service';
-import {NecFormDataExportDialogComponent} from './nec-form-data-export-dialog.component';
-import {NecFormDataImportDialogComponent} from './nec-form-data-import-dialog.component';
+import { TestBed } from '@angular/core/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { NecFormClipboardService } from './nec-form-clipboard.service';
+import { NecFormDataExportDialogComponent } from './nec-form-data-export-dialog.component';
+import { NecFormDataImportDialogComponent } from './nec-form-data-import-dialog.component';
 
 const COMPONENT_NAME = 'ProductBrowserSearchComponent';
 
@@ -30,19 +30,19 @@ const formData: Record<string, unknown> = {
 };
 
 describe('NecFormDataExportDialogComponent', () => {
-  let ref: {close: jest.Mock};
+  let ref: { close: jest.Mock };
   let service: NecFormClipboardService;
 
   beforeEach(() => {
-    ref = {close: jest.fn()};
+    ref = { close: jest.fn() };
     TestBed.configureTestingModule({
       imports: [NecFormDataExportDialogComponent, NoopAnimationsModule],
       providers: [
         {
           provide: DynamicDialogConfig,
-          useValue: {data: {componentName: COMPONENT_NAME, formData}},
+          useValue: { data: { componentName: COMPONENT_NAME, formData } },
         },
-        {provide: DynamicDialogRef, useValue: ref},
+        { provide: DynamicDialogRef, useValue: ref },
       ],
     });
     service = TestBed.inject(NecFormClipboardService);
@@ -74,26 +74,26 @@ describe('NecFormDataExportDialogComponent', () => {
     component.copy();
 
     expect(service.copy).toHaveBeenCalledWith(component.previewJson);
-    expect(ref.close).toHaveBeenCalledWith({copied: true, count: 2});
+    expect(ref.close).toHaveBeenCalledWith({ copied: true, count: 2 });
   });
 });
 
 describe('NecFormDataImportDialogComponent', () => {
-  let ref: {close: jest.Mock};
+  let ref: { close: jest.Mock };
   let service: NecFormClipboardService;
 
   beforeEach(() => {
-    ref = {close: jest.fn()};
+    ref = { close: jest.fn() };
     TestBed.configureTestingModule({
       imports: [NecFormDataImportDialogComponent, NoopAnimationsModule],
       providers: [
         {
           provide: DynamicDialogConfig,
           useValue: {
-            data: {componentName: COMPONENT_NAME, currentFormData: formData},
+            data: { componentName: COMPONENT_NAME, currentFormData: formData },
           },
         },
-        {provide: DynamicDialogRef, useValue: ref},
+        { provide: DynamicDialogRef, useValue: ref },
       ],
     });
     service = TestBed.inject(NecFormClipboardService);
@@ -102,7 +102,7 @@ describe('NecFormDataImportDialogComponent', () => {
   });
 
   function validText(componentName: string = COMPONENT_NAME): string {
-    return service.serialize({v: 1, componentName, formData});
+    return service.serialize({ v: 1, componentName, formData });
   }
 
   it('con un payload valido popola la tabella e il confronto col form', () => {

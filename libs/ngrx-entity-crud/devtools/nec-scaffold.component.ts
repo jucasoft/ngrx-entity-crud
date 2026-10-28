@@ -1,11 +1,18 @@
-import {ChangeDetectionStrategy, Component, computed, Input, OnDestroy, signal} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {ButtonModule} from 'primeng/button';
-import {CardModule} from 'primeng/card';
-import {DividerModule} from 'primeng/divider';
-import {InputTextModule} from 'primeng/inputtext';
-import {TableModule} from 'primeng/table';
-import {TagModule} from 'primeng/tag';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  Input,
+  OnDestroy,
+  signal,
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ButtonModule } from 'primeng/button';
+import { CardModule } from 'primeng/card';
+import { DividerModule } from 'primeng/divider';
+import { InputTextModule } from 'primeng/inputtext';
+import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
 
 /**
  * Repliche browser-side di `strings.camelize/classify/dasherize` di `@angular-devkit/core`:
@@ -14,8 +21,10 @@ import {TagModule} from 'primeng/tag';
  */
 export function necCamelize(str: string): string {
   return str
-    .replace(/(-|_|\.|\s)+(.)?/g, (_match: string, _sep: string, chr: string | undefined) =>
-      chr ? chr.toUpperCase() : ''
+    .replace(
+      /(-|_|\.|\s)+(.)?/g,
+      (_match: string, _sep: string, chr: string | undefined) =>
+        chr ? chr.toUpperCase() : ''
     )
     .replace(/^([A-Z])/, (m) => m.toLowerCase());
 }
@@ -31,7 +40,10 @@ export function necClassify(str: string): string {
 }
 
 export function necDasherize(str: string): string {
-  return str.replace(/([a-z\d])([A-Z])/g, '$1_$2').toLowerCase().replace(/[ _]/g, '-');
+  return str
+    .replace(/([a-z\d])([A-Z])/g, '$1_$2')
+    .toLowerCase()
+    .replace(/[ _]/g, '-');
 }
 
 /** Tipi ammessi dal campo `type` delle condition di ricerca del conf grm-schematics. */
@@ -76,13 +88,24 @@ export interface NecScaffoldField {
 @Component({
   selector: 'nec-scaffold',
   standalone: true,
-  imports: [CommonModule, ButtonModule, CardModule, DividerModule, InputTextModule, TableModule, TagModule],
+  imports: [
+    CommonModule,
+    ButtonModule,
+    CardModule,
+    DividerModule,
+    InputTextModule,
+    TableModule,
+    TagModule,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [
     `
       :host {
         display: block;
-        font-family: var(--font-family, var(--p-font-family, system-ui, sans-serif));
+        font-family: var(
+          --font-family,
+          var(--p-font-family, system-ui, sans-serif)
+        );
         font-size: 13px;
         color: var(--text-color, var(--p-text-color, #1f2933));
       }
@@ -130,7 +153,8 @@ export interface NecScaffoldField {
         margin: 4px 0;
         padding: 6px 8px;
         background: var(--surface-100, var(--p-surface-100, #f5f7fa));
-        border: 1px solid var(--surface-border, var(--p-content-border-color, #eceff3));
+        border: 1px solid
+          var(--surface-border, var(--p-content-border-color, #eceff3));
         border-radius: 4px;
         white-space: pre-wrap;
         word-break: break-word;
@@ -146,7 +170,8 @@ export interface NecScaffoldField {
         padding: 6px 8px;
         background: var(--surface-0, var(--p-surface-0, #ffffff));
         color: inherit;
-        border: 1px solid var(--surface-border, var(--p-content-border-color, #ced4da));
+        border: 1px solid
+          var(--surface-border, var(--p-content-border-color, #ced4da));
         border-radius: 6px;
         font-family: monospace;
         font-size: 12px;
@@ -173,8 +198,9 @@ export interface NecScaffoldField {
   template: `
     <p-card header="Scaffold — new section">
       <div class="nec-note nec-mb">
-        Builds the configuration file and the generate commands for a new "search form + grid"
-        section. Nothing is written to disk: copy or download the JSON below, then save it under
+        Builds the configuration file and the generate commands for a new
+        "search form + grid" section. Nothing is written to disk: copy or
+        download the JSON below, then save it under
         <code>{{ confDir }}/</code>.
       </div>
 
@@ -189,14 +215,24 @@ export interface NecScaffoldField {
           [value]="clazz()"
           (input)="setClazz($any($event.target).value)"
         />
-        <p-tag severity="info" *ngIf="classified()" [value]="'class ' + classified()"></p-tag>
-        <p-tag severity="success" *ngIf="confFileName()" [value]="confPath()"></p-tag>
+        <p-tag
+          severity="info"
+          *ngIf="classified()"
+          [value]="'class ' + classified()"
+        ></p-tag>
+        <p-tag
+          severity="success"
+          *ngIf="confFileName()"
+          [value]="confPath()"
+        ></p-tag>
       </div>
 
       <p-divider align="left"><b>2 · DTO sample</b></p-divider>
       <div class="nec-note nec-mb">
-        Paste a sample JSON object returned by the backend (a single item, not an array): it becomes
-        <code>dtoObject</code> and its fields are listed below with their derived type.
+        Paste a sample JSON object returned by the backend (a single item, not
+        an array): it becomes
+        <code>dtoObject</code> and its fields are listed below with their
+        derived type.
       </div>
       <textarea
         class="nec-textarea nec-mb"
@@ -206,17 +242,39 @@ export interface NecScaffoldField {
         [value]="dtoText()"
         (input)="setDto($any($event.target).value)"
       ></textarea>
-      <div class="nec-message nec-message-error nec-mb" *ngIf="dtoError()" role="alert">
+      <div
+        class="nec-message nec-message-error nec-mb"
+        *ngIf="dtoError()"
+        role="alert"
+      >
         <i class="pi pi-times-circle"></i>{{ dtoError() }}
       </div>
 
       <p-divider align="left"><b>3 · Fields</b></p-divider>
       <div class="nec-row nec-mb" *ngIf="fields().length">
-        <p-tag severity="info" [value]="fields().length + (fields().length === 1 ? ' field' : ' fields')"></p-tag>
-        <p-tag severity="success" *ngIf="keysCount()" [value]="keysCount() + (keysCount() === 1 ? ' key' : ' keys')"></p-tag>
-        <p-tag severity="info" *ngIf="searchCount()" [value]="searchCount() + ' in search'"></p-tag>
+        <p-tag
+          severity="info"
+          [value]="
+            fields().length + (fields().length === 1 ? ' field' : ' fields')
+          "
+        ></p-tag>
+        <p-tag
+          severity="success"
+          *ngIf="keysCount()"
+          [value]="keysCount() + (keysCount() === 1 ? ' key' : ' keys')"
+        ></p-tag>
+        <p-tag
+          severity="info"
+          *ngIf="searchCount()"
+          [value]="searchCount() + ' in search'"
+        ></p-tag>
       </div>
-      <p-table *ngIf="fields().length; else noFields" [value]="fields()" styleClass="p-datatable-sm" class="nec-mb">
+      <p-table
+        *ngIf="fields().length; else noFields"
+        [value]="fields()"
+        styleClass="p-datatable-sm"
+        class="nec-mb"
+      >
         <ng-template pTemplate="header">
           <tr>
             <th>field</th>
@@ -231,7 +289,12 @@ export interface NecScaffoldField {
           <tr>
             <td>
               {{ f.name }}
-              <p-tag styleClass="nec-ml" severity="info" value="manual" *ngIf="f.origin === 'manual'"></p-tag>
+              <p-tag
+                styleClass="nec-ml"
+                severity="info"
+                value="manual"
+                *ngIf="f.origin === 'manual'"
+              ></p-tag>
             </td>
             <td>{{ f.dtoType || '–' }}</td>
             <td>
@@ -244,7 +307,11 @@ export interface NecScaffoldField {
                 icon="pi pi-key"
                 [label]="f.isKey ? 'key' : ''"
                 [disabled]="f.origin === 'manual'"
-                [title]="f.origin === 'manual' ? 'only DTO fields can be keys (selectId reads the DTO)' : 'toggle key'"
+                [title]="
+                  f.origin === 'manual'
+                    ? 'only DTO fields can be keys (selectId reads the DTO)'
+                    : 'toggle key'
+                "
                 [attr.aria-label]="'Toggle key for field ' + f.name"
                 (click)="toggleKey(f)"
               ></button>
@@ -257,7 +324,9 @@ export interface NecScaffoldField {
                 [class.p-button-outlined]="!f.inSearch"
                 icon="pi pi-search"
                 [label]="f.inSearch ? 'search' : ''"
-                [attr.aria-label]="'Toggle search condition for field ' + f.name"
+                [attr.aria-label]="
+                  'Toggle search condition for field ' + f.name
+                "
                 (click)="toggleSearch(f)"
               ></button>
             </td>
@@ -269,7 +338,13 @@ export interface NecScaffoldField {
                 [label]="f.searchType"
                 [disabled]="!f.inSearch"
                 title="cycle string → number → date"
-                [attr.aria-label]="'Change search type of field ' + f.name + ' (current: ' + f.searchType + ')'"
+                [attr.aria-label]="
+                  'Change search type of field ' +
+                  f.name +
+                  ' (current: ' +
+                  f.searchType +
+                  ')'
+                "
                 (click)="cycleSearchType(f)"
               ></button>
             </td>
@@ -289,7 +364,8 @@ export interface NecScaffoldField {
       </p-table>
       <ng-template #noFields>
         <div class="nec-message nec-message-info nec-mb">
-          <i class="pi pi-info-circle"></i>No fields yet: paste a DTO above or add search fields manually.
+          <i class="pi pi-info-circle"></i>No fields yet: paste a DTO above or
+          add search fields manually.
         </div>
       </ng-template>
       <div class="nec-row nec-mb">
@@ -303,9 +379,17 @@ export interface NecScaffoldField {
           (input)="setNewFieldName($any($event.target).value)"
           (keyup.enter)="addManualField()"
         />
-        <button type="button" pButton class="p-button-sm" icon="pi pi-plus" label="Add"
-                (click)="addManualField()"></button>
-        <span class="nec-note" *ngIf="fieldError()" role="alert">{{ fieldError() }}</span>
+        <button
+          type="button"
+          pButton
+          class="p-button-sm"
+          icon="pi pi-plus"
+          label="Add"
+          (click)="addManualField()"
+        ></button>
+        <span class="nec-note" *ngIf="fieldError()" role="alert">{{
+          fieldError()
+        }}</span>
       </div>
       <div class="nec-row nec-mb">
         <label for="nec-scaffold-section">Search section name</label>
@@ -317,42 +401,70 @@ export interface NecScaffoldField {
           [value]="sectionName()"
           (input)="setSectionName($any($event.target).value)"
         />
-        <span class="nec-note">key of the conditionMap entry (empty = derived from the entity name)</span>
+        <span class="nec-note"
+          >key of the conditionMap entry (empty = derived from the entity
+          name)</span
+        >
       </div>
 
       <p-divider align="left"><b>4 · Output</b></p-divider>
       <div class="nec-grid">
         <div>
           <div class="nec-row nec-mb">
-            <button type="button" pButton class="p-button-sm" icon="pi pi-download"
-                    label="Download conf" [disabled]="!confFileName()"
-                    [title]="confFileName() ? 'download ' + confFileName() : 'enter the entity name first'"
-                    (click)="downloadConf()"></button>
-            <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm"
-                    icon="pi pi-copy" [label]="copiedWhat() === 'conf' ? 'Copied' : 'Copy conf'"
-                    aria-label="Copy the configuration JSON to the clipboard"
-                    (click)="copyConf()"></button>
+            <button
+              type="button"
+              pButton
+              class="p-button-sm"
+              icon="pi pi-download"
+              label="Download conf"
+              [disabled]="!confFileName()"
+              [title]="
+                confFileName()
+                  ? 'download ' + confFileName()
+                  : 'enter the entity name first'
+              "
+              (click)="downloadConf()"
+            ></button>
+            <button
+              type="button"
+              pButton
+              class="p-button-secondary p-button-outlined p-button-sm"
+              icon="pi pi-copy"
+              [label]="copiedWhat() === 'conf' ? 'Copied' : 'Copy conf'"
+              aria-label="Copy the configuration JSON to the clipboard"
+              (click)="copyConf()"
+            ></button>
           </div>
           <div class="nec-note nec-mb" *ngIf="confFileName()">
-            save as <code>{{ confPath() }}</code> — the view schematic resolves it from
-            <code>--clazz {{ classified() }}</code>.
+            save as <code>{{ confPath() }}</code> — the view schematic resolves
+            it from <code>--clazz {{ classified() }}</code
+            >.
           </div>
           <pre class="nec-code">{{ confText() }}</pre>
         </div>
         <div>
           <ng-container *ngIf="commands().length; else noCommands">
-            <div class="nec-row nec-mb" *ngFor="let c of commands(); let i = index">
-              <button type="button" pButton class="p-button-secondary p-button-outlined p-button-sm"
-                      icon="pi pi-copy" [label]="copiedWhat() === 'cmd-' + i ? 'Copied' : 'Copy'"
-                      [attr.aria-label]="'Copy command: ' + c.command"
-                      (click)="copyCommand(c.command, i)"></button>
+            <div
+              class="nec-row nec-mb"
+              *ngFor="let c of commands(); let i = index"
+            >
+              <button
+                type="button"
+                pButton
+                class="p-button-secondary p-button-outlined p-button-sm"
+                icon="pi pi-copy"
+                [label]="copiedWhat() === 'cmd-' + i ? 'Copied' : 'Copy'"
+                [attr.aria-label]="'Copy command: ' + c.command"
+                (click)="copyCommand(c.command, i)"
+              ></button>
               <code class="nec-cmd">{{ c.command }}</code>
               <span class="nec-note" *ngIf="c.note">{{ c.note }}</span>
             </div>
           </ng-container>
           <ng-template #noCommands>
             <div class="nec-message nec-message-info nec-mb">
-              <i class="pi pi-info-circle"></i>Enter the entity name to build the commands.
+              <i class="pi pi-info-circle"></i>Enter the entity name to build
+              the commands.
             </div>
           </ng-template>
           <ng-container *ngIf="checklist.length">
@@ -401,11 +513,19 @@ export class NecScaffoldComponent implements OnDestroy {
   readonly classified = computed(() => necClassify(this.clazz().trim()));
   /** Nome dasherizzato (`product-browser`): determina il NOME FILE letto dallo schematic view. */
   readonly dasherized = computed(() => necDasherize(this.classified()));
-  readonly confFileName = computed(() => (this.dasherized() ? `${this.dasherized()}.json` : ''));
+  readonly confFileName = computed(() =>
+    this.dasherized() ? `${this.dasherized()}.json` : ''
+  );
   /** Chiave della sezione in `conditionMap`: override esplicito o nome entità dasherizzato. */
-  readonly sectionKey = computed(() => this.sectionName().trim() || this.dasherized() || 'section');
-  readonly keysCount = computed(() => this.fields().filter((f) => f.isKey).length);
-  readonly searchCount = computed(() => this.fields().filter((f) => f.inSearch).length);
+  readonly sectionKey = computed(
+    () => this.sectionName().trim() || this.dasherized() || 'section'
+  );
+  readonly keysCount = computed(
+    () => this.fields().filter((f) => f.isKey).length
+  );
+  readonly searchCount = computed(
+    () => this.fields().filter((f) => f.inSearch).length
+  );
   /** JSON del file di configurazione, pronto per copia/download. */
   readonly confText = computed(() => JSON.stringify(this.buildConf(), null, 2));
 
@@ -451,8 +571,14 @@ export class NecScaffoldComponent implements OnDestroy {
       this.dtoError.set(`Invalid JSON: ${(e as Error).message}`);
       return;
     }
-    if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
-      this.dtoError.set('The DTO must be a single JSON object (paste one item, not an array).');
+    if (
+      parsed === null ||
+      typeof parsed !== 'object' ||
+      Array.isArray(parsed)
+    ) {
+      this.dtoError.set(
+        'The DTO must be a single JSON object (paste one item, not an array).'
+      );
       return;
     }
     this.dtoError.set(null);
@@ -466,7 +592,7 @@ export class NecScaffoldComponent implements OnDestroy {
         if (prev) {
           // Ri-incollare il DTO conserva le scelte fatte; un campo manuale che ora esiste nel
           // DTO viene "promosso" (diventa anche candidabile come key).
-          return {...prev, origin: 'dto', dtoType};
+          return { ...prev, origin: 'dto', dtoType };
         }
         return {
           name,
@@ -477,7 +603,9 @@ export class NecScaffoldComponent implements OnDestroy {
           origin: 'dto',
         };
       });
-      const manual = existing.filter((f) => f.origin === 'manual' && !(f.name in dto));
+      const manual = existing.filter(
+        (f) => f.origin === 'manual' && !(f.name in dto)
+      );
       return [...dtoFields, ...manual];
     });
   }
@@ -495,25 +623,40 @@ export class NecScaffoldComponent implements OnDestroy {
     this.fieldError.set(null);
     this.fields.update((fs) => [
       ...fs,
-      {name, dtoType: '', searchType: 'string', isKey: false, inSearch: true, origin: 'manual'},
+      {
+        name,
+        dtoType: '',
+        searchType: 'string',
+        isKey: false,
+        inSearch: true,
+        origin: 'manual',
+      },
     ]);
     this.newFieldName.set('');
   }
 
   /** Rimuove un campo aggiunto a mano (i campi del DTO si tolgono correggendo il JSON). */
   removeField(field: NecScaffoldField): void {
-    this.fields.update((fs) => fs.filter((f) => !(f.name === field.name && f.origin === 'manual')));
+    this.fields.update((fs) =>
+      fs.filter((f) => !(f.name === field.name && f.origin === 'manual'))
+    );
   }
 
   toggleKey(field: NecScaffoldField): void {
     if (field.origin === 'manual') {
       return; // `keys` alimenta selectId, che legge il DTO: un campo fuori dal DTO non può esservi
     }
-    this.fields.update((fs) => fs.map((f) => (f.name === field.name ? {...f, isKey: !f.isKey} : f)));
+    this.fields.update((fs) =>
+      fs.map((f) => (f.name === field.name ? { ...f, isKey: !f.isKey } : f))
+    );
   }
 
   toggleSearch(field: NecScaffoldField): void {
-    this.fields.update((fs) => fs.map((f) => (f.name === field.name ? {...f, inSearch: !f.inSearch} : f)));
+    this.fields.update((fs) =>
+      fs.map((f) =>
+        f.name === field.name ? { ...f, inSearch: !f.inSearch } : f
+      )
+    );
   }
 
   cycleSearchType(field: NecScaffoldField): void {
@@ -523,7 +666,9 @@ export class NecScaffoldComponent implements OnDestroy {
       date: 'string',
     };
     this.fields.update((fs) =>
-      fs.map((f) => (f.name === field.name ? {...f, searchType: next[f.searchType]} : f))
+      fs.map((f) =>
+        f.name === field.name ? { ...f, searchType: next[f.searchType] } : f
+      )
     );
   }
 
@@ -537,7 +682,10 @@ export class NecScaffoldComponent implements OnDestroy {
     formAttributes: unknown[];
     dtoObject: Record<string, unknown>;
     keys: string[];
-    conditionMap: Record<string, {conditions: unknown[]; conditionsLog: unknown[]}>;
+    conditionMap: Record<
+      string,
+      { conditions: unknown[]; conditionsLog: unknown[] }
+    >;
   } {
     const fields = this.fields();
     const conditions = fields
@@ -553,7 +701,7 @@ export class NecScaffoldComponent implements OnDestroy {
       formAttributes: [],
       dtoObject: this.dtoObject() ?? {},
       keys: fields.filter((f) => f.isKey).map((f) => f.name),
-      conditionMap: {[this.sectionKey()]: {conditions, conditionsLog: []}},
+      conditionMap: { [this.sectionKey()]: { conditions, conditionsLog: [] } },
     };
   }
 
@@ -567,12 +715,12 @@ export class NecScaffoldComponent implements OnDestroy {
   }
 
   /** Sequenza di comandi `ng generate` nell'ordine del flusso: store → api → view. */
-  commands(): {command: string; note?: string}[] {
+  commands(): { command: string; note?: string }[] {
     const clazz = this.classified();
     if (!clazz) {
       return [];
     }
-    const out: {command: string; note?: string}[] = [];
+    const out: { command: string; note?: string }[] = [];
     if (this.storeSchematic) {
       out.push({
         command: `ng generate ${this.storeSchematic} --clazz ${clazz}`,
@@ -580,7 +728,9 @@ export class NecScaffoldComponent implements OnDestroy {
       });
     }
     if (this.apiSchematic) {
-      out.push({command: `ng generate ${this.apiSchematic} --clazz ${clazz}`});
+      out.push({
+        command: `ng generate ${this.apiSchematic} --clazz ${clazz}`,
+      });
     }
     if (this.viewSchematic) {
       out.push({
@@ -605,7 +755,7 @@ export class NecScaffoldComponent implements OnDestroy {
     if (!name) {
       return;
     }
-    const blob = new Blob([this.confText()], {type: 'application/json'});
+    const blob = new Blob([this.confText()], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     try {
       const a = document.createElement('a');

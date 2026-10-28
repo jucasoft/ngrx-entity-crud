@@ -1,14 +1,10 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  OnInit,
-} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {ButtonModule} from 'primeng/button';
-import {TableModule} from 'primeng/table';
-import {DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
-import {NecFormClipboardService} from './nec-form-clipboard.service';
-import {NecFormClipboardField} from './models';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ButtonModule } from 'primeng/button';
+import { TableModule } from 'primeng/table';
+import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { NecFormClipboardService } from './nec-form-clipboard.service';
+import { NecFormClipboardField } from './models';
 
 /**
  * Dialog di esportazione dei criteri di ricerca: riepilogo dei campi del form
@@ -139,7 +135,7 @@ export class NecFormDataExportDialogComponent implements OnInit {
 
   copy(): void {
     if (this.formClipboard.copy(this.previewJson)) {
-      this.ref.close({copied: true, count: this.selection.length});
+      this.ref.close({ copied: true, count: this.selection.length });
     }
   }
 

@@ -1,17 +1,39 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
-import {NecDashboardComponent} from './nec-dashboard.component';
-import {NecLocalStorageProbeService} from './probes/nec-local-storage-probe.service';
-import {NecIndexedDbProbeService} from './probes/nec-indexeddb-probe.service';
-import {NecStoreProbeService} from './probes/nec-store-probe.service';
-import {NecTableReportProbeService} from './probes/nec-table-report-probe.service';
-import {NecGridRegistryService} from './nec-grid-registry.service';
-import {NecLazyEntry, NecLiveGridEntry, NecStoreReport, NecTableReport} from './models';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NecDashboardComponent } from './nec-dashboard.component';
+import { NecLocalStorageProbeService } from './probes/nec-local-storage-probe.service';
+import { NecIndexedDbProbeService } from './probes/nec-indexeddb-probe.service';
+import { NecStoreProbeService } from './probes/nec-store-probe.service';
+import { NecTableReportProbeService } from './probes/nec-table-report-probe.service';
+import { NecGridRegistryService } from './nec-grid-registry.service';
+import {
+  NecLazyEntry,
+  NecLiveGridEntry,
+  NecStoreReport,
+  NecTableReport,
+} from './models';
 
 describe('NecDashboardComponent (azioni di reset)', () => {
   const report: NecStoreReport = {
     slices: [
-      {key: 'coin', kind: 'plural', isLoading: false, isLoaded: true, error: null, entityCount: 2, responsesCount: 1, hasData: true},
-      {key: 'profile', kind: 'singular', isLoading: false, isLoaded: true, error: null, responsesCount: 0, hasData: false},
+      {
+        key: 'coin',
+        kind: 'plural',
+        isLoading: false,
+        isLoaded: true,
+        error: null,
+        entityCount: 2,
+        responsesCount: 1,
+        hasData: true,
+      },
+      {
+        key: 'profile',
+        kind: 'singular',
+        isLoading: false,
+        isLoaded: true,
+        error: null,
+        responsesCount: 0,
+        hasData: false,
+      },
     ],
     loadingNames: [],
     errors: [],
@@ -20,16 +42,30 @@ describe('NecDashboardComponent (azioni di reset)', () => {
     // conteggi NON filtrati: `product_browser` è montata ma esclusa dalla vista `slices`
     // (es. blacklist) — le correlazioni devono vederla comunque
     // eslint-disable-next-line camelcase -- le chiavi root reali sono underscore (convenzione Names.NAME)
-    mountedEntityCounts: {coin: 2, product_browser: 5},
+    mountedEntityCounts: { coin: 2, product_browser: 5 },
   };
 
   let fixture: ComponentFixture<NecDashboardComponent>;
   let component: NecDashboardComponent;
-  let storeProbe: {reset: jest.Mock; resetResponses: jest.Mock; read: jest.Mock; readWithLazyReport: jest.Mock};
-  let idbProbe: {read: jest.Mock; readStoreEntries: jest.Mock};
-  let localProbe: {read: jest.Mock; estimate: jest.Mock; readValue: jest.Mock};
-  let tableProbe: {read: jest.Mock};
-  let gridRegistry: {read: jest.Mock; autoSizeColumns: jest.Mock; clearFilters: jest.Mock; clearSelection: jest.Mock};
+  let storeProbe: {
+    reset: jest.Mock;
+    resetResponses: jest.Mock;
+    read: jest.Mock;
+    readWithLazyReport: jest.Mock;
+  };
+  let idbProbe: { read: jest.Mock; readStoreEntries: jest.Mock };
+  let localProbe: {
+    read: jest.Mock;
+    estimate: jest.Mock;
+    readValue: jest.Mock;
+  };
+  let tableProbe: { read: jest.Mock };
+  let gridRegistry: {
+    read: jest.Mock;
+    autoSizeColumns: jest.Mock;
+    clearFilters: jest.Mock;
+    clearSelection: jest.Mock;
+  };
 
   beforeEach(() => {
     storeProbe = {
@@ -39,16 +75,28 @@ describe('NecDashboardComponent (azioni di reset)', () => {
       readWithLazyReport: jest.fn().mockResolvedValue(report),
     };
     localProbe = {
-      read: jest.fn().mockReturnValue({available: false, type: 'local', entries: [], count: 0, totalBytesUtf16: 0, totalBytesUtf8: 0}),
-      estimate: jest.fn().mockResolvedValue({available: false}),
+      read: jest.fn().mockReturnValue({
+        available: false,
+        type: 'local',
+        entries: [],
+        count: 0,
+        totalBytesUtf16: 0,
+        totalBytesUtf8: 0,
+      }),
+      estimate: jest.fn().mockResolvedValue({ available: false }),
       readValue: jest.fn().mockReturnValue(null),
     };
     idbProbe = {
-      read: jest.fn().mockResolvedValue({available: false, enumerable: false, adapter: null, databases: []}),
+      read: jest.fn().mockResolvedValue({
+        available: false,
+        enumerable: false,
+        adapter: null,
+        databases: [],
+      }),
       readStoreEntries: jest.fn().mockResolvedValue({
         db: 'app',
         store: 's1',
-        entries: [{key: '1', value: {a: 1}}],
+        entries: [{ key: '1', value: { a: 1 } }],
         total: 1,
         truncated: false,
       }),
@@ -66,11 +114,11 @@ describe('NecDashboardComponent (azioni di reset)', () => {
     TestBed.configureTestingModule({
       imports: [NecDashboardComponent],
       providers: [
-        {provide: NecLocalStorageProbeService, useValue: localProbe},
-        {provide: NecIndexedDbProbeService, useValue: idbProbe},
-        {provide: NecStoreProbeService, useValue: storeProbe},
-        {provide: NecTableReportProbeService, useValue: tableProbe},
-        {provide: NecGridRegistryService, useValue: gridRegistry},
+        { provide: NecLocalStorageProbeService, useValue: localProbe },
+        { provide: NecIndexedDbProbeService, useValue: idbProbe },
+        { provide: NecStoreProbeService, useValue: storeProbe },
+        { provide: NecTableReportProbeService, useValue: tableProbe },
+        { provide: NecGridRegistryService, useValue: gridRegistry },
       ],
     });
 
@@ -150,13 +198,13 @@ describe('NecDashboardComponent (azioni di reset)', () => {
     });
 
     it('quotaPercent arrotonda uso/quota e vale null se non stimabile', () => {
-      component.quota.set({available: true, usage: 50, quota: 200});
+      component.quota.set({ available: true, usage: 50, quota: 200 });
       expect(component.quotaPercent()).toBe(25);
 
-      component.quota.set({available: false});
+      component.quota.set({ available: false });
       expect(component.quotaPercent()).toBeNull();
 
-      component.quota.set({available: true, usage: 50, quota: 0});
+      component.quota.set({ available: true, usage: 50, quota: 0 });
       expect(component.quotaPercent()).toBeNull();
     });
 
@@ -165,11 +213,11 @@ describe('NecDashboardComponent (azioni di reset)', () => {
         available: true,
         usage: 30,
         quota: 100,
-        usageDetails: {caches: 10, indexedDB: 20},
+        usageDetails: { caches: 10, indexedDB: 20 },
       });
       expect(component.usageDetailEntries()).toEqual([
-        {key: 'indexedDB', value: 20},
-        {key: 'caches', value: 10},
+        { key: 'indexedDB', value: 20 },
+        { key: 'caches', value: 10 },
       ]);
     });
   });
@@ -185,7 +233,10 @@ describe('NecDashboardComponent (azioni di reset)', () => {
 
     it('diagnosticReport serializza i soli metadati dei report correnti', () => {
       const parsed = JSON.parse(component.diagnosticReport());
-      expect(parsed.store.slices.map((s: {key: string}) => s.key)).toEqual(['coin', 'profile']);
+      expect(parsed.store.slices.map((s: { key: string }) => s.key)).toEqual([
+        'coin',
+        'profile',
+      ]);
       expect(parsed.generatedAt).toEqual(expect.any(String));
       expect(parsed).toHaveProperty('quota');
       expect(parsed).toHaveProperty('localStorage');
@@ -195,7 +246,10 @@ describe('NecDashboardComponent (azioni di reset)', () => {
 
     it('copyReport scrive negli appunti e attiva il feedback "Copiato"', async () => {
       const writeText = jest.fn().mockResolvedValue(undefined);
-      Object.defineProperty(navigator, 'clipboard', {value: {writeText}, configurable: true});
+      Object.defineProperty(navigator, 'clipboard', {
+        value: { writeText },
+        configurable: true,
+      });
 
       await component.copyReport();
 
@@ -210,7 +264,9 @@ describe('NecDashboardComponent (azioni di reset)', () => {
     beforeEach(() => {
       component.pythonSnippetKeys = ['access_token', 'refresh-token'];
       component.apiBaseUrl = 'https://api.example.com';
-      localProbe.readValue.mockImplementation((k: string) => (k === 'access_token' ? 'tok"123' : null));
+      localProbe.readValue.mockImplementation((k: string) =>
+        k === 'access_token' ? 'tok"123' : null
+      );
     });
 
     it('pythonVariablesBlock esporta le variabili con marcatori e valori escapati', () => {
@@ -218,7 +274,9 @@ describe('NecDashboardComponent (azioni di reset)', () => {
       expect(block).toContain('# --- nec-dashboard: variables begin ---');
       expect(block).toContain('BASE_URL = "https://api.example.com"');
       expect(block).toContain('ACCESS_TOKEN = "tok\\"123"');
-      expect(block).toContain('REFRESH_TOKEN = ""  # key "refresh-token" missing from localStorage');
+      expect(block).toContain(
+        'REFRESH_TOKEN = ""  # key "refresh-token" missing from localStorage'
+      );
       expect(block).toContain('# --- nec-dashboard: variables end ---');
     });
 
@@ -238,7 +296,10 @@ describe('NecDashboardComponent (azioni di reset)', () => {
 
     it('copyPythonVariables copia solo il blocco variabili e attiva il feedback', async () => {
       const writeText = jest.fn().mockResolvedValue(undefined);
-      Object.defineProperty(navigator, 'clipboard', {value: {writeText}, configurable: true});
+      Object.defineProperty(navigator, 'clipboard', {
+        value: { writeText },
+        configurable: true,
+      });
 
       await component.copyPythonVariables();
 
@@ -255,28 +316,70 @@ describe('NecDashboardComponent (azioni di reset)', () => {
   describe('pannello Tables (inventario da table-report)', () => {
     const tables: NecTableReport = {
       generatedAt: '2026-07-10T10:00:00.000Z',
-      summary: {grids: 3, agGrid: 2, pTable: 1, orphans: 1, agGridEnterprise: true},
+      summary: {
+        grids: 3,
+        agGrid: 2,
+        pTable: 1,
+        orphans: 1,
+        agGridEnterprise: true,
+      },
       grids: [
         {
-          component: 'CoinListComponent', selector: 'app-coin-list', file: 'src/app/x.ts',
-          kind: 'ag-grid', where: 'views/coin', section: 'coin', inlineTemplate: false,
-          stores: ['coin'], mountedStores: ['coin'], columnsCount: 4, columnsDynamicEntries: 1,
-          columnsSource: 'class-property', colDefType: 'CustomColDef',
-          columnFields: ['id', 'name'], isOrphan: false, verdict: 'ok', runtimeStatus: 'loaded',
+          component: 'CoinListComponent',
+          selector: 'app-coin-list',
+          file: 'src/app/x.ts',
+          kind: 'ag-grid',
+          where: 'views/coin',
+          section: 'coin',
+          inlineTemplate: false,
+          stores: ['coin'],
+          mountedStores: ['coin'],
+          columnsCount: 4,
+          columnsDynamicEntries: 1,
+          columnsSource: 'class-property',
+          colDefType: 'CustomColDef',
+          columnFields: ['id', 'name'],
+          isOrphan: false,
+          verdict: 'ok',
+          runtimeStatus: 'loaded',
         },
         {
-          component: 'LogListComponent', selector: 'app-log-list', file: 'src/app/y.ts',
-          kind: 'ag-grid', where: 'core/log', section: null, inlineTemplate: true,
-          stores: [], mountedStores: [], columnsCount: 6, columnsDynamicEntries: 0,
-          columnsSource: 'assignment', colDefType: null,
-          columnFields: [], isOrphan: true, verdict: 'orphan?', runtimeStatus: 'no-store',
+          component: 'LogListComponent',
+          selector: 'app-log-list',
+          file: 'src/app/y.ts',
+          kind: 'ag-grid',
+          where: 'core/log',
+          section: null,
+          inlineTemplate: true,
+          stores: [],
+          mountedStores: [],
+          columnsCount: 6,
+          columnsDynamicEntries: 0,
+          columnsSource: 'assignment',
+          colDefType: null,
+          columnFields: [],
+          isOrphan: true,
+          verdict: 'orphan?',
+          runtimeStatus: 'no-store',
         },
         {
-          component: 'DogListComponent', selector: 'app-dog-list', file: 'src/app/z.ts',
-          kind: 'p-table', where: 'views/dog', section: 'dog', inlineTemplate: false,
-          stores: ['dog'], mountedStores: [], columnsCount: 0, columnsDynamicEntries: 0,
-          columnsSource: 'runtime-keys', colDefType: null,
-          columnFields: [], isOrphan: false, verdict: 'ok (runtime columns)', runtimeStatus: 'not-loaded',
+          component: 'DogListComponent',
+          selector: 'app-dog-list',
+          file: 'src/app/z.ts',
+          kind: 'p-table',
+          where: 'views/dog',
+          section: 'dog',
+          inlineTemplate: false,
+          stores: ['dog'],
+          mountedStores: [],
+          columnsCount: 0,
+          columnsDynamicEntries: 0,
+          columnsSource: 'runtime-keys',
+          colDefType: null,
+          columnFields: [],
+          isOrphan: false,
+          verdict: 'ok (runtime columns)',
+          runtimeStatus: 'not-loaded',
         },
       ],
     };
@@ -297,19 +400,30 @@ describe('NecDashboardComponent (azioni di reset)', () => {
 
     it('gridRuntimeTitle spiega i partial (store non montati o non-CRUD)', () => {
       expect(component.gridRuntimeTitle(tables.grids[0])).toBe('mounted: coin');
-      expect(component.gridRuntimeTitle(tables.grids[1])).toBe('the grid component references no store');
-      expect(component.gridRuntimeTitle(tables.grids[2])).toBe('not mounted: dog');
-      expect(component.gridRuntimeTitle({stores: ['a', 'b'], mountedStores: ['a']})).toBe(
-        'mounted: a — not mounted: b'
+      expect(component.gridRuntimeTitle(tables.grids[1])).toBe(
+        'the grid component references no store'
       );
+      expect(component.gridRuntimeTitle(tables.grids[2])).toBe(
+        'not mounted: dog'
+      );
+      expect(
+        component.gridRuntimeTitle({ stores: ['a', 'b'], mountedStores: ['a'] })
+      ).toBe('mounted: a — not mounted: b');
     });
 
     it('formatGridColumns distingue statiche, dinamiche e runtime', () => {
-      expect(component.formatGridColumns(tables.grids[0])).toBe('4 (+1 dynamic)');
+      expect(component.formatGridColumns(tables.grids[0])).toBe(
+        '4 (+1 dynamic)'
+      );
       expect(component.formatGridColumns(tables.grids[1])).toBe('6');
       expect(component.formatGridColumns(tables.grids[2])).toBe('runtime');
       expect(
-        component.formatGridColumns({kind: 'p-table', columnsCount: 0, columnsDynamicEntries: 0, columnsSource: null})
+        component.formatGridColumns({
+          kind: 'p-table',
+          columnsCount: 0,
+          columnsDynamicEntries: 0,
+          columnsSource: null,
+        })
       ).toBe('–');
     });
 
@@ -320,20 +434,27 @@ describe('NecDashboardComponent (azioni di reset)', () => {
       await component.refresh();
 
       // mountedKeys include anche `router` (slice non-CRUD, esclusa dalla vista `slices`)
-      expect(tableProbe.read).toHaveBeenCalledWith('assets/table-report.json', ['coin', 'profile', 'router']);
+      expect(tableProbe.read).toHaveBeenCalledWith('assets/table-report.json', [
+        'coin',
+        'profile',
+        'router',
+      ]);
       expect(component.tableReport()).toEqual(tables);
     });
 
     it('senza mountedKeys (report costruito a mano) ripiega sulle chiavi delle slice', async () => {
       (component.refresh as jest.Mock).mockRestore();
-      const legacy: NecStoreReport = {...report};
+      const legacy: NecStoreReport = { ...report };
       delete legacy.mountedKeys;
       storeProbe.readWithLazyReport.mockResolvedValue(legacy);
       tableProbe.read.mockResolvedValue(tables);
 
       await component.refresh();
 
-      expect(tableProbe.read).toHaveBeenCalledWith('assets/table-report.json', ['coin', 'profile']);
+      expect(tableProbe.read).toHaveBeenCalledWith('assets/table-report.json', [
+        'coin',
+        'profile',
+      ]);
     });
 
     it('refresh sovrascrive con null un report precedente quando il probe non trova più il file', async () => {
@@ -386,17 +507,27 @@ describe('NecDashboardComponent (azioni di reset)', () => {
     it('liveGridEntityCount usa i conteggi NON filtrati (mountedEntityCounts)', () => {
       expect(component.liveGridEntityCount(grid)).toBe(2); // coin
       // slice montata ma esclusa dalla vista `slices` (blacklist): il conteggio c'è comunque
-      expect(component.liveGridEntityCount({...grid, store: 'product_browser'})).toBe(5);
+      expect(
+        component.liveGridEntityCount({ ...grid, store: 'product_browser' })
+      ).toBe(5);
       // tolleranza per il nome dasherizzato, come le correlazioni dei report statici
-      expect(component.liveGridEntityCount({...grid, store: 'product-browser'})).toBe(5);
-      expect(component.liveGridEntityCount({...grid, store: null})).toBeNull();
-      expect(component.liveGridEntityCount({...grid, store: 'not-mounted'})).toBeNull();
+      expect(
+        component.liveGridEntityCount({ ...grid, store: 'product-browser' })
+      ).toBe(5);
+      expect(
+        component.liveGridEntityCount({ ...grid, store: null })
+      ).toBeNull();
+      expect(
+        component.liveGridEntityCount({ ...grid, store: 'not-mounted' })
+      ).toBeNull();
       // slice singular senza entityCount -> null, non 0
-      expect(component.liveGridEntityCount({...grid, store: 'profile'})).toBeNull();
+      expect(
+        component.liveGridEntityCount({ ...grid, store: 'profile' })
+      ).toBeNull();
     });
 
     it('report legacy senza mountedEntityCounts: fallback sulla vista slices', () => {
-      const legacy: NecStoreReport = {...report};
+      const legacy: NecStoreReport = { ...report };
       delete legacy.mountedEntityCounts;
       component.storeReport.set(legacy);
       expect(component.liveGridEntityCount(grid)).toBe(2); // slice `coin` del fixture
@@ -441,9 +572,9 @@ describe('NecDashboardComponent (azioni di reset)', () => {
     });
 
     it('lazyStoreCommand preserva il tipo CRUD-SINGULAR', () => {
-      expect(component.lazyStoreCommand({...candidate, type: 'CRUD-SINGULAR'})).toContain(
-        '--type=CRUD-SINGULAR'
-      );
+      expect(
+        component.lazyStoreCommand({ ...candidate, type: 'CRUD-SINGULAR' })
+      ).toContain('--type=CRUD-SINGULAR');
     });
 
     it('report legacy: clazz riderivato dal nome cartella e type unknown -> CRUD-PLURAL', () => {
@@ -461,7 +592,10 @@ describe('NecDashboardComponent (azioni di reset)', () => {
     it('lazyCandidatesCount conta solo le entry promovibili', () => {
       component.storeReport.set({
         ...report,
-        lazy: [candidate, {...candidate, name: 'log-store', isLazyCandidate: false}],
+        lazy: [
+          candidate,
+          { ...candidate, name: 'log-store', isLazyCandidate: false },
+        ],
       });
       expect(component.lazyCandidatesCount()).toBe(1);
 
@@ -471,7 +605,10 @@ describe('NecDashboardComponent (azioni di reset)', () => {
 
     it('copyLazyCommand copia il comando e attiva il feedback sulla riga', async () => {
       const writeText = jest.fn().mockResolvedValue(undefined);
-      Object.defineProperty(navigator, 'clipboard', {value: {writeText}, configurable: true});
+      Object.defineProperty(navigator, 'clipboard', {
+        value: { writeText },
+        configurable: true,
+      });
 
       await component.copyLazyCommand(candidate);
 
@@ -486,7 +623,10 @@ describe('NecDashboardComponent (azioni di reset)', () => {
   describe('filtro slice (onlyWithData)', () => {
     it('di default mostra tutte le slice', () => {
       expect(component.onlyWithData()).toBe(false);
-      expect(component.visibleSlices().map((s) => s.key)).toEqual(['coin', 'profile']);
+      expect(component.visibleSlices().map((s) => s.key)).toEqual([
+        'coin',
+        'profile',
+      ]);
     });
 
     it('toggleOnlyWithData lascia solo le slice con dati', () => {
@@ -495,37 +635,56 @@ describe('NecDashboardComponent (azioni di reset)', () => {
       expect(component.visibleSlices().map((s) => s.key)).toEqual(['coin']);
 
       component.toggleOnlyWithData();
-      expect(component.visibleSlices().map((s) => s.key)).toEqual(['coin', 'profile']);
+      expect(component.visibleSlices().map((s) => s.key)).toEqual([
+        'coin',
+        'profile',
+      ]);
     });
   });
 
   describe('albero IndexedDB (p-tree lazy)', () => {
     it('onNodeExpand su un nodo store legge i record e popola i figli', async () => {
-      const node: any = {type: 'store', data: {db: 'app', store: 's1', count: 1}, children: []};
-      await component.onNodeExpand({node});
+      const node: any = {
+        type: 'store',
+        data: { db: 'app', store: 's1', count: 1 },
+        children: [],
+      };
+      await component.onNodeExpand({ node });
 
-      expect(idbProbe.readStoreEntries).toHaveBeenCalledWith('app', 's1', component.idbEntryLimit);
+      expect(idbProbe.readStoreEntries).toHaveBeenCalledWith(
+        'app',
+        's1',
+        component.idbEntryLimit
+      );
       expect(node.children.length).toBe(1);
       expect(node.children[0].label).toBe('1');
       expect(component.idbLoading()).toBe(false);
     });
 
     it('onNodeExpand ignora i nodi database (nessuna lettura)', async () => {
-      const node: any = {data: {db: 'app'}, children: []};
-      await component.onNodeExpand({node});
+      const node: any = { data: { db: 'app' }, children: [] };
+      await component.onNodeExpand({ node });
       expect(idbProbe.readStoreEntries).not.toHaveBeenCalled();
     });
 
     it('onNodeExpand non rilegge un nodo store già caricato', async () => {
-      const node: any = {type: 'store', data: {db: 'app', store: 's1'}, children: [{label: 'x'}]};
-      await component.onNodeExpand({node});
+      const node: any = {
+        type: 'store',
+        data: { db: 'app', store: 's1' },
+        children: [{ label: 'x' }],
+      };
+      await component.onNodeExpand({ node });
       expect(idbProbe.readStoreEntries).not.toHaveBeenCalled();
     });
 
     it('con allowRevealValues il record ha un nodo figlio col valore mascherato', async () => {
       component.allowRevealValues = true;
-      const node: any = {type: 'store', data: {db: 'app', store: 's1'}, children: []};
-      await component.onNodeExpand({node});
+      const node: any = {
+        type: 'store',
+        data: { db: 'app', store: 's1' },
+        children: [],
+      };
+      await component.onNodeExpand({ node });
 
       const record = node.children[0];
       expect(record.leaf).toBe(false);
@@ -534,8 +693,10 @@ describe('NecDashboardComponent (azioni di reset)', () => {
     });
 
     it('formatIdbValue serializza e maschera il valore', () => {
-      expect(component.formatIdbValue({a: 1})).toContain('"a": 1');
-      expect(component.formatIdbValue('utente@example.com')).toContain('«redacted-email»');
+      expect(component.formatIdbValue({ a: 1 })).toContain('"a": 1');
+      expect(component.formatIdbValue('utente@example.com')).toContain(
+        '«redacted-email»'
+      );
     });
   });
 });
