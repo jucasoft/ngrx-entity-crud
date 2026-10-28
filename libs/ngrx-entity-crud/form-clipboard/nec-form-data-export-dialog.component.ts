@@ -1,10 +1,13 @@
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
 import { TableModule } from 'primeng/table';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { NecFormClipboardService } from './nec-form-clipboard.service';
 import { NecFormClipboardField } from './models';
+import { necAllSelected, necToggleAll, necToggleItem } from './selection';
 
 /**
  * Dialog di esportazione dei criteri di ricerca: riepilogo dei campi del form
@@ -12,9 +15,12 @@ import { NecFormClipboardField } from './models';
  * anteprima del JSON risultante e copia negli appunti.
  *
  * Standalone, OnPush, costruito su componenti **PrimeNG** con gli idiomi
- * compatibili 16+ (classi `p-button-*`, direttive strutturali classiche,
+ * compatibili 16-22 (classi `p-button-*`, direttive strutturali classiche,
  * `<textarea>` nativa perché `pInputTextarea`/`pTextarea` cambiano nome tra
- * le major). Da aprire via `DialogService` (DynamicDialog):
+ * le major; `p-checkbox` gestite dal componente perché i selettori di
+ * `p-tableCheckbox`/`p-tableHeaderCheckbox` cambiano in v22, vedi `selection.ts`;
+ * template con `pTemplate` + `#ref`, letti rispettivamente da v16-21 e v22).
+ * Da aprire via `DialogService` (DynamicDialog):
  *
  * ```ts
  * this.dialogService.open(NecFormDataExportDialogComponent, {
@@ -29,7 +35,13 @@ import { NecFormClipboardField } from './models';
 @Component({
   selector: 'nec-form-data-export-dialog',
   standalone: true,
-  imports: [CommonModule, ButtonModule, TableModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ButtonModule,
+    CheckboxModule,
+    TableModule,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [
     `
@@ -55,25 +67,30 @@ import { NecFormClipboardField } from './models';
     `,
   ],
   template: `
-    <p-table
-      [value]="fields"
-      [(selection)]="selection"
-      dataKey="path"
-      styleClass="p-datatable-sm"
-    >
-      <ng-template pTemplate="header">
+    <p-table [value]="fields" styleClass="p-datatable-sm">
+      <ng-template pTemplate="header" #header>
         <tr>
           <th style="width: 3rem">
-            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+            <p-checkbox
+              [binary]="true"
+              [ngModel]="allSelected"
+              (onChange)="toggleAll()"
+              ariaLabel="Select all fields"
+            ></p-checkbox>
           </th>
           <th>Field</th>
           <th>Value</th>
         </tr>
       </ng-template>
-      <ng-template pTemplate="body" let-field>
+      <ng-template pTemplate="body" #body let-field>
         <tr>
           <td>
-            <p-tableCheckbox [value]="field"></p-tableCheckbox>
+            <p-checkbox
+              [binary]="true"
+              [ngModel]="isSelected(field)"
+              (onChange)="toggle(field)"
+              [ariaLabel]="'Select ' + field.label"
+            ></p-checkbox>
           </td>
           <td>{{ field.label }}</td>
           <td>{{ field.summary }}</td>
@@ -121,6 +138,22 @@ export class NecFormDataExportDialogComponent implements OnInit {
   ngOnInit(): void {
     this.fields = this.formClipboard.toFields(this.config.data.formData);
     this.selection = [...this.fields];
+  }
+
+  get allSelected(): boolean {
+    return necAllSelected(this.fields, this.selection);
+  }
+
+  isSelected(field: NecFormClipboardField): boolean {
+    return this.selection.includes(field);
+  }
+
+  toggle(field: NecFormClipboardField): void {
+    this.selection = necToggleItem(this.fields, this.selection, field);
+  }
+
+  toggleAll(): void {
+    this.selection = necToggleAll(this.fields, this.selection);
   }
 
   get previewJson(): string {

@@ -7,10 +7,12 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
 import { TableModule } from 'primeng/table';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { NecFormClipboardService } from './nec-form-clipboard.service';
 import { NecFormClipboardField } from './models';
+import { necAllSelected, necToggleAll, necToggleItem } from './selection';
 
 /**
  * Dialog di importazione dei criteri di ricerca: textarea per il JSON
@@ -21,8 +23,9 @@ import { NecFormClipboardField } from './models';
  * è utilizzabile: la classe è stata rinominata `UIMessage` → `Message` tra
  * PrimeNG 16 e 19, quindi il partial-linking fallirebbe su una delle due).
  *
- * Standalone, OnPush, idiomi PrimeNG compatibili 16+. Da aprire via
- * `DialogService` (DynamicDialog):
+ * Standalone, OnPush, idiomi PrimeNG compatibili 16-22 (selezione righe con
+ * `p-checkbox` gestite dal componente, vedi `selection.ts`; template con
+ * `pTemplate` + `#ref`). Da aprire via `DialogService` (DynamicDialog):
  *
  * ```ts
  * this.dialogService.open(NecFormDataImportDialogComponent, {
@@ -41,7 +44,13 @@ import { NecFormClipboardField } from './models';
 @Component({
   selector: 'nec-form-data-import-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule, ButtonModule, TableModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ButtonModule,
+    CheckboxModule,
+    TableModule,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [
     `
@@ -94,24 +103,32 @@ import { NecFormClipboardField } from './models';
       *ngIf="fields.length > 0"
       class="nec-table"
       [value]="fields"
-      [(selection)]="selection"
-      dataKey="path"
       styleClass="p-datatable-sm"
     >
-      <ng-template pTemplate="header">
+      <ng-template pTemplate="header" #header>
         <tr>
           <th style="width: 3rem">
-            <p-tableHeaderCheckbox></p-tableHeaderCheckbox>
+            <p-checkbox
+              [binary]="true"
+              [ngModel]="allSelected"
+              (onChange)="toggleAll()"
+              ariaLabel="Select all fields"
+            ></p-checkbox>
           </th>
           <th>Field</th>
           <th>Value</th>
           <th>Current value</th>
         </tr>
       </ng-template>
-      <ng-template pTemplate="body" let-field>
+      <ng-template pTemplate="body" #body let-field>
         <tr>
           <td>
-            <p-tableCheckbox [value]="field"></p-tableCheckbox>
+            <p-checkbox
+              [binary]="true"
+              [ngModel]="isSelected(field)"
+              (onChange)="toggle(field)"
+              [ariaLabel]="'Select ' + field.label"
+            ></p-checkbox>
           </td>
           <td>{{ field.label }}</td>
           <td>{{ field.summary }}</td>
@@ -197,6 +214,22 @@ export class NecFormDataImportDialogComponent implements OnInit {
       this.config.data.currentFormData
     );
     this.selection = [...this.fields];
+  }
+
+  get allSelected(): boolean {
+    return necAllSelected(this.fields, this.selection);
+  }
+
+  isSelected(field: NecFormClipboardField): boolean {
+    return this.selection.includes(field);
+  }
+
+  toggle(field: NecFormClipboardField): void {
+    this.selection = necToggleItem(this.fields, this.selection, field);
+  }
+
+  toggleAll(): void {
+    this.selection = necToggleAll(this.fields, this.selection);
   }
 
   apply(): void {

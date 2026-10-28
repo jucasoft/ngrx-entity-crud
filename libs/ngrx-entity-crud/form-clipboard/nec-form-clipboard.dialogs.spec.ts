@@ -1,4 +1,5 @@
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { NecFormClipboardService } from './nec-form-clipboard.service';
@@ -6,6 +7,23 @@ import { NecFormDataExportDialogComponent } from './nec-form-data-export-dialog.
 import { NecFormDataImportDialogComponent } from './nec-form-data-import-dialog.component';
 
 const COMPONENT_NAME = 'ProductBrowserSearchComponent';
+
+/**
+ * Checkbox di selezione delle righe: `p-checkbox` (selettore identico tra PrimeNG 16 e 22) al
+ * posto di `p-tableCheckbox`/`p-tableHeaderCheckbox` (camelCase fino a v21, kebab in v22).
+ * La prima è quella dell'header. Il click passa dall'output `onChange`, comune alle major.
+ */
+function checkboxes(fixture: ComponentFixture<unknown>) {
+  return fixture.debugElement.queryAll(By.css('p-checkbox'));
+}
+
+function divergentCheckboxes(
+  fixture: ComponentFixture<unknown>
+): Element | null {
+  return (fixture.nativeElement as HTMLElement).querySelector(
+    'p-tablecheckbox, p-table-checkbox, p-tableheadercheckbox, p-table-header-checkbox'
+  );
+}
 
 const formData: Record<string, unknown> = {
   conditionMap: {
@@ -75,6 +93,43 @@ describe('NecFormDataExportDialogComponent', () => {
 
     expect(service.copy).toHaveBeenCalledWith(component.previewJson);
     expect(ref.close).toHaveBeenCalledWith({ copied: true, count: 2 });
+  });
+
+  it('una p-checkbox per riga piu\' quella dell\'header, senza checkbox di tabella', () => {
+    const fixture = TestBed.createComponent(NecFormDataExportDialogComponent);
+    fixture.detectChanges();
+
+    expect(checkboxes(fixture).length).toBe(3);
+    expect(divergentCheckboxes(fixture)).toBeNull();
+  });
+
+  it('la checkbox di riga toglie il campo dalla selezione e dal JSON', () => {
+    const fixture = TestBed.createComponent(NecFormDataExportDialogComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    // righe nell'ordine di fields: [startDate, name]
+    checkboxes(fixture)[2].triggerEventHandler('onChange', { checked: false });
+    fixture.detectChanges();
+
+    expect(component.selection.map((field) => field.label)).toEqual([
+      'startDate',
+    ]);
+    expect(component.previewJson).not.toContain('bitcoin');
+  });
+
+  it('la checkbox dell\'header alterna nessuna/tutte le righe', () => {
+    const fixture = TestBed.createComponent(NecFormDataExportDialogComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+
+    checkboxes(fixture)[0].triggerEventHandler('onChange', { checked: false });
+    fixture.detectChanges();
+    expect(component.selection).toEqual([]);
+
+    checkboxes(fixture)[0].triggerEventHandler('onChange', { checked: true });
+    fixture.detectChanges();
+    expect(component.selection).toEqual(component.fields);
   });
 });
 
@@ -206,5 +261,30 @@ describe('NecFormDataImportDialogComponent', () => {
       },
       count: 1,
     });
+  });
+
+  it('checkbox di riga e dell\'header pilotano la selezione da applicare', () => {
+    const fixture = TestBed.createComponent(NecFormDataImportDialogComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    // come l'utente (incolla nella textarea): l'evento marca la view OnPush da ridisegnare
+    const textarea = (fixture.nativeElement as HTMLElement).querySelector(
+      'textarea'
+    ) as HTMLTextAreaElement;
+    textarea.value = validText();
+    textarea.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(checkboxes(fixture).length).toBe(3);
+    expect(divergentCheckboxes(fixture)).toBeNull();
+
+    // righe nell'ordine di fields: [startDate, name]
+    checkboxes(fixture)[1].triggerEventHandler('onChange', { checked: false });
+    fixture.detectChanges();
+    expect(component.selection.map((field) => field.label)).toEqual(['name']);
+
+    checkboxes(fixture)[0].triggerEventHandler('onChange', { checked: true });
+    fixture.detectChanges();
+    expect(component.selection).toEqual(component.fields);
   });
 });
