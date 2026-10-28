@@ -42,7 +42,6 @@ const config: Config = {
     '^ngrx-entity-crud$': '<rootDir>/src/public-api.ts',
   },
   moduleFileExtensions: ['ts', 'html', 'js', 'json', 'mjs'],
-  resolver: 'jest-preset-angular/build/resolvers/ng-jest-resolver.js',
   testMatch: ['**/*.spec.ts'],
 };
 
