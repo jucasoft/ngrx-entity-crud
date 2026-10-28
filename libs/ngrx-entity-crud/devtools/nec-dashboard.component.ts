@@ -14,7 +14,6 @@ import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { DividerModule } from 'primeng/divider';
-import { ProgressBarModule } from 'primeng/progressbar';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TreeModule } from 'primeng/tree';
@@ -36,6 +35,7 @@ import { NecStoreProbeService } from './probes/nec-store-probe.service';
 import { NecTableReportProbeService } from './probes/nec-table-report-probe.service';
 import { NecGridRegistryService } from './nec-grid-registry.service';
 import { looksSensitiveKey, maskValue } from './mask';
+import { necSortIconClass } from './sort-icon';
 
 /**
  * Marcatori del blocco variabili nello snippet Python: ricopiando SOLO il blocco ("Copy
@@ -48,7 +48,7 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
  * `<nec-dashboard>` — dashboard di gestione progetto plug-and-play.
  *
  * Standalone, OnPush, costruita sui componenti **PrimeNG** (`p-card`, `p-table`, `p-tag`,
- * `p-tree`, `p-divider`, `p-progressBar`, direttiva `pButton`): richiede quindi
+ * `p-tree`, `p-divider`, direttiva `pButton`): richiede quindi
  * `primeng` + `primeicons` nell'app consumer (peerDependencies opzionali del solo entry-point
  * `devtools`). Toolbar sticky con refresh, "Copy report" (snapshot JSON dei soli metadati,
  * per issue/supporto) e pausa/riprendi del polling. Pannelli: quota origine (progress
@@ -82,10 +82,15 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
  *
  * VINCOLO di compatibilità: ng-packagr (Ivy partial) embedda nel bundle i riferimenti alle
  * CLASSI dei componenti PrimeNG usati nel template; sono quindi ammessi solo componenti il
- * cui nome di classe è identico da PrimeNG 16 a 19. NIENTE `p-message`: la classe è
+ * cui nome di classe è identico da PrimeNG 16 a 22. NIENTE `p-message`: la classe è
  * `UIMessage` in v16 e `Message` in v17+, e romperebbe una delle due major (è il motivo del
- * box `.nec-message`). Prima di adottare un nuovo modulo PrimeNG, verificare il nome della
- * classe nel `.d.ts` di entrambe le versioni (es. `npm pack primeng@16`).
+ * box `.nec-message`). Il selettore deve essere identico anch'esso (il matching distingue le
+ * maiuscole): PrimeNG 22 ha tolto le forme camelCase, per cui `p-sortIcon` e `p-progressBar`
+ * sono sostituiti da markup proprio (`necSortIconClass`, `.nec-progress`). PrimeNG 22 legge
+ * inoltre solo i template ref (`#header`, `#body`, `#node`) e non più `pTemplate`: ogni
+ * template li porta entrambi, e il `p-tree` affianca ai template per tipo un unico `#node`.
+ * Prima di adottare un nuovo modulo PrimeNG, verificare classe e selettore nel `.d.ts` di
+ * entrambe le versioni (es. `npm pack primeng@16`).
  * Il template usa le direttive strutturali classiche (`*ngIf`/`*ngFor`) anziché il
  * control-flow `@if`/`@for`, per restare compatibile con Angular 16+.
  */
@@ -97,7 +102,6 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
     ButtonModule,
     CardModule,
     DividerModule,
-    ProgressBarModule,
     TableModule,
     TagModule,
     TreeModule,
@@ -172,6 +176,32 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
       }
       .nec-mb {
         margin-bottom: 16px;
+      }
+      /* Barra "a tema" senza p-progressBar: selettore p-progressBar (v16) vs
+         p-progressbar/p-progress-bar (v22), vedi doc in testata. */
+      .nec-progress {
+        position: relative;
+        height: 1.5rem;
+        overflow: hidden;
+        border-radius: var(--border-radius, var(--p-border-radius-md, 6px));
+        background: var(--surface-d, var(--p-content-border-color, #dee2e6));
+      }
+      .nec-progress-value {
+        height: 100%;
+        background: var(--primary-color, var(--p-primary-color, #3b82f6));
+      }
+      .nec-progress-label {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+      }
+      /* Icona di sort al posto di p-sortIcon (stesso motivo); le classi p-sortable-column-icon
+         (v16) e p-datatable-sort-icon (v22) prendono colore e spaziatura dal tema. */
+      .nec-sort-icon {
+        margin-left: 0.5rem;
       }
       .nec-note {
         color: var(--text-color-secondary, var(--p-text-muted-color, #7b8794));
@@ -252,24 +282,32 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
             usage: <strong>{{ formatBytes(quota()?.usage) }}</strong> / quota:
             <strong>{{ formatBytes(quota()?.quota) }}</strong>
           </div>
-          <p-progressBar
+          <div
             *ngIf="quotaPercent() !== null"
-            styleClass="nec-mb"
-            [value]="quotaPercent()!"
-            [showValue]="true"
-          ></p-progressBar>
+            class="nec-progress nec-mb"
+            role="progressbar"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            [attr.aria-valuenow]="quotaPercent()"
+          >
+            <div
+              class="nec-progress-value"
+              [style.width.%]="quotaPercent()"
+            ></div>
+            <span class="nec-progress-label">{{ quotaPercent() }}%</span>
+          </div>
           <p-table
             *ngIf="usageDetailEntries().length"
             [value]="usageDetailEntries()"
             styleClass="p-datatable-sm"
           >
-            <ng-template pTemplate="header">
+            <ng-template pTemplate="header" #header>
               <tr>
                 <th>area</th>
                 <th class="nec-num">usage</th>
               </tr>
             </ng-template>
-            <ng-template pTemplate="body" let-d>
+            <ng-template pTemplate="body" #body let-d>
               <tr>
                 <td>{{ d.key }}</td>
                 <td class="nec-num">{{ formatBytes(d.value) }}</td>
@@ -301,27 +339,40 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
             (UTF-16) / {{ formatBytes(storage()?.totalBytesUtf8) }} (UTF-8)
           </div>
           <p-table
+            #lsTable
             *ngIf="storage()!.entries.length; else noLocalStorageEntries"
             [value]="storage()!.entries"
             sortField="bytesUtf16"
             [sortOrder]="-1"
             styleClass="p-datatable-sm"
           >
-            <ng-template pTemplate="header">
+            <ng-template pTemplate="header" #header>
               <tr>
                 <th pSortableColumn="key">
-                  key <p-sortIcon field="key"></p-sortIcon>
+                  key
+                  <i
+                    class="pi nec-sort-icon p-sortable-column-icon p-datatable-sort-icon"
+                    [ngClass]="sortIcon(lsTable, 'key')"
+                  ></i>
                 </th>
                 <th class="nec-num" pSortableColumn="bytesUtf16">
-                  UTF-16 <p-sortIcon field="bytesUtf16"></p-sortIcon>
+                  UTF-16
+                  <i
+                    class="pi nec-sort-icon p-sortable-column-icon p-datatable-sort-icon"
+                    [ngClass]="sortIcon(lsTable, 'bytesUtf16')"
+                  ></i>
                 </th>
                 <th class="nec-num" pSortableColumn="bytesUtf8">
-                  UTF-8 <p-sortIcon field="bytesUtf8"></p-sortIcon>
+                  UTF-8
+                  <i
+                    class="pi nec-sort-icon p-sortable-column-icon p-datatable-sort-icon"
+                    [ngClass]="sortIcon(lsTable, 'bytesUtf8')"
+                  ></i>
                 </th>
                 <th *ngIf="allowRevealValues">value</th>
               </tr>
             </ng-template>
-            <ng-template pTemplate="body" let-e>
+            <ng-template pTemplate="body" #body let-e>
               <tr>
                 <td>
                   {{ e.key }}
@@ -432,27 +483,57 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
             [loading]="idbLoading()"
             (onNodeExpand)="onNodeExpand($event)"
           >
-            <ng-template let-node pTemplate="store">
-              {{ node.data.store }}
-              <p-tag
-                styleClass="nec-ml"
-                severity="info"
-                [value]="
-                  (node.data.count == null ? '–' : node.data.count) +
-                  (node.data.count === 1 ? ' record' : ' records')
-                "
-              ></p-tag>
+            <!-- PrimeNG 22: un unico template #node per tutti i nodi. -->
+            <ng-template #node let-n>
+              <ng-container
+                *ngTemplateOutlet="idbNode; context: { $implicit: n }"
+              ></ng-container>
             </ng-template>
-            <ng-template let-node pTemplate="record">
-              <code>{{ node.label }}</code>
+            <!-- PrimeNG 16-21: un template per tipo di nodo (node.type), via pTemplate. -->
+            <ng-template let-n pTemplate="store">
+              <ng-container
+                *ngTemplateOutlet="idbNode; context: { $implicit: n }"
+              ></ng-container>
             </ng-template>
-            <ng-template let-node pTemplate="value">
-              <pre class="nec-code">{{ node.label }}</pre>
+            <ng-template let-n pTemplate="record">
+              <ng-container
+                *ngTemplateOutlet="idbNode; context: { $implicit: n }"
+              ></ng-container>
             </ng-template>
-            <ng-template let-node pTemplate="note">
-              <span class="nec-note">{{ node.label }}</span>
+            <ng-template let-n pTemplate="value">
+              <ng-container
+                *ngTemplateOutlet="idbNode; context: { $implicit: n }"
+              ></ng-container>
+            </ng-template>
+            <ng-template let-n pTemplate="note">
+              <ng-container
+                *ngTemplateOutlet="idbNode; context: { $implicit: n }"
+              ></ng-container>
             </ng-template>
           </p-tree>
+          <ng-template #idbNode let-node>
+            <ng-container [ngSwitch]="node.type">
+              <ng-container *ngSwitchCase="'store'">
+                {{ node.data.store }}
+                <p-tag
+                  styleClass="nec-ml"
+                  severity="info"
+                  [value]="
+                    (node.data.count == null ? '–' : node.data.count) +
+                    (node.data.count === 1 ? ' record' : ' records')
+                  "
+                ></p-tag>
+              </ng-container>
+              <code *ngSwitchCase="'record'">{{ node.label }}</code>
+              <pre *ngSwitchCase="'value'" class="nec-code">{{
+                node.label
+              }}</pre>
+              <span *ngSwitchCase="'note'" class="nec-note">{{
+                node.label
+              }}</span>
+              <ng-container *ngSwitchDefault>{{ node.label }}</ng-container>
+            </ng-container>
+          </ng-template>
           <ng-template #noDatabases>
             <div class="nec-message nec-message-info">
               <i class="pi pi-info-circle"></i>No databases to list.
@@ -564,29 +645,46 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
               </span>
             </div>
             <p-table
+              #slicesTable
               *ngIf="visibleSlices().length; else noDataSlices"
               [value]="visibleSlices()"
               styleClass="p-datatable-sm"
             >
-              <ng-template pTemplate="header">
+              <ng-template pTemplate="header" #header>
                 <tr>
                   <th pSortableColumn="key">
-                    slice <p-sortIcon field="key"></p-sortIcon>
+                    slice
+                    <i
+                      class="pi nec-sort-icon p-sortable-column-icon p-datatable-sort-icon"
+                      [ngClass]="sortIcon(slicesTable, 'key')"
+                    ></i>
                   </th>
                   <th pSortableColumn="kind">
-                    type <p-sortIcon field="kind"></p-sortIcon>
+                    type
+                    <i
+                      class="pi nec-sort-icon p-sortable-column-icon p-datatable-sort-icon"
+                      [ngClass]="sortIcon(slicesTable, 'kind')"
+                    ></i>
                   </th>
                   <th class="nec-num" pSortableColumn="entityCount">
-                    entities <p-sortIcon field="entityCount"></p-sortIcon>
+                    entities
+                    <i
+                      class="pi nec-sort-icon p-sortable-column-icon p-datatable-sort-icon"
+                      [ngClass]="sortIcon(slicesTable, 'entityCount')"
+                    ></i>
                   </th>
                   <th class="nec-num" pSortableColumn="responsesCount">
-                    responses <p-sortIcon field="responsesCount"></p-sortIcon>
+                    responses
+                    <i
+                      class="pi nec-sort-icon p-sortable-column-icon p-datatable-sort-icon"
+                      [ngClass]="sortIcon(slicesTable, 'responsesCount')"
+                    ></i>
                   </th>
                   <th>status</th>
                   <th class="nec-actions">actions</th>
                 </tr>
               </ng-template>
-              <ng-template pTemplate="body" let-s>
+              <ng-template pTemplate="body" #body let-s>
                 <tr>
                   <td>{{ s.key }}</td>
                   <td>{{ s.kind }}</td>
@@ -724,7 +822,7 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
               <code>&lt;Clazz&gt;StoreModule</code> in the section's module.
             </div>
             <p-table [value]="storeReport()!.lazy!" styleClass="p-datatable-sm">
-              <ng-template pTemplate="header">
+              <ng-template pTemplate="header" #header>
                 <tr>
                   <th>store</th>
                   <th>sections</th>
@@ -733,7 +831,7 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
                   <th>command</th>
                 </tr>
               </ng-template>
-              <ng-template pTemplate="body" let-l>
+              <ng-template pTemplate="body" #body let-l>
                 <tr>
                   <td>{{ l.name }}</td>
                   <td>{{ l.sections.join(', ') || '–' }}</td>
@@ -825,30 +923,47 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
             if stale.
           </div>
           <p-table
+            #gridsTable
             *ngIf="tableReport()!.grids.length; else noGrids"
             [value]="tableReport()!.grids"
             styleClass="p-datatable-sm"
           >
-            <ng-template pTemplate="header">
+            <ng-template pTemplate="header" #header>
               <tr>
                 <th pSortableColumn="component">
-                  component <p-sortIcon field="component"></p-sortIcon>
+                  component
+                  <i
+                    class="pi nec-sort-icon p-sortable-column-icon p-datatable-sort-icon"
+                    [ngClass]="sortIcon(gridsTable, 'component')"
+                  ></i>
                 </th>
                 <th pSortableColumn="kind">
-                  kind <p-sortIcon field="kind"></p-sortIcon>
+                  kind
+                  <i
+                    class="pi nec-sort-icon p-sortable-column-icon p-datatable-sort-icon"
+                    [ngClass]="sortIcon(gridsTable, 'kind')"
+                  ></i>
                 </th>
                 <th pSortableColumn="where">
-                  where <p-sortIcon field="where"></p-sortIcon>
+                  where
+                  <i
+                    class="pi nec-sort-icon p-sortable-column-icon p-datatable-sort-icon"
+                    [ngClass]="sortIcon(gridsTable, 'where')"
+                  ></i>
                 </th>
                 <th>stores</th>
                 <th class="nec-num" pSortableColumn="columnsCount">
-                  columns <p-sortIcon field="columnsCount"></p-sortIcon>
+                  columns
+                  <i
+                    class="pi nec-sort-icon p-sortable-column-icon p-datatable-sort-icon"
+                    [ngClass]="sortIcon(gridsTable, 'columnsCount')"
+                  ></i>
                 </th>
                 <th>runtime</th>
                 <th>verdict</th>
               </tr>
             </ng-template>
-            <ng-template pTemplate="body" let-g>
+            <ng-template pTemplate="body" #body let-g>
               <tr>
                 <td>
                   <span [title]="g.file">{{ g.component }}</span>
@@ -922,30 +1037,50 @@ const PY_VARS_END = '# --- nec-dashboard: variables end ---';
           <code>onGridReady</code>, unregister in <code>ngOnDestroy</code>);
           values are read at each refresh.
         </div>
-        <p-table [value]="liveGrids()" styleClass="p-datatable-sm">
-          <ng-template pTemplate="header">
+        <p-table #liveTable [value]="liveGrids()" styleClass="p-datatable-sm">
+          <ng-template pTemplate="header" #header>
             <tr>
               <th pSortableColumn="key">
-                grid <p-sortIcon field="key"></p-sortIcon>
+                grid
+                <i
+                  class="pi nec-sort-icon p-sortable-column-icon p-datatable-sort-icon"
+                  [ngClass]="sortIcon(liveTable, 'key')"
+                ></i>
               </th>
               <th pSortableColumn="store">
-                store <p-sortIcon field="store"></p-sortIcon>
+                store
+                <i
+                  class="pi nec-sort-icon p-sortable-column-icon p-datatable-sort-icon"
+                  [ngClass]="sortIcon(liveTable, 'store')"
+                ></i>
               </th>
               <th class="nec-num" pSortableColumn="displayedRows">
-                displayed <p-sortIcon field="displayedRows"></p-sortIcon>
+                displayed
+                <i
+                  class="pi nec-sort-icon p-sortable-column-icon p-datatable-sort-icon"
+                  [ngClass]="sortIcon(liveTable, 'displayedRows')"
+                ></i>
               </th>
               <th class="nec-num">entities</th>
               <th class="nec-num" pSortableColumn="selectedCount">
-                selected <p-sortIcon field="selectedCount"></p-sortIcon>
+                selected
+                <i
+                  class="pi nec-sort-icon p-sortable-column-icon p-datatable-sort-icon"
+                  [ngClass]="sortIcon(liveTable, 'selectedCount')"
+                ></i>
               </th>
               <th class="nec-num" pSortableColumn="filterCount">
-                filters <p-sortIcon field="filterCount"></p-sortIcon>
+                filters
+                <i
+                  class="pi nec-sort-icon p-sortable-column-icon p-datatable-sort-icon"
+                  [ngClass]="sortIcon(liveTable, 'filterCount')"
+                ></i>
               </th>
               <th>sort</th>
               <th class="nec-actions">actions</th>
             </tr>
           </ng-template>
-          <ng-template pTemplate="body" let-g>
+          <ng-template pTemplate="body" #body let-g>
             <tr>
               <td>
                 <span [title]="g.component || ''">{{ g.key }}</span>
@@ -1116,6 +1251,8 @@ export class NecDashboardComponent implements OnInit, OnDestroy {
   readonly idbTreeNodes = signal<TreeNode[]>([]);
   /** `true` mentre `p-tree` sta caricando i record di un object store espanso. */
   readonly idbLoading = signal(false);
+  /** Icona di sort delle colonne `pSortableColumn` (al posto di `p-sortIcon`). */
+  readonly sortIcon = necSortIconClass;
 
   private timer: ReturnType<typeof setInterval> | null = null;
   private copiedTimer: ReturnType<typeof setTimeout> | null = null;

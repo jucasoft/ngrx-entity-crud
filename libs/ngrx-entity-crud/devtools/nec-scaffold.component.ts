@@ -275,7 +275,7 @@ export interface NecScaffoldField {
         styleClass="p-datatable-sm"
         class="nec-mb"
       >
-        <ng-template pTemplate="header">
+        <ng-template pTemplate="header" #header>
           <tr>
             <th>field</th>
             <th>dto type</th>
@@ -285,7 +285,7 @@ export interface NecScaffoldField {
             <th></th>
           </tr>
         </ng-template>
-        <ng-template pTemplate="body" let-f>
+        <ng-template pTemplate="body" #body let-f>
           <tr>
             <td>
               {{ f.name }}

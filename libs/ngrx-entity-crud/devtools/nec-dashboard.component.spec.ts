@@ -699,4 +699,99 @@ describe('NecDashboardComponent (azioni di reset)', () => {
       );
     });
   });
+
+  // Render reale del template: deve funzionare sia sul PrimeNG del workspace sia su PrimeNG 16
+  // (app consumer). Per questo niente componenti con selettore divergente tra le major
+  // (p-sortIcon, p-progressBar) e template risolti sia via pTemplate sia via #ref.
+  describe('template compatibile PrimeNG 16-22', () => {
+    const el = (): HTMLElement => fixture.nativeElement;
+    const sortHeader = (field: string): HTMLElement =>
+      el().querySelector(`th[psortablecolumn="${field}"]`) as HTMLElement;
+    const sortIcon = (field: string): Element =>
+      sortHeader(field).querySelector('.nec-sort-icon') as Element;
+    const firstKey = (): string | undefined =>
+      sortHeader('bytesUtf16')
+        .closest('table')
+        ?.querySelector('tbody tr td')
+        ?.textContent?.trim();
+
+    beforeEach(() => {
+      component.storage.set({
+        available: true,
+        type: 'local',
+        count: 2,
+        totalBytesUtf16: 30,
+        totalBytesUtf8: 15,
+        entries: [
+          { key: 'a', bytesUtf16: 10, bytesUtf8: 5 },
+          { key: 'b', bytesUtf16: 20, bytesUtf8: 10 },
+        ],
+      });
+      component.quota.set({ available: true, usage: 25, quota: 100 });
+      component.idb.set({
+        available: true,
+        enumerable: true,
+        adapter: 'native',
+        databases: [],
+      });
+      component.idbTreeNodes.set([
+        {
+          label: 'app',
+          data: { db: 'app' },
+          expanded: true,
+          children: [
+            {
+              label: 's1',
+              type: 'store',
+              data: { db: 'app', store: 's1', count: 1 },
+              expanded: true,
+              children: [{ label: 'rec-1', type: 'record', leaf: true }],
+            },
+            { label: 'nota', type: 'note', leaf: true },
+          ],
+        },
+      ]);
+      fixture.detectChanges();
+    });
+
+    it('non usa i componenti PrimeNG con selettore divergente tra v16 e v22', () => {
+      expect(
+        el().querySelector(
+          'p-sorticon, p-sort-icon, p-progressbar, p-progress-bar'
+        )
+      ).toBeNull();
+    });
+
+    it('icone di sort: ordinamento iniziale discendente e click su un\'altra colonna', () => {
+      expect(sortIcon('bytesUtf16').classList).toContain('pi-sort-amount-down');
+      expect(sortIcon('key').classList).toContain('pi-sort-alt');
+      expect(firstKey()).toBe('b');
+
+      sortHeader('key').click();
+      fixture.detectChanges();
+
+      expect(sortIcon('key').classList).toContain('pi-sort-amount-up-alt');
+      expect(sortIcon('bytesUtf16').classList).toContain('pi-sort-alt');
+      expect(firstKey()).toBe('a');
+    });
+
+    it('barra della quota senza p-progressBar: larghezza e testo dalla percentuale', () => {
+      const value = el().querySelector('.nec-progress-value') as HTMLElement;
+      expect(value.style.width).toBe('25%');
+      expect(
+        el().querySelector('.nec-progress')?.getAttribute('aria-valuenow')
+      ).toBe('25');
+      expect(
+        el().querySelector('.nec-progress-label')?.textContent?.trim()
+      ).toBe('25%');
+    });
+
+    it('albero IndexedDB: ogni tipo di nodo usa il proprio markup', () => {
+      const tree = el().querySelector('p-tree') as HTMLElement;
+      expect(tree.textContent).toContain('app');
+      expect(tree.textContent).toContain('1 record');
+      expect(tree.querySelector('code')?.textContent).toContain('rec-1');
+      expect(tree.querySelector('.nec-note')?.textContent).toContain('nota');
+    });
+  });
 });
