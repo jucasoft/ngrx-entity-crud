@@ -7,7 +7,7 @@
   "scripts": {
     "ng": "ng",
     "start": "nx serve",
-    "build": "nx build ngrx-entity-crud --skip-nx-cache && npm run build:schematics",
+    "build": "nx build ngrx-entity-crud --skip-nx-cache && npm run build:schematics && npm run check:compat",
     "testLibs": "nx test ngrx-entity-crud",
     "test": "nx test",
     "lint": "nx lint",
@@ -17,6 +17,7 @@
     "e2e": "nx e2e",
     "build:schematics": "nx run ngrx-entity-crud:build-schematics",
     "build:schematics:watch": "nx run ngrx-entity-crud:build-schematics:watch",
+    "check:compat": "node scripts/check-compat.js",
     "link": "nx run ngrx-entity-crud:link",
     "link:copy": "npm run build && node scripts/link-copy.js",
     "link:copy-only": "node scripts/link-copy.js",
