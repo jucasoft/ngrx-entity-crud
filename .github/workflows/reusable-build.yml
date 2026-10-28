@@ -17,7 +17,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24' # Angular 22 richiede Node ^22.22.3 || ^24.15.0: stessa major dello sviluppo
 
       - name: Cache npm dependencies
         uses: actions/cache@v5
