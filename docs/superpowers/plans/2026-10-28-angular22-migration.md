@@ -100,3 +100,23 @@
 ### Task 9: Bump versione
 
 - [ ] `libs/ngrx-entity-crud/package.json` → `22.0.0-beta.0`, commit `v22.0.0-beta.0` (nessun tag, nessun push).
+
+---
+
+## Esito dell'esecuzione (2026-10-28)
+
+- **Task 4-6 accorpati in un salto unico.** Le migrazioni di codice Angular 20/21 non avevano
+  nulla da cambiare (nessun `InjectFlags`, `TestBed.get`, `DOCUMENT`, API del router), e quelle
+  di `@angular/core@20/21` non sono pubblicate nel pacchetto v22. Il salto è stato fatto con
+  `nx migrate 24.0.2 --from=@nx/angular@21.1.0` (versioni target già installate), così Nx ha
+  incluso anche gli aggiornamenti Angular 20-22 saltati alla creazione del workspace. La run
+  agent-driven di Nx (75 migrazioni) è stata poi compattata in un solo commit.
+- **Scartate:** `@angular/core:safe-optional-chaining` e `nx:22-6-0-enable-analytics-prompt`;
+  annullate le modifiche di `change-detection-eager` ai template degli schematic.
+- **Emerso in esecuzione:** PrimeNG 22 ha tolto anche gli input `label`/`icon` di `pButton`
+  (38 bottoni ora con il contenuto `.p-button-icon`/`.p-button-label`); `createEntityAdapter` di
+  NgRx 22 richiede un cast di tipo; `@angular/animations` non arriva più come peer di PrimeNG;
+  Jest deve trasformare gli ESM `@primeui`, `@primeicons`, `magic-string`; con `isolatedModules`
+  gli spec usano `emitDecoratorMetadata: false`.
+- **TypeScript 6:** le opzioni deprecate restano silenziate con `ignoreDeprecations: "6.0"`
+  (migrazione Nx); sostituirle sarà necessario solo quando Angular supporterà TypeScript 7.

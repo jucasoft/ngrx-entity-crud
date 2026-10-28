@@ -8,11 +8,12 @@ This repo publishes the `ngrx-entity-crud` npm library: a wrapper around `@ngrx/
 
 ## Commands
 
-Run from the workspace root unless noted.
+Run from the workspace root unless noted. Requires Node `^22.22.3 || ^24.15.0` (Angular 22).
 
-- `npm run build` — builds the library AND its schematics (`nx build ngrx-entity-crud --skip-nx-cache && npm run build:schematics`). Output goes to `dist/ngrx-entity-crud`. The schematics step (`tsc -p dist/ngrx-entity-crud/tsconfig.schematics.json`) depends on the ng-packagr build having run first, so don't skip it.
+- `npm run build` — builds the library AND its schematics (`nx build ngrx-entity-crud --skip-nx-cache && npm run build:schematics`), then runs `npm run check:compat`. Output goes to `dist/ngrx-entity-crud`. The schematics step (`tsc -p dist/ngrx-entity-crud/tsconfig.schematics.json`) depends on the ng-packagr build having run first, so don't skip it.
+- `npm run check:compat` — `scripts/check-compat.js` fails if a FESM bundle in `dist/` would no longer link or render in an Angular 16 + PrimeNG 16 app (see "Compatibility constraints" below).
 - `npm run dev` / `npm run build:schematics:watch` — watch builds for library and schematics respectively.
-- `npm run testLibs` — runs the library's Jest tests (`nx test ngrx-entity-crud`). `npm test` runs Jest across all projects.
+- `npm run testLibs` — runs the library's Jest tests (`nx test ngrx-entity-crud`). `npm test` runs Jest across all projects. The `test` and `lint` targets are inferred by `@nx/jest/plugin` and `@nx/eslint/plugin` (registered in `nx.json`); `project.json` only overrides their options.
 - Single test: `npx nx test ngrx-entity-crud --testFile=<path>` or `--testNamePattern="<regex>"`.
 - `npm run lint` / `npm run lint:fix` — ESLint (flat config in `eslint.config.mjs`) over `*.ts` and `*.html` in the lib.
 - `npm run format` / `format:check` — Prettier across the repo.
@@ -61,6 +62,18 @@ Schematics are TypeScript sources compiled separately (see `tsconfig.schematics.
 - `auth` — opinionated authentication store + login views with a mock service.
 
 When editing schematics, remember the templates under `files/` use Angular schematics template syntax (`__name@dasherize__`, `<% if (...) { %>`) — they are NOT compiled TypeScript, so don't try to typecheck them as project code.
+
+### Compatibility constraints (Angular 16 / PrimeNG 16 consumers)
+
+The workspace is on Angular 22 / NgRx 22 / PrimeNG 22, but the published bundles are linked by the consumer app's own compiler, and the reference consumer is Angular 16.2 + PrimeNG 16. `npm run check:compat` enforces the rules it can see in `dist/`:
+
+- Every `ɵɵngDeclare*` must keep `minVersion` ≤ 14.0.0: no `@if`/`@for`/`@switch`/`@defer`, no `input()`/`model()`/`output()` or signal queries. Use `*ngIf`/`*ngFor` + `CommonModule`.
+- Components are `ChangeDetectionStrategy.OnPush` only: Angular 22 emits `Default` as `Eager`, a member the Angular 16 linker rejects.
+- PrimeNG classes AND selectors must be identical in v16 and v22 (selector matching is case-sensitive). Not usable: `p-message`, `p-sortIcon`, `p-tableCheckbox`, `p-tableHeaderCheckbox`, `p-progressBar` (replaced by own markup), `pButtonLabel`/`pButtonIcon` (missing in v16).
+- PrimeNG 22 reads only template refs: every `<ng-template pTemplate="x">` also carries `#x`; `p-tree` keeps the per-type `pTemplate`s plus a single `#node`.
+- `pButton` has no `label`/`icon` inputs in v22: put `<span class="p-button-icon p-button-icon-left pi pi-…" aria-hidden="true">` and `<span class="p-button-label">` inside the button (the markup PrimeNG 16 generated); icon-only buttons add `p-button-icon-only`.
+- Angular 22 supports only TypeScript 6.0: the tsconfigs use `ignoreDeprecations: "6.0"` with the TypeScript 5 defaults pinned (`strict: false`, …).
+- After `nx migrate`, revert anything the Angular migrations changed under `schematics/*/files/**` (`tsconfig.lib.json` includes `**/*.ts`, so they scan the EJS templates, which generate code for Angular 16+ apps), and never run `@angular/core:safe-optional-chaining` (it wraps template `?.` in `$safeNavigationMigration`).
 
 ### Build pipeline quirks
 

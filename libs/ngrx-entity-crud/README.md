@@ -8,6 +8,18 @@ Commands for code generation:
 - `auth`: Generates a boilerplate for authentication implementation containing an `store section` and `components` file.
 - `lazy-report`: Scans the project and reports which stores are good candidates to become lazy.
 
+# Compatibility
+
+The package is built with Angular 22, NgRx 22 and PrimeNG 22, but it is still linked and run by
+older apps:
+
+- core entry-point `ngrx-entity-crud`: Angular / NgRx 11 → 22 (peer ranges);
+- `persistence`, `persistence-ui`, `devtools`, `ui`, `form-clipboard`: Angular ≥ 16 (signals,
+  `inject`, standalone components); the PrimeNG-based ones also need `primeng` ≥ 16 (optional peer).
+
+Every build checks the bundles against Angular 16 + PrimeNG 16 (`npm run check:compat`, see
+`scripts/check-compat.js`).
+
 # How to use it?
 
 To create your first project, follow this [guide](https://github.com/jucasoft/ngrx-entity-crud-prime-ng-boilerplate).
@@ -491,8 +503,9 @@ tested), not in generated code.
 `pButton` directive), so the `ngrx-entity-crud/devtools` entry-point requires `primeng` and
 `primeicons` in your app (declared as **optional** peerDependencies — the core entry-point does
 not need them). The component uses the `pButton` severity _classes_ and the `success`/`info`/
-`danger` tag severities, an idiom compatible with PrimeNG 16 (the consumer baseline) through the
-later majors.
+`danger` tag severities, an idiom compatible with PrimeNG 16 (the consumer baseline) through
+PrimeNG 22: no component whose selector changed between those majors (own sort icons and quota
+bar), templates with both `pTemplate` and `#ref`, button labels/icons as content.
 
 By default it also generates `src/assets/lazy-report.json` (reusing `lazy-report --format=json`),
 which the dashboard reads at runtime to correlate the loaded/lazy state of each store, and
@@ -826,7 +839,7 @@ export class CoinMainComponent {
 | `quotaWarningThreshold`           | `number`              | Default `0.9`. Fraction of `storage.estimate()` above which the "storage almost full" tag appears.                                                                                                                                                        |
 | `feature`, `selectors`, `actions` |                       | **Deprecated**, kept for sections wired with previous betas: use `[persistence]`. `feature` must match _exactly_ the `feature` of the effects (an empty value logs a warning in dev mode).                                                                |
 
-Only `p-button`/`p-tag` (identical classes across PrimeNG v16→v19; `primeng` stays an optional peer
+Only `p-button`/`p-tag` (identical classes across PrimeNG v16→v22; `primeng` stays an optional peer
 dependency). When there's nothing saved locally it just renders the projected button; with local
 data present it shows a summary (`"100 results saved, 12 unsent changes, 340 KB — yesterday 18:42"`)
 with `Restore`/`New search` (inline Yes/Cancel confirmation, since it discards unsent work); if
@@ -968,7 +981,7 @@ to drive a different renderer with it.
 
 ## Running unit tests
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+Run `npm run testLibs` (from the workspace root) to execute the unit tests via Jest.
 
 ## Help
 

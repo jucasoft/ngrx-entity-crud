@@ -8,6 +8,26 @@ Non sono incluse le versioni stabili (es. `v19.2.6`, `v19.1.0`, ecc.) né i comm
 a un bump di versione senza altro contenuto — per quelli vedi `git log` / `git tag`. Ogni voce
 riporta lo short hash del commit tra parentesi.
 
+## 22.0.0-beta.0 — toolchain Angular 22
+
+La libreria si compila ora con Angular 22.2, NgRx 22, PrimeNG 22, Nx 24 e TypeScript 6.0, ma resta
+linkabile ed eseguibile dalle app su Angular 16+ / PrimeNG 16+ (`minVersion` ≤ 14 in ogni bundle,
+verificato da `npm run build` con `scripts/check-compat.js`). Per un progetto consumer:
+
+- **peerDependencies** — Angular, devkit e NgRx accettano anche `^20`, `^21` e `^22`.
+- **UI degli entry point PrimeNG** (`devtools`, `form-clipboard`, `persistence-ui`) — PrimeNG 22 ha
+  tolto i selettori camelCase (`p-sortIcon`, `p-tableCheckbox`, `p-tableHeaderCheckbox`,
+  `p-progressBar`), la lettura di `pTemplate` e gli input `label`/`icon` di `pButton`. Al loro
+  posto: icone di sort `pi` lette dallo stato della `p-table`, `p-checkbox` gestite dai dialog
+  form-clipboard, barra della quota con markup proprio, template con `pTemplate` + `#ref`, e
+  label/icona dei bottoni come contenuto (lo stesso markup che generava PrimeNG 16). L'aspetto è
+  invariato a meno delle icone di sort, ora a font (`primeicons`) anziché SVG.
+- **Codice generato dagli schematic** — invariato: continua a puntare ad Angular 16+.
+
+Per chi sviluppa la libreria: Node `^22.22.3 || ^24.15.0` (requisito di Angular 22), target
+`lint`/`test` inferiti dai plugin Nx (i comandi `npm run lint`/`testLibs` non cambiano), ESLint 10,
+Prettier 3, Jest 30. Dettagli in `docs/superpowers/plans/2026-10-28-angular22-migration.md`.
+
 ## Migrazione da v19.2.6 (ultima stabile) a 19.4.0
 
 Cambi da conoscere prima di aggiornare un progetto consumer. Dettagli e test consigliati in
