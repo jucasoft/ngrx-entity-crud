@@ -15,6 +15,10 @@ linkabile ed eseguibile dalle app su Angular 16+ / PrimeNG 16+ (`minVersion` ≤
 verificato da `npm run build` con `scripts/check-compat.js`). Per un progetto consumer:
 
 - **peerDependencies** — Angular, devkit e NgRx accettano anche `^20`, `^21` e `^22`.
+- **Import profondi non più disponibili (breaking)** — ng-packagr 22 pubblica un solo file di tipi
+  per entry point, quindi `ngrx-entity-crud/lib/...` non esiste più: importare dal pacchetto, es.
+  `import { OptRequest, IBaseCrudService } from 'ngrx-entity-crud'` (`IBaseCrudService` ora è
+  esportato; prima era raggiungibile solo da `ngrx-entity-crud/lib/ibase-crud-service`).
 - **UI degli entry point PrimeNG** (`devtools`, `form-clipboard`, `persistence-ui`) — PrimeNG 22 ha
   tolto i selettori camelCase (`p-sortIcon`, `p-tableCheckbox`, `p-tableHeaderCheckbox`,
   `p-progressBar`), la lettura di `pTemplate` e gli input `label`/`icon` di `pButton`. Al loro
